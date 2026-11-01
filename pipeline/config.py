@@ -38,6 +38,6 @@ PARCEL_MAX_AGE_DAYS = 7     # palstat haetaan uudelleen viikon välein; muuten k
 BUILDING_MINZOOM = 12
 # Tiheysruudut (koko metreinä) ja zoomitasot, joilla kukin näkyy.
 DENSITY_GRIDS = [
-    {"size": 5000, "minzoom": 0, "maxzoom": 8},
-    {"size": 1000, "minzoom": 9, "maxzoom": BUILDING_MINZOOM - 1},
+    {"size": 5000, "minzoom": 0, "maxzoom": 9},
+    {"size": 1000, "minzoom": 10, "maxzoom": BUILDING_MINZOOM - 1},
 ]

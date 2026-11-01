@@ -129,15 +129,17 @@ function addDataLayers() {
       "circle-color": css("--grid"),
       "circle-opacity": 0.55,
       "circle-stroke-color": halo, "circle-stroke-width": 1, "circle-stroke-opacity": 0.8,
+      // säde mitoitettu ruutujen väliin, jotta ympyrät eivät peitä toisiaan (5 km ruudut z≤9, 1 km z10–11)
       "circle-radius": ["interpolate", ["linear"], ["zoom"],
-        4, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 2, 30, 9, 150, 22],
-        8, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 4, 30, 16, 150, 34],
-        9, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 3, 10, 9, 40, 20],
-        11.9, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 6, 10, 20, 40, 40]],
+        5, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 0.8, 45, 2.5],
+        8, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 1.8, 45, 8.5],
+        9.99, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 3, 45, 16],
+        10, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 1.5, 22, 3.4],
+        11.99, ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 2.5, 22, 6.8]],
     },
   });
   map.addLayer({
-    id: "g-n", type: "symbol", source: "talot", "source-layer": "g", minzoom: 8, maxzoom: minZoomB(),
+    id: "g-n", type: "symbol", source: "talot", "source-layer": "g", minzoom: 8.5, maxzoom: 10,
     filter: [">=", ["get", "n"], 10],
     layout: { "text-field": ["to-string", ["get", "n"]], "text-size": 11, "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
     paint: { "text-color": css("--ink"), "text-halo-color": halo, "text-halo-width": 1.2 },

@@ -22,7 +22,7 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
   `g` kerrosala, `t` kokonaisala, `f` kerroksia, `n` asuntoja, `c` asuinrakennuksia samalla kiinteistöllä,
   `pa` palstan ala m², `ka` kiinteistön ala m², `pn` palstoja, `ex`/`ny` ETRS-TM35FIN.
   Puuttuvat arvot jätetään pois (suodattimet käyttävät `has`).
-- Taso `g` (zoom 0–11): tiheysruudut 5 km (z0–8) ja 1 km (z9–11), ominaisuus `n` = rakennusten määrä.
+- Taso `g` (zoom 0–11): tiheysruudut 5 km (z0–9) ja 1 km (z10–11), ominaisuus `n` = rakennusten määrä.
 
 ## Päätökset
 
