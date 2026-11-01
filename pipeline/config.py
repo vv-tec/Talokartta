@@ -13,7 +13,7 @@ EXCLUDED_STATUS = {"06", "07", "08"}
 RYHTI_BASE = "https://paikkatiedot.ymparisto.fi/geoserver/ryhti_building/ogc/features/v1/collections"
 MML_CP_WFS = "https://inspire-wfs.maanmittauslaitos.fi/inspire-wfs/cp/ows"
 
-USER_AGENT = "talokartta-data/1.0 (+https://github.com/; avoimen datan karttapalvelu)"
+USER_AGENT = "talokartta-data/1.0 (+https://github.com/vv-tec/talokartta)"
 
 # Kiinteistöpalstojen haku tehdään ruuduittain (metreinä, ETRS-TM35FIN).
 PARCEL_TILE_M = 2000
