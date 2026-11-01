@@ -34,7 +34,15 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
 ## Tiekartta
 
 1. ✅ Tammela uudella rakenteella (karttatiilet, taustakartta, zoomausraja, yöllinen päivitys).
-2. Koko Suomi: kuntalista → kaikki kunnat; palstat koko maasta tiedostolatauksena (MML kiinteistörekisterikartta, GeoPackage) WFS-ruutujen sijaan; tarvittaessa rinnakkaisuus ja suurempi ajokone. GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
+2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
+   - Ryhti: koko maa haetaan kerran, sen jälkeen öisin vain muuttuneet rakennukset ja osoitteet
+     (`modified_timestamp_utc` > edellisen ajon aika). Edellinen tila tallennetaan ajojen välillä
+     (esim. GitHub Releasen liitteenä tai Actions-välimuistissa). Täysi uudelleenhaku harvoin varmistukseksi, esim. kuukausittain.
+   - MML: palstat koko maasta yhtenä tiedostolatauksena (kiinteistörekisterikartta, GeoPackage) WFS-ruutuhakujen sijaan,
+     kerran viikossa riittää. Selvitä, vaatiiko tiedostopalvelu ilmaisen API-avaimen (→ GitHub Secret).
+   - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
+   - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
+   - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
 3. Ilmoitus omistajalle, jos yöajo epäonnistuu.
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste.
