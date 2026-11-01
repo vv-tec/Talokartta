@@ -12,6 +12,8 @@ const STATUS = {
   "02": "Toimitila- tai tuotantokäyttö", "10": "Käytöstä ei tietoa", "11": "Muu (sauna, liiteri yms.)",
   "09": "Hylätty (ränsistynyt)", "": "Ei tietoa",
 };
+// numeroavaimet ("10", "11") järjestyisivät muuten ensimmäisiksi
+const ORDER = { types: ["05", "06", "01"], status: ["01", "03", "04", "05", "02", "09", "11", "10", ""] };
 const STATUS_COLOR = { "01": "--s-01", "03": "--s-03", "05": "--s-05", "11": "--s-11" };
 const PLOT_STOPS = [0, 500, 1000, 1500, 2000, 3000, 5000, 10000, 20000, 50000, Infinity];
 const GFA_STOPS = [0, 50, 80, 100, 120, 150, 200, 300, 500, 1000, Infinity];
@@ -65,9 +67,9 @@ function makeRange(el, stops, fmt, onChange) {
   return r;
 }
 
-function buildChecks(el, labels, set, colorVar) {
+function buildChecks(el, labels, set, colorVar, order) {
   el.innerHTML = "";
-  Object.entries(labels).forEach(([k, label]) => {
+  (order || Object.keys(labels)).map((k) => [k, labels[k]]).forEach(([k, label]) => {
     const lab = document.createElement("label");
     lab.innerHTML = `<input type="checkbox" checked><span class="sw"></span><span>${esc(label)}</span><span class="n"></span>`;
     lab.querySelector(".sw").style.background = `var(${colorVar(k)})`;
@@ -301,8 +303,8 @@ function initControls() {
   ranges.year = makeRange($("yearR"), years, (v) => String(v), applyFilters);
   ranges.plot = makeRange($("plotR"), PLOT_STOPS, (v, side) => v === Infinity ? "ei ylärajaa" : fmtArea(v), applyFilters);
   ranges.gfa = makeRange($("gfaR"), GFA_STOPS, (v) => v === Infinity ? "ei ylärajaa" : `${nf.format(v)} m²`, applyFilters);
-  buildChecks($("typeChecks"), TYPES, state.types, typeColor);
-  buildChecks($("statusChecks"), STATUS, state.status, statusColor);
+  buildChecks($("typeChecks"), TYPES, state.types, typeColor, ORDER.types);
+  buildChecks($("statusChecks"), STATUS, state.status, statusColor, ORDER.status);
   const counts = (box, by) => box.querySelectorAll("label").forEach((l) => { l.querySelector(".n").textContent = by?.[l.dataset.k] ? nf.format(by[l.dataset.k]) : ""; });
   counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status);
   // piilota käytössäolotilat, joita aineistossa ei ole
@@ -317,8 +319,8 @@ function initControls() {
     Object.values(ranges).forEach((r) => r.reset());
     state.types = new Set(Object.keys(TYPES)); state.status = new Set(Object.keys(STATUS));
     document.querySelectorAll(".checks input").forEach((i) => { i.checked = true; });
-    buildChecks($("typeChecks"), TYPES, state.types, typeColor);
-    buildChecks($("statusChecks"), STATUS, state.status, statusColor);
+    buildChecks($("typeChecks"), TYPES, state.types, typeColor, ORDER.types);
+    buildChecks($("statusChecks"), STATUS, state.status, statusColor, ORDER.status);
     counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status);
     if (META?.by_status) $("statusChecks").querySelectorAll("label").forEach((l) => { if (!META.by_status[l.dataset.k]) l.hidden = true; });
     applyFilters();
