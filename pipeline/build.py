@@ -123,7 +123,8 @@ def write_lines(path, feats):
 def make_tiles(work, out_file):
     cmd = [
         "tippecanoe", "-o", out_file, "--force", "--quiet",
-        "-Z0", "-z14", "-r1", "--no-feature-limit", "--no-tile-size-limit",
+        # -B0: kaikki pisteet mukaan kaikilla zoomeilla (tippecanoe 2.49:n -r1 jätti vain yhden pisteen per tiili)
+        "-Z0", "-z14", "-B0", "--no-feature-limit", "--no-tile-size-limit",
         "-n", "Talokartta",
         "--attribution", "SYKE Ryhti (CC BY 4.0), Maanmittauslaitos (CC BY 4.0)",
         "-L", json.dumps({"file": os.path.join(work, "b.geojsonl"), "layer": "b"}),

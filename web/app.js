@@ -99,6 +99,7 @@ function colorExpr() {
 /* ---------- kartta ---------- */
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
+const HAD_VIEW = location.hash.includes("kartta=");  // jaettu linkki, jossa on valmis karttanäkymä
 const DATA_URL = "pmtiles://" + new URL("data/talot.pmtiles", location.href).href;
 
 const map = new maplibregl.Map({
@@ -333,7 +334,7 @@ fetch("data/meta.json", { cache: "no-cache" })
     if (m) {
       const d = new Date(m.updated);
       $("updated").textContent = `Tiedot päivitetty ${d.toLocaleDateString("fi-FI")} klo ${d.toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}.`;
-      if (!location.hash.includes("kartta=")) map.fitBounds([[m.bounds[0], m.bounds[1]], [m.bounds[2], m.bounds[3]]], { padding: 40, duration: 0 });
+      if (!HAD_VIEW) map.fitBounds([[m.bounds[0], m.bounds[1]], [m.bounds[2], m.bounds[3]]], { padding: 40, duration: 0 });
     } else {
       toast("Aineiston tietoja ei saatu ladattua.");
     }
