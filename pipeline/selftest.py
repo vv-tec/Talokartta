@@ -60,8 +60,9 @@ def run():
     assert p0["pa"] == 9900 and p0["ka"] == 12400 and p0["pn"] == 2 and p0["c"] == 1, p0
     assert "y" not in p1 and "pa" not in p1 and "k" not in p1, p1
 
-    g = build.density([(1050, 1050, 0, 0, {}), (1060, 1060, 0, 0, {}), (9000, 9000, 0, 0, {})])
-    assert sum(f["properties"]["n"] for f in g) == 6  # kaksi ruutukokoa
+    g = build.density([(1050, 1050, 0, 0, {}), (1060, 1060, 0, 0, {}), (9000, 9000, 0, 0, {})], 1000)
+    assert len(g) == 2 and sorted(f["properties"]["n"] for f in g) == [1, 2]
+    assert all("tippecanoe" not in f for f in build.building_features(recs))
     print("selftest OK")
 
 

@@ -88,19 +88,17 @@ def make_records(buildings, addresses, parcels):
     return out
 
 
-def density(records):
+def density(records, size):
+    """Tiheysruudut: rakennusten määrä kussakin size×size-metrin ruudussa, piste ruudun keskellä."""
     feats = []
-    for cfg in config.DENSITY_GRIDS:
-        s = cfg["size"]
-        cells = Counter((int(x // s), int(y // s)) for x, y, *_ in records)
-        for (i, j), n in cells.items():
-            lat, lon = tm35_to_latlon((i + 0.5) * s, (j + 0.5) * s)
-            feats.append({
-                "type": "Feature",
-                "tippecanoe": {"minzoom": cfg["minzoom"], "maxzoom": cfg["maxzoom"]},
-                "properties": {"n": n, "s": s},
-                "geometry": {"type": "Point", "coordinates": [round(lon, 6), round(lat, 6)]},
-            })
+    cells = Counter((int(x // size), int(y // size)) for x, y, *_ in records)
+    for (i, j), n in cells.items():
+        lat, lon = tm35_to_latlon((i + 0.5) * size, (j + 0.5) * size)
+        feats.append({
+            "type": "Feature",
+            "properties": {"n": n, "s": size},
+            "geometry": {"type": "Point", "coordinates": [round(lon, 6), round(lat, 6)]},
+        })
     return feats
 
 
@@ -108,7 +106,6 @@ def building_features(records):
     for x, y, lat, lon, props in records:
         yield {
             "type": "Feature",
-            "tippecanoe": {"minzoom": config.BUILDING_MINZOOM},
             "properties": props,
             "geometry": {"type": "Point", "coordinates": [round(lon, 6), round(lat, 6)]},
         }
@@ -121,16 +118,21 @@ def write_lines(path, feats):
 
 
 def make_tiles(work, out_file):
-    cmd = [
-        "tippecanoe", "-o", out_file, "--force", "--quiet",
-        # -B0: kaikki pisteet mukaan kaikilla zoomeilla (tippecanoe 2.49:n -r1 jätti vain yhden pisteen per tiili)
-        "-Z0", "-z14", "-B0", "--no-feature-limit", "--no-tile-size-limit",
-        "-n", "Talokartta",
-        "--attribution", "SYKE Ryhti (CC BY 4.0), Maanmittauslaitos (CC BY 4.0)",
-        "-L", json.dumps({"file": os.path.join(work, "b.geojsonl"), "layer": "b"}),
-        "-L", json.dumps({"file": os.path.join(work, "g.geojsonl"), "layer": "g"}),
-    ]
-    log("tippecanoe:", " ".join(cmd))
+    """Jokainen taso tehdään omana ajonaan omille zoomeilleen ja yhdistetään lopuksi.
+    (Ominaisuuskohtaiset "tippecanoe"-zoomit saivat tippecanoe 2.49:n jättämään vain yhden pisteen tiiltä kohden.)"""
+    parts = [("b", "b.geojsonl", config.BUILDING_MINZOOM, 14)]
+    parts += [("g", f"g{c['size']}.geojsonl", c["minzoom"], c["maxzoom"]) for c in config.DENSITY_GRIDS]
+    mbt = []
+    for layer, src, zmin, zmax in parts:
+        out = os.path.join(work, src.replace(".geojsonl", ".mbtiles"))
+        cmd = ["tippecanoe", "-o", out, "--force", "--quiet", f"-Z{zmin}", f"-z{zmax}", "-r1",
+               "--no-feature-limit", "--no-tile-size-limit", "-l", layer, os.path.join(work, src)]
+        log(" ".join(cmd))
+        subprocess.run(cmd, check=True)
+        mbt.append(out)
+    cmd = ["tile-join", "-o", out_file, "--force", "--quiet", "--no-tile-size-limit",
+           "-n", "Talokartta", "-A", "SYKE Ryhti (CC BY 4.0), Maanmittauslaitos (CC BY 4.0)", *mbt]
+    log(" ".join(cmd))
     subprocess.run(cmd, check=True)
 
 
@@ -182,11 +184,18 @@ def main(argv=None):
         sys.exit(f"Liian vähän rakennuksia ({len(records)}); jotain meni pieleen, julkaisua ei tehdä.")
 
     write_lines(os.path.join(args.work, "b.geojsonl"), building_features(records))
-    write_lines(os.path.join(args.work, "g.geojsonl"), density(records))
+    for c in config.DENSITY_GRIDS:
+        write_lines(os.path.join(args.work, f"g{c['size']}.geojsonl"), density(records, c["size"]))
     make_tiles(args.work, os.path.join(args.out, "data", "talot.pmtiles"))
     with open(os.path.join(args.out, "data", "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta(records, config.MUNICIPALITIES), f, ensure_ascii=False)
     shutil.copytree(os.path.join(ROOT, "web"), args.out, dirs_exist_ok=True)
+    # versionumero tiedostonimiin, jotta selaimet hakevat päivitetyn sivun eivätkä käytä vanhaa välimuistista
+    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")
+    idx = os.path.join(args.out, "index.html")
+    html = open(idx, encoding="utf-8").read()
+    html = html.replace('src="app.js"', f'src="app.js?v={stamp}"').replace('href="style.css"', f'href="style.css?v={stamp}"')
+    open(idx, "w", encoding="utf-8").write(html)
     log("Sivusto valmis:", args.out)
 
 
