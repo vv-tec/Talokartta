@@ -25,7 +25,7 @@ def _ring(el):
 
 
 def parse_parcels(xml_text):
-    """Palauttaa (featureCount, [ {id, ref, rings:[[(x,y)...], ...] (ensimmäinen ulkorengas)} ])."""
+    """Palauttaa (osumien määrä (numberMatched, jos tiedossa), [ {id, ref, rings:[[(x,y)...], ...] (ensimmäinen ulkorengas)} ])."""
     root = ET.fromstring(xml_text)
     out = []
     for cpel in root.iter("{%s}CadastralParcel" % NS["cp"]):
@@ -46,7 +46,8 @@ def parse_parcels(xml_text):
         if lid and ref and polys:
             out.append({"id": lid, "ref": ref, "polys": polys})
     n = sum(1 for _ in root.iter("{%s}member" % NS["wfs"]))
-    return n, out
+    matched = root.get("numberMatched", "")
+    return (max(n, int(matched)) if matched.isdigit() else n), out
 
 
 def ring_area(r):

@@ -17,7 +17,7 @@ USER_AGENT = "talokartta-data/1.0 (+https://github.com/; avoimen datan karttapal
 
 # Kiinteistöpalstojen haku tehdään ruuduittain (metreinä, ETRS-TM35FIN).
 PARCEL_TILE_M = 2000
-PARCEL_PAGE = 3000          # kuinka monta palstaa yhdellä pyynnöllä enintään
+PARCEL_PAGE = 1000          # kuinka monta palstaa yhdellä pyynnöllä enintään (palvelun tuettu koko)
 PARCEL_BBOX_PAD_M = 3000    # haetaan palstoja myös rakennusten alueen ympäriltä
 
 # Karttatiilet: yksittäiset rakennukset näkyvät tästä zoomitasosta alkaen.
