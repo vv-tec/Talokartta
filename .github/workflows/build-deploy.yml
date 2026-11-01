@@ -1,0 +1,57 @@
+name: Päivitä tiedot ja julkaise
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 2 * * *"   # joka yö noin klo 4–5 Suomen aikaa
+  workflow_dispatch:        # käsin: Actions → "Päivitä tiedot ja julkaise" → Run workflow
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Asenna työkalut
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q tippecanoe
+          pip install -r pipeline/requirements.txt
+
+      - name: Pikatestit
+        run: python -m pipeline.selftest
+
+      - name: Hae rekisteritiedot ja tee karttatiilet
+        run: python -m pipeline.build --out dist --work work
+
+      - name: Koko
+        run: ls -la dist dist/data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

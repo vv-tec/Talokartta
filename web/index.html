@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Talokartta</title>
+<meta name="description" content="Asuinrakennukset kartalla: rakennusvuosi, pinta-alat, tontit ja kiinteistötunnukset avoimista rekistereistä.">
+<meta name="theme-color" content="#2d5c55" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141a19" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Talokartta">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <img src="img/icon-192.png" alt="" width="34" height="34">
+      <div>
+        <h1>Talokartta</h1>
+        <p id="sub">Asuinrakennukset avoimista rekistereistä</p>
+      </div>
+    </div>
+    <button type="button" id="filtersBtn" class="btn only-mobile" aria-controls="panel" aria-expanded="false">Suodattimet<span id="fcount" class="badge" hidden></span></button>
+  </header>
+
+  <aside id="panel" class="panel" aria-label="Suodattimet">
+    <div class="panel-h only-mobile">
+      <h2>Suodattimet</h2>
+      <button type="button" id="panelClose" class="x" aria-label="Sulje suodattimet">×</button>
+    </div>
+    <section class="sum" aria-live="polite">
+      <div class="big" id="visCount">–</div>
+      <div id="visLabel" class="muted">ladataan…</div>
+    </section>
+    <section>
+      <h3>Valmistumisvuosi</h3>
+      <div class="range" id="yearR"></div>
+    </section>
+    <section>
+      <h3>Palstan ala</h3>
+      <div class="range" id="plotR"></div>
+    </section>
+    <section>
+      <h3>Kerrosala</h3>
+      <div class="range" id="gfaR"></div>
+    </section>
+    <section>
+      <h3>Rakennustyyppi</h3>
+      <div id="typeChecks" class="checks"></div>
+    </section>
+    <section>
+      <h3>Käytössäolo</h3>
+      <div id="statusChecks" class="checks"></div>
+    </section>
+    <section>
+      <h3>Värit</h3>
+      <div class="seg" role="group" aria-label="Pisteiden väritys">
+        <button type="button" data-mode="type" aria-pressed="true">Tyypin mukaan</button>
+        <button type="button" data-mode="status" aria-pressed="false">Käytön mukaan</button>
+      </div>
+    </section>
+    <button type="button" id="reset" class="btn wide">Tyhjennä suodattimet</button>
+    <p class="src" id="src">
+      Rakennukset ja osoitteet: <a href="https://ryhti.syke.fi/" target="_blank" rel="noopener">SYKE, Ryhti</a> (CC BY 4.0).
+      Kiinteistöt: <a href="https://www.maanmittauslaitos.fi/" target="_blank" rel="noopener">Maanmittauslaitos</a> (CC BY 4.0),
+      palstojen alat laskettu rajoista. Taustakartta: <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>,
+      © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMapin tekijät</a>.
+      <span id="updated"></span>
+    </p>
+  </aside>
+
+  <main id="map" aria-label="Kartta"></main>
+  <div id="hint" class="hint" hidden>Lähennä nähdäksesi yksittäiset rakennukset</div>
+  <article id="card" class="card" hidden aria-live="polite"></article>
+  <div id="toast" class="toast" role="status" hidden></div>
+</div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
