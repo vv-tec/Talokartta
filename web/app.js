@@ -334,6 +334,7 @@ fetch("data/meta.json", { cache: "no-cache" })
     META = m;
     initControls();
     if (m) {
+      if (m.title) $("sub").textContent = m.title;
       const d = new Date(m.updated);
       $("updated").textContent = `Tiedot päivitetty ${d.toLocaleDateString("fi-FI")} klo ${d.toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}.`;
       if (!HAD_VIEW) map.fitBounds([[m.bounds[0], m.bounds[1]], [m.bounds[2], m.bounds[3]]], { padding: 40, duration: 0 });

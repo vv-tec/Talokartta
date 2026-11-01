@@ -63,6 +63,27 @@ def run():
     g = build.density([(1050, 1050, 0, 0, {}), (1060, 1060, 0, 0, {}), (9000, 9000, 0, 0, {})], 1000)
     assert len(g) == 2 and sorted(f["properties"]["n"] for f in g) == [1, 2]
     assert all("tippecanoe" not in f for f in build.building_features(recs))
+    # palstojen välimuisti: toinen ajo ei hae uudelleen, vanhentunut hakee
+    import datetime as dt, tempfile, os
+    calls = []
+    orig = mml._fetch_box
+    mml._fetch_box = lambda *box: calls.append(box) or [dict(p) for p in parcels]
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "parcels.json.gz")
+            day = dt.date(2026, 11, 1)
+            c = mml.ParcelCache(path, 7, today=day, log=lambda *a: None)
+            got = c.get({(0, 0), (1, 0)}); c.save()
+            assert len(calls) == 2 and len(got) == 2
+            assert sorted(round(mml.parcel_area(p)) for p in got) == [2500, 9900]
+            c = mml.ParcelCache(path, 7, today=day + dt.timedelta(days=3), log=lambda *a: None)
+            assert len(c.get({(0, 0)})) == 2 and len(calls) == 2  # välimuistista
+            c.get({(0, 0), (5, 5)}); assert len(calls) == 3       # vain puuttuva ruutu haetaan
+            c = mml.ParcelCache(path, 7, today=day + dt.timedelta(days=8), log=lambda *a: None)
+            c.get({(0, 0)}); assert len(calls) == 4               # vanhentunut -> haetaan uudelleen
+            assert mml.tiles_for_bbox(0, 0, 4000, 2000) == {(0, 0), (1, 0)}
+    finally:
+        mml._fetch_box = orig
     print("selftest OK")
 
 

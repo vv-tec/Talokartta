@@ -146,6 +146,7 @@ def meta(records, municipalities):
         "municipalities": municipalities,
         "bounds": [min(lons), min(lats), max(lons), max(lats)],
         "years": [min(years), max(years)] if years else None,
+        "title": config.REGION_TITLE,
         "building_minzoom": config.BUILDING_MINZOOM,
         "by_type": Counter(r[4].get("p", "") for r in records),
         "by_status": Counter(r[4].get("s", "") for r in records),
@@ -156,29 +157,32 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="dist")
     ap.add_argument("--work", default="work")
+    ap.add_argument("--cache", default="cache")
     args = ap.parse_args(argv)
     os.makedirs(args.work, exist_ok=True)
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
 
-    records = []
+    blds, addrs, tiles = [], [], set()
+    pad = config.PARCEL_BBOX_PAD_M
     for m in config.MUNICIPALITIES:
-        log(f"Kunta {m}: rakennukset")
-        blds = [b for b in ryhti.buildings(m) if keep(b)]
-        log(f"  asuinrakennuksia {len(blds)}")
-        if not blds:
-            continue
-        log(f"Kunta {m}: osoitteet")
-        keys = {b.get("building_key") for b in blds}
-        addrs = [a for a in ryhti.addresses(m) if a.get("building_key") in keys]
-        log(f"  osoitteita {len(addrs)}")
-        pad = config.PARCEL_BBOX_PAD_M
-        xs, ys = [b["_x"] for b in blds], [b["_y"] for b in blds]
-        log(f"Kunta {m}: kiinteistöpalstat")
-        parcels = mml.parcels_in_bbox(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad, log=log)
-        recs = make_records(blds, addrs, parcels)
-        with_plot = sum(1 for r in recs if "pa" in r[4])
-        log(f"  valmis: {len(recs)} rakennusta, joista palsta löytyi {with_plot}")
-        records.extend(recs)
+        mb = [b for b in ryhti.buildings(m) if keep(b)]
+        if not mb:  # jokaisessa kunnassa on asuinrakennuksia; tyhjä tulos = haku epäonnistui
+            sys.exit(f"Kunta {m}: ei yhtään asuinrakennusta, julkaisua ei tehdä.")
+        keys = {b.get("building_key") for b in mb}
+        ma = [a for a in ryhti.addresses(m) if a.get("building_key") in keys]
+        log(f"Kunta {m}: {len(mb)} asuinrakennusta, {len(ma)} osoitetta")
+        blds += mb
+        addrs += ma
+        xs, ys = [b["_x"] for b in mb], [b["_y"] for b in mb]
+        tiles |= mml.tiles_for_bbox(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
+
+    log(f"Kiinteistöpalstat: {len(tiles)} hakuruutua")
+    cache = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS, log=log)
+    parcels = cache.get(tiles)
+    cache.save()
+    log(f"  palstoja käytössä {len(parcels)}")
+    records = make_records(blds, addrs, parcels)
+    log(f"Valmis: {len(records)} rakennusta, joista palsta löytyi {sum(1 for r in records if 'pa' in r[4])}")
 
     if len(records) < 100:
         sys.exit(f"Liian vähän rakennuksia ({len(records)}); jotain meni pieleen, julkaisua ei tehdä.")

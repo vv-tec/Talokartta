@@ -1,7 +1,20 @@
 """Data-ajon asetukset. Muuta tätä tiedostoa, kun kartan aluetta laajennetaan."""
 
-# Kunnat, joiden rakennukset haetaan (kuntanumerot). Vaihe 1: Tammela.
-MUNICIPALITIES = ["834"]
+# Alue ja kunnat, joiden rakennukset haetaan (kuntanumerot).
+REGION_TITLE = "Kanta-Hämeen asuinrakennukset"
+MUNICIPALITIES = [
+    "061",  # Forssa
+    "082",  # Hattula
+    "086",  # Hausjärvi
+    "103",  # Humppila
+    "109",  # Hämeenlinna
+    "165",  # Janakkala
+    "169",  # Jokioinen
+    "433",  # Loppi
+    "694",  # Riihimäki
+    "834",  # Tammela
+    "981",  # Ypäjä
+]
 
 # Ryhdin avoin rakennusluokitus (main_purpose), joka otetaan mukaan:
 # 01 = vapaa-ajan asuinrakennus, 05 = pientalo, 06 = kerrostalo
@@ -19,6 +32,7 @@ USER_AGENT = "talokartta-data/1.0 (+https://github.com/vv-tec/talokartta)"
 PARCEL_TILE_M = 2000
 PARCEL_PAGE = 1000          # kuinka monta palstaa yhdellä pyynnöllä enintään (palvelun tuettu koko)
 PARCEL_BBOX_PAD_M = 3000    # haetaan palstoja myös rakennusten alueen ympäriltä
+PARCEL_MAX_AGE_DAYS = 7     # palstat haetaan uudelleen viikon välein; muuten käytetään välimuistia
 
 # Karttatiilet: yksittäiset rakennukset näkyvät tästä zoomitasosta alkaen.
 BUILDING_MINZOOM = 12

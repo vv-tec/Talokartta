@@ -1,5 +1,9 @@
 """Kiinteistöpalstat Maanmittauslaitoksen INSPIRE-latauspalvelusta (WFS) sekä geometrialaskenta."""
+import datetime as dt
+import gzip
+import json
 import math
+import os
 import xml.etree.ElementTree as ET
 
 from .config import MML_CP_WFS, PARCEL_PAGE, PARCEL_TILE_M
@@ -102,19 +106,66 @@ def _fetch_box(x0, y0, x1, y1, depth=0):
     return parcels
 
 
-def parcels_in_bbox(x0, y0, x1, y1, log=print):
-    """Kaikki palstat, jotka leikkaavat aluetta. Haetaan ruuduittain ja poistetaan päällekkäiset."""
+def tiles_for_bbox(x0, y0, x1, y1):
+    """Hakuruudut (indeksit), jotka peittävät alueen."""
     t = PARCEL_TILE_M
-    xs = range(int(math.floor(x0 / t)), int(math.ceil(x1 / t)))
-    ys = range(int(math.floor(y0 / t)), int(math.ceil(y1 / t)))
-    total = len(xs) * len(ys)
-    seen = {}
-    for k, (i, j) in enumerate((i, j) for i in xs for j in ys):
-        for p in _fetch_box(i * t, j * t, (i + 1) * t, (j + 1) * t):
-            seen[p["id"]] = p
-        if (k + 1) % 50 == 0 or k + 1 == total:
-            log(f"  palstaruudut {k + 1}/{total}, palstoja {len(seen)}")
-    return list(seen.values())
+    return {(i, j) for i in range(int(math.floor(x0 / t)), int(math.ceil(x1 / t)))
+            for j in range(int(math.floor(y0 / t)), int(math.ceil(y1 / t)))}
+
+
+class ParcelCache:
+    """Palstat ruuduittain levylle tallennettuna, jotta niitä ei haeta joka yö uudelleen.
+
+    Rakenne: {"fetched": "YYYY-MM-DD", "tiles": {"i,j": [palsta-id, ...]}, "parcels": {id: {"ref", "polys"}}}
+    Jos välimuisti on vanhempi kuin max_age_days, kaikki haetaan uudelleen.
+    """
+
+    def __init__(self, path, max_age_days, today=None, log=print):
+        self.path, self.log = path, log
+        self.today = today or dt.date.today()
+        self.data = {"fetched": self.today.isoformat(), "tiles": {}, "parcels": {}}
+        if os.path.exists(path):
+            with gzip.open(path, "rt", encoding="utf-8") as f:
+                old = json.load(f)
+            age = (self.today - dt.date.fromisoformat(old["fetched"])).days
+            if age < max_age_days:
+                self.data = old
+                log(f"  palstat välimuistista ({len(old['tiles'])} ruutua, haettu {old['fetched']}, ikä {age} pv)")
+            else:
+                log(f"  palstavälimuisti on {age} pv vanha, haetaan kaikki uudelleen")
+        self.changed = False
+
+    def get(self, tiles):
+        t = PARCEL_TILE_M
+        missing = sorted(k for k in tiles if f"{k[0]},{k[1]}" not in self.data["tiles"])
+        if missing:
+            self.log(f"  haetaan {len(missing)} palstaruutua (välimuistissa {len(tiles) - len(missing)})")
+            self.changed = True
+        for n, (i, j) in enumerate(missing, 1):
+            ids = []
+            for p in _fetch_box(i * t, j * t, (i + 1) * t, (j + 1) * t):
+                polys = [[[(round(x, 2), round(y, 2)) for x, y in r] for r in rs] for rs in p["polys"]]
+                self.data["parcels"][p["id"]] = {"ref": p["ref"], "polys": polys}
+                ids.append(p["id"])
+            self.data["tiles"][f"{i},{j}"] = ids
+            if n % 100 == 0 or n == len(missing):
+                self.log(f"  palstaruudut {n}/{len(missing)}, palstoja yhteensä {len(self.data['parcels'])}")
+        ids = {pid for i, j in tiles for pid in self.data["tiles"][f"{i},{j}"]}
+        return [{"id": pid, "ref": self.data["parcels"][pid]["ref"],
+                 "polys": [[[tuple(c) for c in r] for r in rs] for rs in self.data["parcels"][pid]["polys"]]}
+                for pid in ids]
+
+    def stamp(self):
+        """Tunniste välimuistin versiolle (muuttuu, kun palstoja haetaan lisää tai uudelleen)."""
+        return f"{self.data['fetched']}-{len(self.data['tiles'])}"
+
+    def save(self):
+        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+        if self.changed or not os.path.exists(self.path):
+            with gzip.open(self.path, "wt", encoding="utf-8") as f:
+                json.dump(self.data, f, separators=(",", ":"))
+        with open(os.path.join(os.path.dirname(self.path) or ".", "parcels.stamp"), "w") as f:
+            f.write(self.stamp())
 
 
 class ParcelIndex:

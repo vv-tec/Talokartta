@@ -36,8 +36,27 @@ jobs:
       - name: Pikatestit
         run: python -m pipeline.selftest
 
+      # Kiinteistöpalstat säilytetään ajojen välillä (haetaan uudelleen viikon välein), jotta MML:n palvelua ei kuormiteta turhaan.
+      - name: Palauta palstojen välimuisti
+        uses: actions/cache/restore@v4
+        with:
+          path: cache
+          key: parcels-none
+          restore-keys: parcels-
+
       - name: Hae rekisteritiedot ja tee karttatiilet
-        run: python -m pipeline.build --out dist --work work
+        run: python -m pipeline.build --out dist --work work --cache cache
+
+      - name: Välimuistin tunniste
+        id: stamp
+        run: echo "v=$(cat cache/parcels.stamp)" >> "$GITHUB_OUTPUT"
+
+      - name: Tallenna palstojen välimuisti
+        uses: actions/cache/save@v4
+        continue-on-error: true   # sama versio on jo tallessa
+        with:
+          path: cache
+          key: parcels-${{ steps.stamp.outputs.v }}
 
       - name: Koko
         run: ls -la dist dist/data
