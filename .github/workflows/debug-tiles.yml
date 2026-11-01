@@ -1,0 +1,53 @@
+name: Vianetsintä – karttatiilet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          sudo apt-get update -q && sudo apt-get install -y -q tippecanoe
+          pip install -r pipeline/requirements.txt
+      - name: Data
+        run: python -m pipeline.build --out dist --work work || true
+      - name: Kokeilut
+        run: |
+          set -x
+          tippecanoe --version || true
+          wc -l work/*.geojsonl
+          head -c 600 work/b.geojsonl; echo
+          python3 - <<'EOF'
+          import json
+          for name in ("b", "g"):
+              src = f"work/{name}.geojsonl"
+              with open(src) as f, open(f"work/{name}-plain.geojsonl", "w") as o:
+                  for line in f:
+                      ft = json.loads(line); ft.pop("tippecanoe", None); o.write(json.dumps(ft) + "\n")
+          EOF
+          count() {
+            tippecanoe-decode -c "$1" 2>/dev/null | python3 -c '
+          import sys, json, collections
+          c = collections.Counter()
+          for line in sys.stdin:
+              line = line.strip().rstrip(",")
+              if not line.startswith("{"): continue
+              try: j = json.loads(line)
+              except Exception: continue
+              z = j.get("properties", {}).get("zoom")
+              for L in j.get("features", []):
+                  c[(z, L.get("properties", {}).get("layer"))] += len(L.get("features", []))
+          print(sorted(c.items()))'
+          }
+          tippecanoe -o A.pmtiles --force -Z0 -z14 -B0 --no-feature-limit --no-tile-size-limit -L b:work/b.geojsonl -L g:work/g.geojsonl; count A.pmtiles
+          tippecanoe -o B.pmtiles --force -Z12 -z14 -r1 --no-feature-limit --no-tile-size-limit -l b work/b-plain.geojsonl; count B.pmtiles
+          tippecanoe -o C.pmtiles --force -Z12 -z14 -B12 --no-feature-limit --no-tile-size-limit -l b work/b-plain.geojsonl; count C.pmtiles
+          tippecanoe -o D.mbtiles --force -Z12 -z14 -r1 --no-feature-limit --no-tile-size-limit -l b work/b-plain.geojsonl; count D.mbtiles
+          tippecanoe -o E.pmtiles --force -Z12 -z14 -r1 --no-feature-limit --no-tile-size-limit -P -l b work/b-plain.geojsonl; count E.pmtiles
+          tippecanoe -o F.pmtiles --force -Z12 -z14 -r1 --no-feature-limit --no-tile-size-limit --preserve-input-order -l b work/b-plain.geojsonl; count F.pmtiles
