@@ -33,7 +33,7 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
 
 ## Tiekartta
 
-1. (käynnissä) Tammela uudella rakenteella (karttatiilet, taustakartta, zoomausraja, yöllinen päivitys).
+1. ✅ Tammela uudella rakenteella (karttatiilet, taustakartta, zoomausraja, yöllinen päivitys).
 2. Koko Suomi: kuntalista → kaikki kunnat; palstat koko maasta tiedostolatauksena (MML kiinteistörekisterikartta, GeoPackage) WFS-ruutujen sijaan; tarvittaessa rinnakkaisuus ja suurempi ajokone. GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
 3. Ilmoitus omistajalle, jos yöajo epäonnistuu.
 4. Oma verkko-osoite.
