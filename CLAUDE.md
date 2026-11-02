@@ -39,7 +39,9 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
 2b. ✅ Uusimaa (26 kuntaa) lisätty `config.REGIONS`-rakenteeseen samalla WFS-välimuistimallilla. Yhteensä 361 423 rakennusta,
     ~593 000 palstaa, ensiajo ~34 min, tiilet 65 Mt. Tiilet jaettu maakunnittain (✅ 2.11.2026), joten uusi maakunta mahtuu.
     GitHub Pagesin koko sivuston raja on 1 Gt: koko Suomi (~300–400 Mt) mahtuu, mutta seuraa kokoa.
-2c. (käynnissä) Varsinais-Suomi (27 kuntaa). Palstojen viikoittainen täysi uudelleenhaku kasvaa ~10 000 ruutuun → MML-tiedostolataus seuraavaksi.
+2c. ✅ Varsinais-Suomi (27 kuntaa). Yhteensä 534 667 rakennusta, ~906 000 palstaa, 10 398 palstaruutua; ensiajo ~36 min.
+    Tiilet: Kanta-Häme 14 Mt, Uusimaa 51 Mt, Varsinais-Suomi 34 Mt. Palstojen viikoittainen täysi uudelleenhaku on nyt
+    ~10 000 WFS-pyyntöä (~1 h) → MML-tiedostolataus on seuraava työ ennen uusia maakuntia.
 2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
    - Ryhti: koko maa haetaan kerran, sen jälkeen öisin vain muuttuneet rakennukset ja osoitteet
      (`modified_timestamp_utc` > edellisen ajon aika). Edellinen tila tallennetaan ajojen välillä
