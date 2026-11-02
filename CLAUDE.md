@@ -36,7 +36,9 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
 
 1. ✅ Tammela uudella rakenteella (karttatiilet, taustakartta, zoomausraja, yöllinen päivitys).
 2a. ✅ Kanta-Häme (11 kuntaa, `config.MUNICIPALITIES`) välivaiheena: palstojen viikkovälimuisti WFS:lle. 72 948 rakennusta, ensiajo ~15 min, välimuistilla ~4 min, tiilet 14 Mt.
-2b. (käynnissä) Uusimaa (26 kuntaa) lisätty `config.REGIONS`-rakenteeseen samalla WFS-välimuistimallilla.
+2b. ✅ Uusimaa (26 kuntaa) lisätty `config.REGIONS`-rakenteeseen samalla WFS-välimuistimallilla. Yhteensä 361 423 rakennusta,
+    ~593 000 palstaa, ensiajo ~34 min, tiilet 65 Mt. **Seuraava maakunta ylittää GitHub Pagesin 100 Mt:n tiedostorajan →
+    ennen lisäämistä tiilet jaettava maakunnittain (useampi .pmtiles) tai siirrettävä R2:een.**
 2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
    - Ryhti: koko maa haetaan kerran, sen jälkeen öisin vain muuttuneet rakennukset ja osoitteet
      (`modified_timestamp_utc` > edellisen ajon aika). Edellinen tila tallennetaan ajojen välillä
