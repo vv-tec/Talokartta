@@ -43,8 +43,37 @@ REGIONS = {
         "858",  # Tuusula
         "927",  # Vihti
     ],
+    "Varsinais-Suomi": [
+        "019",  # Aura
+        "202",  # Kaarina
+        "284",  # Koski Tl
+        "304",  # Kustavi
+        "322",  # Kemiönsaari
+        "400",  # Laitila
+        "423",  # Lieto
+        "430",  # Loimaa
+        "445",  # Parainen
+        "480",  # Marttila
+        "481",  # Masku
+        "503",  # Mynämäki
+        "529",  # Naantali
+        "538",  # Nousiainen
+        "561",  # Oripää
+        "577",  # Paimio
+        "631",  # Pyhäranta
+        "636",  # Pöytyä
+        "680",  # Raisio
+        "704",  # Rusko
+        "734",  # Salo
+        "738",  # Sauvo
+        "761",  # Somero
+        "833",  # Taivassalo
+        "853",  # Turku
+        "895",  # Uusikaupunki
+        "918",  # Vehmaa
+    ],
 }
-REGION_TITLE = "Kanta-Hämeen ja Uudenmaan asuinrakennukset"
+REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
 
 # Ryhdin avoin rakennusluokitus (main_purpose), joka otetaan mukaan:
