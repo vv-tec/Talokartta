@@ -43,7 +43,11 @@ def run():
          "property_identifier": "83440400030064", "completion_date": "2004-07-05Z",
          "main_purpose": "http://uri.suomi.fi/codelist/rytj/avoin_rakennusluokitus/code/05",
          "usage_status": "http://uri.suomi.fi/codelist/vtj/rake_kaytossaolotilanne/code/01",
-         "gross_floor_area": 120, "total_area": 189, "number_of_storeys": 2, "apartment_count": 1},
+         "gross_floor_area": 120, "total_area": 189, "number_of_storeys": 2, "apartment_count": 1,
+         "material_of_load_bearing_structures": "http://uri.suomi.fi/codelist/rytj/kantavanrakenteenrakennusaine/code/04",
+         "facade_material": "http://uri.suomi.fi/codelist/rytj/julkisivunrakennusaine/code/00",
+         "heating_energy_source": "http://uri.suomi.fi/codelist/rytj/lammitysenergianlahde/code/1101",
+         "construction_method": ".../code/02", "volume": 450, "floor_area": 0, "is_protected": False},
         {"_x": 9000, "_y": 9000, "building_key": "k2", "permanent_building_identifier": "X",
          "property_identifier": "", "completion_date": None,
          "main_purpose": ".../code/01", "usage_status": ".../code/03"},
@@ -59,6 +63,10 @@ def run():
     assert p0["y"] == 2004 and p0["d"] == "2004-07-05" and p0["p"] == "05" and p0["s"] == "01"
     assert p0["pa"] == 9900 and p0["ka"] == 12400 and p0["pn"] == 2 and p0["c"] == 1, p0
     assert "y" not in p1 and "pa" not in p1 and "k" not in p1, p1
+    assert p0["m"] == "04" and "fa" not in p0 and p0["e"] == "1101" and p0["r"] == "02" and "h" not in p0, p0
+    assert p0["v"] == 450 and "ha" not in p0 and p0["sj"] == 0 and "sj" not in p1, p0
+    mt = build.meta(recs, [])
+    assert mt["by"]["m"] == {"04": 1, "": 1} and mt["by"]["e"]["1101"] == 1, mt["by"]
 
     g = build.density([(1050, 1050, 0, 0, {}), (1060, 1060, 0, 0, {}), (9000, 9000, 0, 0, {})], 1000)
     assert len(g) == 2 and sorted(f["properties"]["n"] for f in g) == [1, 2]

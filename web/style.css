@@ -76,6 +76,18 @@ h1, h2, h3 { font-family: var(--f-display); margin: 0; }
 .checks .sw { width: 11px; height: 11px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1.5px var(--halo), 0 0 0 2.5px var(--line); }
 .checks .n { margin-left: auto; font: 12px var(--f-data); color: var(--muted); }
 
+/* rakenne- ja lämmityssuodattimet: avattavat ryhmät */
+.cats { display: grid; gap: 4px; }
+.cat { border: 1px solid var(--line); border-radius: 10px; }
+.cat summary { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; list-style: none; font-weight: 600; }
+.cat summary::-webkit-details-marker { display: none; }
+.cat summary::after { content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .15s; }
+.cat[open] summary::after { transform: rotate(-135deg); }
+.cat .mark { font: 600 11px var(--f-body); background: var(--accent); color: var(--panel); border-radius: 999px; padding: 1px 7px; }
+.cat .checks { padding: 0 8px 8px; }
+.cat .tools { display: flex; gap: 12px; padding: 0 10px 6px; font-size: 13px; }
+.cat .tools button { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; }
+
 .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .seg button { flex: 1; border: 0; background: var(--panel); padding: 7px 6px; cursor: pointer; font-size: 14px; }
 .seg button + button { border-left: 1px solid var(--line); }
@@ -135,3 +147,4 @@ h1, h2, h3 { font-family: var(--f-display); margin: 0; }
 }
 @media (max-width: 340px) { .filters-btn .lbl { display: none; } }  /* hyvin kapea näyttö: pelkkä kuvake */
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
+.kv.txt dd { font-family: var(--f-body); font-size: 15px; }

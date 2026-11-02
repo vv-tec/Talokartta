@@ -31,7 +31,12 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
   `id` rakennustunnus, `k` kiinteistötunnus (834-404-3-64), `a` osoite(et) " / ", `pc` postinro, `po` postitoimipaikka,
   `p` tyyppi (01 vapaa-ajan, 05 pientalo, 06 kerrostalo), `s` käytössäolo (Ryhti-koodi), `d` valmistumispäivä, `y` vuosi,
   `g` kerrosala, `t` kokonaisala, `f` kerroksia, `n` asuntoja, `c` asuinrakennuksia samalla kiinteistöllä,
-  `pa` palstan ala m², `ka` kiinteistön ala m², `pn` palstoja, `ex`/`ny` ETRS-TM35FIN.
+  `pa` palstan ala m², `ka` kiinteistön ala m², `pn` palstoja, `ex`/`ny` ETRS-TM35FIN,
+  `m` runkomateriaali, `fa` julkisivu, `r` rakentamistapa, `h` lämmitystapa, `e` lämmitysenergia (Ryhti-koodit, "00" pois;
+  selitteet `web/app.js` CATS, koodistot.suomi.fi), `v` tilavuus, `ha` huoneistoala, `sj` suojeltu 1/0.
+  meta.json `by` = koodikenttien jakaumat (suodattimet näyttävät vain aineistossa esiintyvät arvot).
+  Ryhtissä ei ole väriä eikä sähkö-/vesi-/viemäriliittymiä. Lupatiedot: kokoelma `avoimet_lupa_rakennukset`
+  (suomenkieliset kentät, esim. `kuntanumero`, `toimenpiteen_laji`), ei vielä käytössä. Selvitysajo: "Selvitys – Ryhti-kentät".
   Puuttuvat arvot jätetään pois (suodattimet käyttävät `has`).
 - Taso `g` (zoom 0–11): tiheysruudut 5 km (z0–9) ja 1 km (z10–11), ominaisuus `n` = rakennusten määrä.
 

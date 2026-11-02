@@ -3,7 +3,9 @@
  * maakunnittain data/b-<maakunta>.pmtiles (taso "b" = rakennukset zoomista 12 alkaen).
  * Rakennuksen ominaisuudet: id rakennustunnus, k kiinteistötunnus, a osoite, pc postinumero, po postitoimipaikka,
  * p tyyppi, s käytössäolo, d valmistumispäivä, y vuosi, g kerrosala, t kokonaisala, f kerroksia, n asuntoja,
- * c rakennuksia samalla kiinteistöllä, pa palstan ala, ka kiinteistön ala, pn palstoja, ex/ny ETRS-TM35FIN.
+ * c rakennuksia samalla kiinteistöllä, pa palstan ala, ka kiinteistön ala, pn palstoja, ex/ny ETRS-TM35FIN,
+ * m runkomateriaali, fa julkisivu, r rakentamistapa, h lämmitystapa, e lämmitysenergia (koodit, ks. CATS),
+ * v tilavuus m³, ha huoneistoala m², sj suojeltu (1/0).
  */
 "use strict";
 
@@ -15,6 +17,23 @@ const STATUS = {
 };
 // numeroavaimet ("10", "11") järjestyisivät muuten ensimmäisiksi
 const ORDER = { types: ["05", "06", "01"], status: ["01", "03", "04", "05", "02", "09", "11", "10", ""] };
+// Rakenne- ja lämmityssuodattimet: Ryhtin koodistot (koodistot.suomi.fi). "" = tieto puuttuu rekisteristä.
+const CATS = [
+  { key: "m", title: "Runkomateriaali", opts: [["04", "Puu"], ["02", "Tiili"], ["01", "Betoni"], ["03", "Teräs"], ["99", "Muu"]] },
+  { key: "fa", title: "Julkisivu", opts: [["05", "Puu"], ["02", "Tiili"], ["01", "Betoni"], ["03", "Metallilevy"], ["04", "Kivi"], ["06", "Lasi"], ["99", "Muu"]] },
+  { key: "h", title: "Lämmitystapa", opts: [["01", "Vesikeskuslämmitys"], ["03", "Sähkölämmitys"], ["02", "Ilmakeskuslämmitys"],
+    ["04", "Uuni, takka tai kamiina"], ["06", "Ilmalämpöpumppu"], ["05", "Aurinkolämmitys"], ["07", "Ei kiinteää lämmityslaitetta"], ["99", "Muu"]] },
+  { key: "e", title: "Lämmitysenergia", opts: [["01", "Kauko- tai aluelämpö"], ["04", "Sähkö"], ["02", "Kevyt polttoöljy"],
+    ["03", "Raskas polttoöljy"], ["07", "Puu"], ["09", "Maalämpö tms."], ["1101", "Maalämpöpumppu"], ["1102", "Ilmalämpöpumppu"],
+    ["1103", "Poistoilmalämpöpumppu"], ["1104", "Ilma-vesilämpöpumppu"], ["11", "Lämpöpumppu (tarkentamaton)"], ["05", "Kaasu"],
+    ["06", "Kivihiili"], ["08", "Turve"], ["10", "Aurinkoenergia"], ["99", "Muu"]] },
+  { key: "r", title: "Rakentamistapa", opts: [["02", "Paikalla tehty"], ["01", "Elementti"]] },
+];
+CATS.forEach((c) => {
+  c.opts.push(["", "Ei tietoa"]);
+  c.labels = Object.fromEntries(c.opts);
+  c.order = c.opts.map(([k]) => k);  // Object.keys järjestäisi numeroavaimet (10, 11, 1101…) ensin
+});
 const STATUS_COLOR = { "01": "--s-01", "03": "--s-03", "05": "--s-05", "11": "--s-11" };
 const PLOT_STOPS = [0, 500, 1000, 1500, 2000, 3000, 5000, 10000, 20000, 50000, Infinity];
 const GFA_STOPS = [0, 50, 80, 100, 120, 150, 200, 300, 500, 1000, Infinity];
@@ -28,7 +47,8 @@ const darkMq = window.matchMedia("(prefers-color-scheme: dark)");
 const fmtArea = (m2) => m2 == null ? "–" : m2 >= 10000 ? `${nf.format(Math.round(m2 / 100) / 100)} ha` : `${nf.format(m2)} m²`;
 const fmtDate = (d) => { const [y, m, dd] = d.split("-"); return `${+dd}.${+m}.${y}`; };
 
-const state = { types: new Set(Object.keys(TYPES)), status: new Set(Object.keys(STATUS)), colorMode: "type", selected: null };
+const allCats = () => Object.fromEntries(CATS.map((c) => [c.key, new Set(c.order)]));
+const state = { types: new Set(Object.keys(TYPES)), status: new Set(Object.keys(STATUS)), cats: allCats(), colorMode: "type", selected: null };
 let META = null;
 let ranges = {};
 
@@ -72,8 +92,8 @@ function buildChecks(el, labels, set, colorVar, order) {
   el.innerHTML = "";
   (order || Object.keys(labels)).map((k) => [k, labels[k]]).forEach(([k, label]) => {
     const lab = document.createElement("label");
-    lab.innerHTML = `<input type="checkbox" checked><span class="sw"></span><span>${esc(label)}</span><span class="n"></span>`;
-    lab.querySelector(".sw").style.background = `var(${colorVar(k)})`;
+    lab.innerHTML = `<input type="checkbox"${set.has(k) ? " checked" : ""}>${colorVar ? '<span class="sw"></span>' : ""}<span>${esc(label)}</span><span class="n"></span>`;
+    if (colorVar) lab.querySelector(".sw").style.background = `var(${colorVar(k)})`;
     lab.dataset.k = k;
     lab.querySelector("input").addEventListener("change", (e) => { e.target.checked ? set.add(k) : set.delete(k); applyFilters(); });
     el.appendChild(lab);
@@ -86,11 +106,16 @@ function filterExpr() {
   for (const [prop, r] of [["y", ranges.year], ["pa", ranges.plot], ["g", ranges.gfa]]) { const e = r.expr(prop); if (e) parts.push(e); }
   if (state.types.size < Object.keys(TYPES).length) parts.push(["in", ["get", "p"], ["literal", [...state.types]]]);
   if (state.status.size < Object.keys(STATUS).length) parts.push(["in", ["coalesce", ["get", "s"], ""], ["literal", [...state.status]]]);
+  for (const c of CATS) {
+    const set = state.cats[c.key];
+    if (set.size < c.order.length) parts.push(["in", ["coalesce", ["get", c.key], ""], ["literal", [...set]]]);
+  }
   return parts.length ? ["all", ...parts] : null;
 }
 function activeFilterCount() {
   return [ranges.year, ranges.plot, ranges.gfa].filter((r) => !r.full).length
-    + (state.types.size < Object.keys(TYPES).length) + (state.status.size < Object.keys(STATUS).length);
+    + (state.types.size < Object.keys(TYPES).length) + (state.status.size < Object.keys(STATUS).length)
+    + CATS.filter((c) => state.cats[c.key].size < c.order.length).length;
 }
 const typeColor = (k) => `--t-${k}`;
 const statusColor = (k) => STATUS_COLOR[k] || "--s-other";
@@ -184,6 +209,7 @@ function applyFilters() {
   if (!B_LAYERS.length || !ranges.year) return;
   const f = filterExpr();
   B_LAYERS.forEach((id) => map.getLayer(id) && map.setFilter(id, f));
+  CATS.forEach((c) => { const m = $("cat-" + c.key)?.querySelector(".mark"); if (m) m.hidden = state.cats[c.key].size === c.order.length; });
   const n = activeFilterCount();
   $("fcount").hidden = !n; $("fcount").textContent = n;
   scheduleCount();
@@ -277,7 +303,13 @@ function select(p, coords) {
         <dt>Kokonaisala</dt><dd>${p.t ? nf.format(p.t) + " m²" : "–"}</dd>
         <dt>Kerroksia</dt><dd>${p.f ?? "–"}</dd>
         <dt>Asuntoja</dt><dd>${p.n ?? "–"}</dd>
+        ${p.ha ? `<dt>Huoneistoala</dt><dd>${nf.format(p.ha)} m²</dd>` : ""}
+        ${p.v ? `<dt>Tilavuus</dt><dd>${nf.format(p.v)} m³</dd>` : ""}
         <dt>Rakennustunnus</dt><dd>${esc(p.id)}</dd>
+      </dl></div>
+      <div class="sect"><h4>Rakenteet ja lämmitys</h4><dl class="kv txt">
+        ${CATS.map((c) => `<dt>${c.title}</dt><dd>${esc(c.labels[p[c.key] ?? ""] ?? p[c.key])}</dd>`).join("")}
+        ${p.sj != null ? `<dt>Suojeltu</dt><dd>${p.sj ? "Kyllä" : "Ei"}</dd>` : ""}
       </dl></div>
       <div class="sect"><h4>Tontti</h4><dl class="kv">
         <dt>Palstan ala</dt><dd>${fmtArea(p.pa)}</dd>
@@ -315,6 +347,35 @@ $("filtersBtn").addEventListener("click", () => ($("panel").classList.contains("
 $("panelClose").addEventListener("click", closePanel);
 
 /* ---------- käynnistys ---------- */
+// lukumäärät valintojen viereen; hideEmpty piilottaa vaihtoehdot, joita aineistossa ei ole
+function counts(box, by, hideEmpty) {
+  box.querySelectorAll("label").forEach((l) => {
+    const n = by?.[l.dataset.k];
+    l.querySelector(".n").textContent = n ? nf.format(n) : "";
+    if (hideEmpty && by) l.hidden = !n;
+  });
+}
+function buildCats() {
+  const root = $("catFilters");
+  const open = new Set([...root.querySelectorAll("details[open]")].map((d) => d.id));
+  root.innerHTML = "";
+  for (const c of CATS) {
+    const d = document.createElement("details");
+    d.className = "cat"; d.id = "cat-" + c.key; d.open = open.has(d.id);
+    d.innerHTML = `<summary><span>${esc(c.title)}</span><span class="mark" hidden>rajattu</span></summary>
+      <div class="tools"><button type="button" data-all="1">Valitse kaikki</button><button type="button" data-all="0">Poista valinnat</button></div>
+      <div class="checks"></div>`;
+    const box = d.querySelector(".checks");
+    buildChecks(box, c.labels, state.cats[c.key], null, c.order);
+    counts(box, META?.by?.[c.key], true);
+    d.querySelectorAll(".tools button").forEach((b) => b.addEventListener("click", () => {
+      state.cats[c.key] = b.dataset.all === "1" ? new Set(c.order) : new Set();
+      buildCats(); applyFilters();
+    }));
+    root.appendChild(d);
+  }
+}
+
 function initControls() {
   const y0 = META?.years?.[0] ?? 1800, y1 = META?.years?.[1] ?? new Date().getFullYear();
   const yStart = Math.max(y0, 1800);
@@ -324,10 +385,8 @@ function initControls() {
   ranges.gfa = makeRange($("gfaR"), GFA_STOPS, (v) => v === Infinity ? "ei ylärajaa" : `${nf.format(v)} m²`, applyFilters);
   buildChecks($("typeChecks"), TYPES, state.types, typeColor, ORDER.types);
   buildChecks($("statusChecks"), STATUS, state.status, statusColor, ORDER.status);
-  const counts = (box, by) => box.querySelectorAll("label").forEach((l) => { l.querySelector(".n").textContent = by?.[l.dataset.k] ? nf.format(by[l.dataset.k]) : ""; });
-  counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status);
-  // piilota käytössäolotilat, joita aineistossa ei ole
-  if (META?.by_status) $("statusChecks").querySelectorAll("label").forEach((l) => { if (!META.by_status[l.dataset.k]) l.hidden = true; });
+  counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status, true);
+  buildCats();
 
   document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
     state.colorMode = b.dataset.mode;
@@ -336,12 +395,11 @@ function initControls() {
   }));
   $("reset").addEventListener("click", () => {
     Object.values(ranges).forEach((r) => r.reset());
-    state.types = new Set(Object.keys(TYPES)); state.status = new Set(Object.keys(STATUS));
-    document.querySelectorAll(".checks input").forEach((i) => { i.checked = true; });
+    state.types = new Set(Object.keys(TYPES)); state.status = new Set(Object.keys(STATUS)); state.cats = allCats();
     buildChecks($("typeChecks"), TYPES, state.types, typeColor, ORDER.types);
     buildChecks($("statusChecks"), STATUS, state.status, statusColor, ORDER.status);
-    counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status);
-    if (META?.by_status) $("statusChecks").querySelectorAll("label").forEach((l) => { if (!META.by_status[l.dataset.k]) l.hidden = true; });
+    counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status, true);
+    buildCats();
     applyFilters();
   });
 }

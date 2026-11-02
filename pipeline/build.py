@@ -38,6 +38,14 @@ def keep(p):
     )
 
 
+def known(uri):
+    c = ryhti.code(uri)
+    return None if c in ("", "00") else c
+
+
+CODE_KEYS = ("m", "fa", "r", "h", "e")  # koodikentät, joiden jakauma kirjataan meta.jsoniin suodattimia varten
+
+
 def make_records(buildings, addresses, parcels):
     """Yhdistää rakennukset, osoitteet ja palstat. Palauttaa listan (x, y, lat, lon, props)."""
     addr = defaultdict(list)
@@ -75,6 +83,15 @@ def make_records(buildings, addresses, parcels):
             "f": b.get("number_of_storeys") or None,
             "n": b.get("apartment_count") if b.get("apartment_count") is not None else None,
             "c": per_property[kt] if kt else None,
+            # rakenteet ja lämmitys koodeina (selitteet web/app.js); "00" = ei tiedossa -> jätetään pois
+            "m": known(b.get("material_of_load_bearing_structures")),
+            "fa": known(b.get("facade_material")),
+            "r": known(b.get("construction_method")),
+            "h": known(b.get("heating_method")),
+            "e": known(b.get("heating_energy_source")),
+            "v": b.get("volume") or None,
+            "ha": b.get("floor_area") or None,
+            "sj": {True: 1, False: 0}.get(b.get("is_protected")),
             "ex": round(x), "ny": round(y),
         }
         par = index.find(x, y, prefer_ref=kt) if index else None
@@ -182,6 +199,7 @@ def meta(records, region_files):
         "building_minzoom": config.BUILDING_MINZOOM,
         "by_type": Counter(r[4].get("p", "") for r in records),
         "by_status": Counter(r[4].get("s", "") for r in records),
+        "by": {k: Counter(r[4].get(k, "") for r in records) for k in CODE_KEYS},
     }
 
 
