@@ -4,6 +4,7 @@ import gzip
 import json
 import math
 import os
+import time
 import xml.etree.ElementTree as ET
 
 from .config import MML_CP_WFS, PARCEL_PAGE, PARCEL_TILE_M
@@ -123,54 +124,82 @@ def wfs_tile_fetch(key):
 class ParcelCache:
     """Palstat erinä (WFS-ruutu tai kunta) levylle tallennettuna, jotta niitä ei haeta joka yö uudelleen.
 
-    Rakenne: {"fetched": "YYYY-MM-DD", "keys": {erä: [palsta-id, ...]}, "parcels": {id: {"ref", "polys"}}}
+    Rakenne: {"stamp", "keys": {erä: [palsta-id, ...]}, "dates": {erä: "YYYY-MM-DD"}, "parcels": {id: {"ref", "polys"}}}
     fetch(erä) palauttaa listan palstoja {"id", "ref", "polys"}. Sama palsta voi tulla useasta erästä (kuntien
-    rajoilla), id:n perusteella se tallennetaan kerran. Jos välimuisti on vanhempi kuin max_age_days, kaikki haetaan uudelleen.
+    rajoilla), id:n perusteella se tallennetaan kerran.
+
+    Puuttuvat erät haetaan heti. Vanhentuneet (yli max_age_days) haetaan uudelleen vanhimmasta alkaen, mutta yhdellä
+    ajolla enintään 1/max_age_days-osa eristä, jolloin uudelleenhaku jakautuu tasaisesti viikon öille.
+    Haku keskeytetään hallitusti, kun deadline (time.time()-arvo) ylittyy; jo haetut erät säilyvät (save()).
     """
 
     def __init__(self, path, max_age_days, fetch, today=None, log=print, label="erä"):
         self.path, self.log, self.fetch, self.label = path, log, fetch, label
+        self.max_age = max_age_days
         self.today = today or dt.date.today()
-        self.data = {"fetched": self.today.isoformat(), "keys": {}, "parcels": {}}
+        self.data = {"stamp": "none", "keys": {}, "dates": {}, "parcels": {}}
         if os.path.exists(path):
             with gzip.open(path, "rt", encoding="utf-8") as f:
                 old = json.load(f)
             old.setdefault("keys", old.pop("tiles", {}))  # vanha muoto
-            age = (self.today - dt.date.fromisoformat(old["fetched"])).days
-            if age < max_age_days:
-                self.data = old
-                log(f"  palstat välimuistista ({len(old['keys'])} {label}a, haettu {old['fetched']}, ikä {age} pv)")
-            else:
-                log(f"  palstavälimuisti on {age} pv vanha, haetaan kaikki uudelleen")
+            fetched = old.pop("fetched", self.today.isoformat())
+            old.setdefault("dates", {k: fetched for k in old["keys"]})
+            old.setdefault("stamp", f"{fetched}-{len(old['keys'])}")
+            self.data = old
+            dates = sorted(old["dates"].values()) or ["-"]
+            log(f"  palstat välimuistista: {len(old['keys'])} {label}a, haettu {dates[0]} … {dates[-1]}")
         self.changed = False
+        self.missing = []
 
-    def get(self, keys):
-        keys = [str(k) for k in keys]
-        missing = sorted(k for k in set(keys) if k not in self.data["keys"])
-        if missing:
-            self.log(f"  haetaan {len(missing)} {self.label}a (välimuistissa {len(set(keys)) - len(missing)})")
-            self.changed = True
-        for n, k in enumerate(missing, 1):
+    def age(self, k):
+        return (self.today - dt.date.fromisoformat(self.data["dates"][k])).days
+
+    def get(self, keys, deadline=None):
+        keys = sorted({str(k) for k in keys})
+        missing = [k for k in keys if k not in self.data["keys"]]
+        stale = sorted((k for k in keys if k in self.data["keys"] and self.age(k) >= self.max_age),
+                       key=lambda k: self.data["dates"][k])
+        budget = math.ceil(len(keys) / self.max_age)
+        todo = missing + stale[:budget]
+        if todo:
+            self.log(f"  haetaan {len(missing)} puuttuvaa ja {len(todo) - len(missing)} vanhentunutta {self.label}a "
+                     f"(vanhentuneita yhteensä {len(stale)}, välimuistissa {len(keys) - len(missing)})")
+        for n, k in enumerate(todo, 1):
+            if deadline and time.time() > deadline:
+                self.log(f"  aikaraja täynnä: {len(todo) - n + 1} {self.label}a jää seuraavaan ajoon")
+                break
+            try:
+                fetched = list(self.fetch(k))
+            except Exception as e:  # noqa: BLE001 – yksi epäonnistunut erä ei kaada koko ajoa
+                self.log(f"  {self.label} {k}: haku epäonnistui: {e}")
+                continue
             ids = []
-            for p in self.fetch(k):
+            for p in fetched:
                 polys = [[[(round(x, 2), round(y, 2)) for x, y in r] for r in rs] for rs in p["polys"]]
                 self.data["parcels"][p["id"]] = {"ref": p["ref"], "polys": polys}
                 ids.append(p["id"])
             self.data["keys"][k] = ids
-            if n % 100 == 0 or n == len(missing) or self.label == "kunta":
-                self.log(f"  {self.label} {n}/{len(missing)} ({k}): {len(ids)} palstaa, yhteensä {len(self.data['parcels'])}")
-        ids = {pid for k in keys for pid in self.data["keys"][k]}
+            self.data["dates"][k] = self.today.isoformat()
+            self.changed = True
+            if n % 100 == 0 or n == len(todo) or self.label == "kunta":
+                self.log(f"  {self.label} {n}/{len(todo)} ({k}): {len(ids)} palstaa, yhteensä {len(self.data['parcels'])}")
+        self.missing = [k for k in keys if k not in self.data["keys"]]
+        ids = {pid for k in keys if k in self.data["keys"] for pid in self.data["keys"][k]}
         return [{"id": pid, "ref": self.data["parcels"][pid]["ref"],
                  "polys": [[[tuple(c) for c in r] for r in rs] for rs in self.data["parcels"][pid]["polys"]]}
                 for pid in ids]
 
     def stamp(self):
-        """Tunniste välimuistin versiolle (muuttuu, kun palstoja haetaan lisää tai uudelleen)."""
-        return f"{self.data['fetched']}-{len(self.data['keys'])}"
+        """Tunniste välimuistin versiolle (muuttuu aina, kun palstoja haetaan)."""
+        return self.data["stamp"]
 
     def save(self):
         os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
         if self.changed or not os.path.exists(self.path):
+            # uudelleen haetun erän vanhat palstat, joihin mikään erä ei enää viittaa, poistetaan
+            used = {pid for ids in self.data["keys"].values() for pid in ids}
+            self.data["parcels"] = {pid: v for pid, v in self.data["parcels"].items() if pid in used}
+            self.data["stamp"] = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S") + f"-{len(self.data['keys'])}"
             with gzip.open(self.path, "wt", encoding="utf-8") as f:
                 json.dump(self.data, f, separators=(",", ":"))
         with open(os.path.join(os.path.dirname(self.path) or ".", "parcels.stamp"), "w") as f:

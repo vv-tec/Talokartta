@@ -191,6 +191,7 @@ def main(argv=None):
     ap.add_argument("--work", default="work")
     ap.add_argument("--cache", default="cache")
     args = ap.parse_args(argv)
+    deadline = time.time() + config.PARCEL_TIME_BUDGET_MIN * 60
     os.makedirs(args.work, exist_ok=True)
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
 
@@ -224,14 +225,18 @@ def main(argv=None):
             os.remove(old)  # vanha WFS-välimuisti, ei enää tarvita
         cache = mml.ParcelCache(os.path.join(args.cache, "parcels-mml.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch,
                                 log=log, label="kunta")
-        parcels = cache.get(config.MUNICIPALITIES)
+        parcels = cache.get(config.MUNICIPALITIES, deadline)
     else:
         # Varatapa ilman API-avainta: INSPIRE WFS ruuduittain.
         log(f"Kiinteistöpalstat: WFS, {len(tiles)} hakuruutua")
         cache = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS,
                                 mml.wfs_tile_fetch, log=log, label="ruutu")
-        parcels = cache.get(f"{i},{j}" for i, j in tiles)
+        parcels = cache.get((f"{i},{j}" for i, j in tiles), deadline)
     cache.save()
+    if cache.missing:
+        # haetut palstat on tallennettu; seuraava ajo jatkaa siitä. Vanha sivu jää näkyviin siihen asti.
+        sys.exit(f"Palstat puuttuvat vielä {len(cache.missing)} erältä ({', '.join(cache.missing[:10])}); "
+                 "haetut tallennettiin, seuraava ajo jatkaa. Julkaisua ei tehdä.")
     log(f"  palstoja käytössä {len(parcels)}")
     records = make_records(blds, addrs, parcels)
     log(f"Valmis: {len(records)} rakennusta, joista palsta löytyi {sum(1 for r in records if 'pa' in r[4])}")

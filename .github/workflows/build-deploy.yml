@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 180   # viikoittainen palstojen uudelleenhaku kestää pisimpään
+    timeout-minutes: 240   # ensimmäinen palstojen haku kestää pisimpään
     steps:
       - uses: actions/checkout@v4
 
@@ -47,13 +47,17 @@ jobs:
       - name: Hae rekisteritiedot ja tee karttatiilet
         env:
           MML_API_KEY: ${{ secrets.MML_API_KEY }}   # MML:n tiedostopalvelu (palstat); ilman avainta käytetään WFS:ää
+        timeout-minutes: 210    # ohjelma lopettaa palstahaun itse jo 150 min kohdalla (config.PARCEL_TIME_BUDGET_MIN)
         run: python -m pipeline.build --out dist --work work --cache cache
 
+      # Välimuisti tallennetaan myös epäonnistuneen ajon jälkeen, jotta jo haetut palstat eivät katoa.
       - name: Välimuistin tunniste
         id: stamp
-        run: echo "v=$(cat cache/parcels.stamp)" >> "$GITHUB_OUTPUT"
+        if: always()
+        run: echo "v=$(cat cache/parcels.stamp 2>/dev/null || echo none)" >> "$GITHUB_OUTPUT"
 
       - name: Tallenna palstojen välimuisti
+        if: always() && steps.stamp.outputs.v != 'none'
         uses: actions/cache/save@v4
         continue-on-error: true   # sama versio on jo tallessa
         with:

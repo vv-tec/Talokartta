@@ -16,8 +16,11 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
     GeoPackagessa taulu `PalstanSijaintitiedot` (geom, kiinteistotunnus 14 num.); kuntatiedostossa myös naapurikuntien rajapalstoja.
     Palstalla ei ole pysyvää tunnistetta → id = kiinteistötunnus + ensimmäinen piste. Geometria luetaan ilman kirjastoja (`gpkg_polys`).
     Kauniaisten tiedosto 3,9 Mt, työ ~40 s. Selvitysajo: työnkulku "Selvitys – MML-tiedostolataus" (`pipeline/mml_explore.py`).
-  - Palstat säilytetään erittäin (kunta tai WFS-ruutu) välimuistissa (`cache/parcels-mml.json.gz`, GitHub Actions cache)
-    ja ladataan uudelleen 7 päivän välein; puuttuvat erät haetaan heti.
+  - Palstat säilytetään erittäin (kunta tai WFS-ruutu) välimuistissa (`cache/parcels-mml.json.gz`, GitHub Actions cache),
+    jokaisella erällä oma hakupäivä. Puuttuvat erät haetaan heti; yli 7 pv vanhat uudelleen vanhimmasta alkaen, enintään
+    1/7 eristä per ajo (kuorma jakautuu viikon öille). Palstahaku lopetetaan hallitusti 150 min kohdalla
+    (`PARCEL_TIME_BUDGET_MIN`) ja yksittäisen erän virhe ohitetaan; jos eriä puuttuu, haetut tallennetaan
+    (välimuistin tallennus `if: always()`), ajo päättyy virheeseen eikä julkaise, ja seuraava ajo jatkaa.
   - `build.py` – yhdistää, kirjoittaa GeoJSONSeq:n ja ajaa `tippecanoe` (taso kerrallaan, ilman ominaisuuskohtaisia zoomeja) → `dist/data/b-<maakunta>.pmtiles` (rakennukset, yksi tiedosto per `config.REGIONS`-alue) + `g.pmtiles` (tiheysruudut, tile-join) + `meta.json` (luettelo tiedostoista), kopioi `web/` → `dist/`. Ajo keskeytyy, jos jokin tiedosto > 95 Mt.
 - `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle oman lähteen ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä, taustakartta OpenFreeMap (positron/dark).
 - `.github/workflows/build-deploy.yml` – yöllinen ajo + push + käsin; julkaisu GitHub Pagesiin. Epäonnistunut ajo ei julkaise.

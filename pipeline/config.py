@@ -92,7 +92,8 @@ USER_AGENT = "talokartta-data/1.0 (+https://github.com/vv-tec/talokartta)"
 PARCEL_TILE_M = 2000
 PARCEL_PAGE = 1000          # kuinka monta palstaa yhdellä pyynnöllä enintään (palvelun tuettu koko)
 PARCEL_BBOX_PAD_M = 3000    # haetaan palstoja myös rakennusten alueen ympäriltä
-PARCEL_MAX_AGE_DAYS = 7     # palstat haetaan uudelleen viikon välein; muuten käytetään välimuistia
+PARCEL_MAX_AGE_DAYS = 7     # palstat haetaan uudelleen viikon välein (1/7 eristä joka yö); muuten käytetään välimuistia
+PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
 # Karttatiilet: yksittäiset rakennukset näkyvät tästä zoomitasosta alkaen.
 BUILDING_MINZOOM = 12

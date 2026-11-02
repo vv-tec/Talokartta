@@ -79,6 +79,29 @@ def run():
         c.get(["0,0", "235"]); assert len(calls) == 3        # vain puuttuva erä haetaan
         c = mml.ParcelCache(path, 7, fetch, today=day + dt.timedelta(days=8), log=lambda *a: None)
         c.get(["0,0"]); assert len(calls) == 4               # vanhentunut -> haetaan uudelleen
+        c.save()
+        # vanha välimuistimuoto ({"fetched", "tiles"}) luetaan edelleen
+        import gzip, json
+        with gzip.open(path, "wt") as f:
+            json.dump({"fetched": "2026-11-01", "tiles": {str(i): [] for i in range(14)}, "parcels": {}}, f)
+        calls.clear()
+        c = mml.ParcelCache(path, 7, fetch, today=day + dt.timedelta(days=10), log=lambda *a: None)
+        c.get(str(i) for i in range(14)); c.save()
+        assert len(calls) == 2 and not c.missing             # 14 vanhentunutta / 7 pv -> 2 erää per ajo
+        c = mml.ParcelCache(path, 7, fetch, today=day + dt.timedelta(days=11), log=lambda *a: None)
+        c.get(str(i) for i in range(14))
+        assert len(calls) == 4 and not ({"0", "1"} & set(calls[2:]))  # vanhimmat ensin, juuri haettuja ei uudelleen
+        # epäonnistunut haku ja aikaraja: muut erät säilyvät, puuttuvat jäävät seuraavaan ajoon
+        def flaky(key):
+            if key == "b":
+                raise RuntimeError("palvelu ei vastaa")
+            return [dict(p, id=p["id"] + key) for p in parcels]
+        c = mml.ParcelCache(os.path.join(d, "x.json.gz"), 7, flaky, today=day, log=lambda *a: None)
+        assert len(c.get(["a", "b", "c"])) == 4 and c.missing == ["b"]
+        c.save(); s1 = c.stamp()
+        c = mml.ParcelCache(os.path.join(d, "x.json.gz"), 7, flaky, today=day, log=lambda *a: None)
+        assert c.get(["a", "b", "d"], deadline=1) and c.missing == ["b", "d"]
+        c.save(); assert c.stamp() == s1                     # ei muutoksia -> sama tunniste
         assert mml.tiles_for_bbox(0, 0, 4000, 2000) == {(0, 0), (1, 0)}
     assert build.slug("Kanta-Häme") == "kanta-hame" and build.slug("Etelä-Pohjanmaa") == "etela-pohjanmaa"
     # GeoPackage-geometria: GP-otsake (ei kehystä) + WKB-polygon, pikkupäinen
