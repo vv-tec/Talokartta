@@ -85,6 +85,16 @@ def run():
     finally:
         mml._fetch_box = orig
     assert build.slug("Kanta-Häme") == "kanta-hame" and build.slug("Etelä-Pohjanmaa") == "etela-pohjanmaa"
+    # GeoPackage-geometria: GP-otsake (ei kehystä) + WKB-polygon, pikkupäinen
+    import struct
+    from . import mml_files
+    ring = [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0), (0.0, 0.0)]
+    wkb = b"\x01" + struct.pack("<I", 3) + struct.pack("<I", 1) + struct.pack("<I", 5) + b"".join(struct.pack("<dd", *p) for p in ring)
+    blob = b"GP\x00\x01" + struct.pack("<i", 3067) + wkb
+    polys = mml_files.gpkg_polys(blob)
+    assert polys == [[ring]] and mml.parcel_area({"polys": polys}) == 100
+    multi = b"\x01" + struct.pack("<I", 6) + struct.pack("<I", 2) + wkb + wkb
+    assert len(mml_files.gpkg_polys(b"GP\x00\x01" + struct.pack("<i", 3067) + multi)) == 2
     print("selftest OK")
 
 

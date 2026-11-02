@@ -1,0 +1,28 @@
+name: Selvitys – MML-tiedostolataus
+
+# Käsin käynnistettävä koeajo: hakee yhden kunnan kiinteistörekisterikartan tiedostopalvelusta
+# ja tulostaa sen rakenteen. Ei vaikuta julkaistuun sivuun.
+on:
+  workflow_dispatch:
+    inputs:
+      kunta:
+        description: "Kuntanumero (esim. 235 = Kauniainen)"
+        default: "235"
+      muoto:
+        description: "Tiedostomuoto (GPKG, GeoJSON, GML, SHAPE)"
+        default: "GPKG"
+
+jobs:
+  explore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r pipeline/requirements.txt
+      - name: Koeajo
+        env:
+          MML_API_KEY: ${{ secrets.MML_API_KEY }}
+        run: python -m pipeline.mml_explore "${{ inputs.kunta }}" "${{ inputs.muoto }}"
