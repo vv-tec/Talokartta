@@ -66,24 +66,20 @@ def run():
     # palstojen välimuisti: toinen ajo ei hae uudelleen, vanhentunut hakee
     import datetime as dt, tempfile, os
     calls = []
-    orig = mml._fetch_box
-    mml._fetch_box = lambda *box: calls.append(box) or [dict(p) for p in parcels]
-    try:
-        with tempfile.TemporaryDirectory() as d:
-            path = os.path.join(d, "parcels.json.gz")
-            day = dt.date(2026, 11, 1)
-            c = mml.ParcelCache(path, 7, today=day, log=lambda *a: None)
-            got = c.get({(0, 0), (1, 0)}); c.save()
-            assert len(calls) == 2 and len(got) == 2
-            assert sorted(round(mml.parcel_area(p)) for p in got) == [2500, 9900]
-            c = mml.ParcelCache(path, 7, today=day + dt.timedelta(days=3), log=lambda *a: None)
-            assert len(c.get({(0, 0)})) == 2 and len(calls) == 2  # välimuistista
-            c.get({(0, 0), (5, 5)}); assert len(calls) == 3       # vain puuttuva ruutu haetaan
-            c = mml.ParcelCache(path, 7, today=day + dt.timedelta(days=8), log=lambda *a: None)
-            c.get({(0, 0)}); assert len(calls) == 4               # vanhentunut -> haetaan uudelleen
-            assert mml.tiles_for_bbox(0, 0, 4000, 2000) == {(0, 0), (1, 0)}
-    finally:
-        mml._fetch_box = orig
+    fetch = lambda key: calls.append(key) or [dict(p) for p in parcels]
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, "parcels.json.gz")
+        day = dt.date(2026, 11, 1)
+        c = mml.ParcelCache(path, 7, fetch, today=day, log=lambda *a: None)
+        got = c.get(["0,0", "1,0"]); c.save()
+        assert len(calls) == 2 and len(got) == 2  # sama palsta kahdessa erässä tallennetaan kerran
+        assert sorted(round(mml.parcel_area(p)) for p in got) == [2500, 9900]
+        c = mml.ParcelCache(path, 7, fetch, today=day + dt.timedelta(days=3), log=lambda *a: None)
+        assert len(c.get(["0,0"])) == 2 and len(calls) == 2  # välimuistista
+        c.get(["0,0", "235"]); assert len(calls) == 3        # vain puuttuva erä haetaan
+        c = mml.ParcelCache(path, 7, fetch, today=day + dt.timedelta(days=8), log=lambda *a: None)
+        c.get(["0,0"]); assert len(calls) == 4               # vanhentunut -> haetaan uudelleen
+        assert mml.tiles_for_bbox(0, 0, 4000, 2000) == {(0, 0), (1, 0)}
     assert build.slug("Kanta-Häme") == "kanta-hame" and build.slug("Etelä-Pohjanmaa") == "etela-pohjanmaa"
     # GeoPackage-geometria: GP-otsake (ei kehystä) + WKB-polygon, pikkupäinen
     import struct
@@ -95,6 +91,16 @@ def run():
     assert polys == [[ring]] and mml.parcel_area({"polys": polys}) == 100
     multi = b"\x01" + struct.pack("<I", 6) + struct.pack("<I", 2) + wkb + wkb
     assert len(mml_files.gpkg_polys(b"GP\x00\x01" + struct.pack("<i", 3067) + multi)) == 2
+    import sqlite3
+    with tempfile.TemporaryDirectory() as d:
+        gp = os.path.join(d, "t.gpkg")
+        con = sqlite3.connect(gp)
+        con.execute('CREATE TABLE "PalstanSijaintitiedot" (fid INTEGER, geom BLOB, kiinteistotunnus TEXT)')
+        con.execute('INSERT INTO "PalstanSijaintitiedot" VALUES (1, ?, ?)', (blob, "23500100010001"))
+        con.execute('INSERT INTO "PalstanSijaintitiedot" VALUES (2, ?, NULL)', (blob,))
+        con.commit(); con.close()
+        ps = mml_files.read_parcels(gp)
+        assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
     print("selftest OK")
 
 

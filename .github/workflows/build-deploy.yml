@@ -36,7 +36,7 @@ jobs:
       - name: Pikatestit
         run: python -m pipeline.selftest
 
-      # Kiinteistöpalstat säilytetään ajojen välillä (haetaan uudelleen viikon välein), jotta MML:n palvelua ei kuormiteta turhaan.
+      # Kiinteistöpalstat säilytetään ajojen välillä (ladataan uudelleen viikon välein), jotta MML:n palvelua ei kuormiteta turhaan.
       - name: Palauta palstojen välimuisti
         uses: actions/cache/restore@v4
         with:
@@ -45,6 +45,8 @@ jobs:
           restore-keys: parcels-
 
       - name: Hae rekisteritiedot ja tee karttatiilet
+        env:
+          MML_API_KEY: ${{ secrets.MML_API_KEY }}   # MML:n tiedostopalvelu (palstat); ilman avainta käytetään WFS:ää
         run: python -m pipeline.build --out dist --work work --cache cache
 
       - name: Välimuistin tunniste

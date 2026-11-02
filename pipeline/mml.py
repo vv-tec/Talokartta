@@ -113,51 +113,60 @@ def tiles_for_bbox(x0, y0, x1, y1):
             for j in range(int(math.floor(y0 / t)), int(math.ceil(y1 / t)))}
 
 
-class ParcelCache:
-    """Palstat ruuduittain levylle tallennettuna, jotta niitä ei haeta joka yö uudelleen.
+def wfs_tile_fetch(key):
+    """Välimuistin hakufunktio WFS:lle: avain 'i,j' = PARCEL_TILE_M-kokoinen ruutu."""
+    i, j = (int(v) for v in key.split(","))
+    t = PARCEL_TILE_M
+    return _fetch_box(i * t, j * t, (i + 1) * t, (j + 1) * t)
 
-    Rakenne: {"fetched": "YYYY-MM-DD", "tiles": {"i,j": [palsta-id, ...]}, "parcels": {id: {"ref", "polys"}}}
-    Jos välimuisti on vanhempi kuin max_age_days, kaikki haetaan uudelleen.
+
+class ParcelCache:
+    """Palstat erinä (WFS-ruutu tai kunta) levylle tallennettuna, jotta niitä ei haeta joka yö uudelleen.
+
+    Rakenne: {"fetched": "YYYY-MM-DD", "keys": {erä: [palsta-id, ...]}, "parcels": {id: {"ref", "polys"}}}
+    fetch(erä) palauttaa listan palstoja {"id", "ref", "polys"}. Sama palsta voi tulla useasta erästä (kuntien
+    rajoilla), id:n perusteella se tallennetaan kerran. Jos välimuisti on vanhempi kuin max_age_days, kaikki haetaan uudelleen.
     """
 
-    def __init__(self, path, max_age_days, today=None, log=print):
-        self.path, self.log = path, log
+    def __init__(self, path, max_age_days, fetch, today=None, log=print, label="erä"):
+        self.path, self.log, self.fetch, self.label = path, log, fetch, label
         self.today = today or dt.date.today()
-        self.data = {"fetched": self.today.isoformat(), "tiles": {}, "parcels": {}}
+        self.data = {"fetched": self.today.isoformat(), "keys": {}, "parcels": {}}
         if os.path.exists(path):
             with gzip.open(path, "rt", encoding="utf-8") as f:
                 old = json.load(f)
+            old.setdefault("keys", old.pop("tiles", {}))  # vanha muoto
             age = (self.today - dt.date.fromisoformat(old["fetched"])).days
             if age < max_age_days:
                 self.data = old
-                log(f"  palstat välimuistista ({len(old['tiles'])} ruutua, haettu {old['fetched']}, ikä {age} pv)")
+                log(f"  palstat välimuistista ({len(old['keys'])} {label}a, haettu {old['fetched']}, ikä {age} pv)")
             else:
                 log(f"  palstavälimuisti on {age} pv vanha, haetaan kaikki uudelleen")
         self.changed = False
 
-    def get(self, tiles):
-        t = PARCEL_TILE_M
-        missing = sorted(k for k in tiles if f"{k[0]},{k[1]}" not in self.data["tiles"])
+    def get(self, keys):
+        keys = [str(k) for k in keys]
+        missing = sorted(k for k in set(keys) if k not in self.data["keys"])
         if missing:
-            self.log(f"  haetaan {len(missing)} palstaruutua (välimuistissa {len(tiles) - len(missing)})")
+            self.log(f"  haetaan {len(missing)} {self.label}a (välimuistissa {len(set(keys)) - len(missing)})")
             self.changed = True
-        for n, (i, j) in enumerate(missing, 1):
+        for n, k in enumerate(missing, 1):
             ids = []
-            for p in _fetch_box(i * t, j * t, (i + 1) * t, (j + 1) * t):
+            for p in self.fetch(k):
                 polys = [[[(round(x, 2), round(y, 2)) for x, y in r] for r in rs] for rs in p["polys"]]
                 self.data["parcels"][p["id"]] = {"ref": p["ref"], "polys": polys}
                 ids.append(p["id"])
-            self.data["tiles"][f"{i},{j}"] = ids
-            if n % 100 == 0 or n == len(missing):
-                self.log(f"  palstaruudut {n}/{len(missing)}, palstoja yhteensä {len(self.data['parcels'])}")
-        ids = {pid for i, j in tiles for pid in self.data["tiles"][f"{i},{j}"]}
+            self.data["keys"][k] = ids
+            if n % 100 == 0 or n == len(missing) or self.label == "kunta":
+                self.log(f"  {self.label} {n}/{len(missing)} ({k}): {len(ids)} palstaa, yhteensä {len(self.data['parcels'])}")
+        ids = {pid for k in keys for pid in self.data["keys"][k]}
         return [{"id": pid, "ref": self.data["parcels"][pid]["ref"],
                  "polys": [[[tuple(c) for c in r] for r in rs] for rs in self.data["parcels"][pid]["polys"]]}
                 for pid in ids]
 
     def stamp(self):
         """Tunniste välimuistin versiolle (muuttuu, kun palstoja haetaan lisää tai uudelleen)."""
-        return f"{self.data['fetched']}-{len(self.data['tiles'])}"
+        return f"{self.data['fetched']}-{len(self.data['keys'])}"
 
     def save(self):
         os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)

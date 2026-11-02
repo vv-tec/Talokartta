@@ -134,9 +134,49 @@ def gpkg_polys(blob):
     if blob[:2] != b"GP":
         raise ValueError("Ei GeoPackage-geometria")
     flags = blob[3]
+    if flags & 0x10:  # tyhjä geometria
+        return []
     env = (flags >> 1) & 0b111
     env_len = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}[env]
     return _wkb_polys(blob, 8 + env_len)[0]
+
+
+PARCEL_PROCESS = "kiinteistorekisterikartta_vektori_kunta"
+
+
+def read_parcels(gpkg_path):
+    """Kiinteistörekisterikartan GeoPackagesta palstat: [{"id", "ref" (kiinteistötunnus 14 num.), "polys"}]."""
+    con = sqlite3.connect(gpkg_path)
+    out = []
+    try:
+        for blob, kt in con.execute('SELECT geom, kiinteistotunnus FROM "PalstanSijaintitiedot"'):
+            if not blob or not kt:
+                continue
+            polys = gpkg_polys(blob)
+            if not polys or len(polys[0][0]) < 3:
+                continue
+            x0, y0 = polys[0][0][0]
+            # palstoilla ei ole pysyvää tunnistetta tiedostossa: tunniste kiinteistötunnuksesta ja ensimmäisestä pisteestä
+            out.append({"id": f"{kt}@{x0:.1f},{y0:.1f}", "ref": kt, "polys": polys})
+    finally:
+        con.close()
+    return out
+
+
+def municipality_parcels(client, code, workdir, log=print):
+    """Lataa yhden kunnan kiinteistörekisterikartan (GeoPackage) ja palauttaa sen palstat."""
+    job = client.execute(PARCEL_PROCESS, {"municipalityInput": code, "fileFormatInput": "GPKG", "crsOutputInput": "EPSG:3067"})
+    client.wait(job)
+    _, files = client.results(job)
+    gpkgs = [f for f in files if str(f.get("format", "")).upper() == "GPKG" or str(f.get("path", "")).endswith(".gpkg")]
+    if not gpkgs:
+        raise RuntimeError(f"Kunnan {code} tulos ei sisältänyt GeoPackagea: {files}")
+    path = os.path.join(workdir, f"krk_{code}.gpkg")
+    client.download(gpkgs[0]["path"], path)
+    try:
+        return read_parcels(path)
+    finally:
+        os.remove(path)
 
 
 def describe_gpkg(path, log=print, sample=3):

@@ -13,7 +13,7 @@ import sys
 import time
 from collections import Counter, defaultdict
 
-from . import config, mml, ryhti
+from . import config, mml, mml_files, ryhti
 from .tm35 import tm35_to_latlon
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -210,9 +210,27 @@ def main(argv=None):
         xs, ys = [b["_x"] for b in mb], [b["_y"] for b in mb]
         tiles |= mml.tiles_for_bbox(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
 
-    log(f"Kiinteistöpalstat: {len(tiles)} hakuruutua")
-    cache = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS, log=log)
-    parcels = cache.get(tiles)
+    if os.environ.get("MML_API_KEY"):
+        # Ensisijainen tapa: kunnan kiinteistörekisterikartta yhtenä tiedostona MML:n tiedostopalvelusta.
+        log(f"Kiinteistöpalstat: MML:n tiedostopalvelu, {len(config.MUNICIPALITIES)} kuntaa")
+        client = None
+
+        def fetch(code):
+            nonlocal client
+            client = client or mml_files.MMLFiles(log=log)
+            return mml_files.municipality_parcels(client, code, args.work, log)
+        old = os.path.join(args.cache, "parcels.json.gz")
+        if os.path.exists(old):
+            os.remove(old)  # vanha WFS-välimuisti, ei enää tarvita
+        cache = mml.ParcelCache(os.path.join(args.cache, "parcels-mml.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch,
+                                log=log, label="kunta")
+        parcels = cache.get(config.MUNICIPALITIES)
+    else:
+        # Varatapa ilman API-avainta: INSPIRE WFS ruuduittain.
+        log(f"Kiinteistöpalstat: WFS, {len(tiles)} hakuruutua")
+        cache = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS,
+                                mml.wfs_tile_fetch, log=log, label="ruutu")
+        parcels = cache.get(f"{i},{j}" for i, j in tiles)
     cache.save()
     log(f"  palstoja käytössä {len(parcels)}")
     records = make_records(blds, addrs, parcels)
