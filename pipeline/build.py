@@ -117,33 +117,65 @@ def write_lines(path, feats):
             f.write(json.dumps(ft, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
-def make_tiles(work, out_file):
-    """Jokainen taso tehdään omana ajonaan omille zoomeilleen ja yhdistetään lopuksi.
-    (Ominaisuuskohtaiset "tippecanoe"-zoomit saivat tippecanoe 2.49:n jättämään vain yhden pisteen tiiltä kohden.)"""
-    parts = [("b", "b.geojsonl", config.BUILDING_MINZOOM, 14)]
-    parts += [("g", f"g{c['size']}.geojsonl", c["minzoom"], c["maxzoom"]) for c in config.DENSITY_GRIDS]
-    mbt = []
-    for layer, src, zmin, zmax in parts:
-        out = os.path.join(work, src.replace(".geojsonl", ".mbtiles"))
-        cmd = ["tippecanoe", "-o", out, "--force", "--quiet", f"-Z{zmin}", f"-z{zmax}", "-r1",
-               "--no-feature-limit", "--no-tile-size-limit", "-l", layer, os.path.join(work, src)]
-        log(" ".join(cmd))
-        subprocess.run(cmd, check=True)
-        mbt.append(out)
-    cmd = ["tile-join", "-o", out_file, "--force", "--quiet", "--no-tile-size-limit",
-           "-n", "Talokartta", "-A", "SYKE Ryhti (CC BY 4.0), Maanmittauslaitos (CC BY 4.0)", *mbt]
+MAX_FILE_MB = 95  # GitHub Pagesin raja on 100 Mt tiedostoa kohden
+
+
+def slug(name):
+    """'Kanta-Häme' -> 'kanta-hame' (tiedostonimiin)."""
+    t = name.lower().translate(str.maketrans({"ä": "a", "ö": "o", "å": "a"}))
+    return "".join(c if c.isalnum() else "-" for c in t).strip("-")
+
+
+def run(cmd):
     log(" ".join(cmd))
     subprocess.run(cmd, check=True)
 
 
-def meta(records, municipalities):
+def tippecanoe(src, out, layer, zmin, zmax):
+    # Ei ominaisuuskohtaisia "tippecanoe"-zoomeja: ne saivat tippecanoe 2.49:n jättämään vain yhden pisteen tiiltä kohden.
+    run(["tippecanoe", "-o", out, "--force", "--quiet", f"-Z{zmin}", f"-z{zmax}", "-r1",
+         "--no-feature-limit", "--no-tile-size-limit", "-l", layer,
+         "-n", "Talokartta", "-A", "SYKE Ryhti (CC BY 4.0), Maanmittauslaitos (CC BY 4.0)", src])
+
+
+def make_tiles(records, regions, work, data_dir):
+    """Rakennukset: oma tiedosto maakunnittain (b-<maakunta>.pmtiles). Tiheysruudut: yksi yhteinen g.pmtiles."""
+    out = []
+    for name in sorted(set(regions)):
+        recs = [r for r, reg in zip(records, regions) if reg == name]
+        src = os.path.join(work, f"b-{slug(name)}.geojsonl")
+        write_lines(src, building_features(recs))
+        fname = f"b-{slug(name)}.pmtiles"
+        tippecanoe(src, os.path.join(data_dir, fname), "b", config.BUILDING_MINZOOM, 14)
+        lats, lons = [r[2] for r in recs], [r[3] for r in recs]
+        out.append({"name": name, "file": fname, "count": len(recs),
+                    "bounds": [min(lons), min(lats), max(lons), max(lats)]})
+    parts = []
+    for c in config.DENSITY_GRIDS:
+        src = os.path.join(work, f"g{c['size']}.geojsonl")
+        write_lines(src, density(records, c["size"]))
+        mbt = src.replace(".geojsonl", ".mbtiles")
+        tippecanoe(src, mbt, "g", c["minzoom"], c["maxzoom"])
+        parts.append(mbt)
+    run(["tile-join", "-o", os.path.join(data_dir, "g.pmtiles"), "--force", "--quiet", "--no-tile-size-limit", *parts])
+    for f in sorted(os.listdir(data_dir)):
+        mb = os.path.getsize(os.path.join(data_dir, f)) / 1e6
+        log(f"  {f}: {mb:.1f} Mt")
+        if mb > MAX_FILE_MB:
+            sys.exit(f"{f} on {mb:.0f} Mt, yli GitHub Pagesin rajan. Alue pitää jakaa pienempiin osiin.")
+    return out
+
+
+def meta(records, region_files):
     lats = [r[2] for r in records]
     lons = [r[3] for r in records]
     years = [r[4]["y"] for r in records if "y" in r[4]]
     return {
         "updated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "count": len(records),
-        "municipalities": municipalities,
+        "municipalities": config.MUNICIPALITIES,
+        "regions": region_files,
+        "grid": "g.pmtiles",
         "bounds": [min(lons), min(lats), max(lons), max(lats)],
         "years": [min(years), max(years)] if years else None,
         "title": config.REGION_TITLE,
@@ -164,8 +196,10 @@ def main(argv=None):
 
     blds, addrs, tiles = [], [], set()
     pad = config.PARCEL_BBOX_PAD_M
-    for m in config.MUNICIPALITIES:
+    for region, m in [(r, m) for r, ms in config.REGIONS.items() for m in ms]:
         mb = [b for b in ryhti.buildings(m) if keep(b)]
+        for b in mb:
+            b["_region"] = region
         if not mb:  # jokaisessa kunnassa on asuinrakennuksia; tyhjä tulos = haku epäonnistui
             sys.exit(f"Kunta {m}: ei yhtään asuinrakennusta, julkaisua ei tehdä.")
         keys = {b.get("building_key") for b in mb}
@@ -187,12 +221,9 @@ def main(argv=None):
     if len(records) < 100:
         sys.exit(f"Liian vähän rakennuksia ({len(records)}); jotain meni pieleen, julkaisua ei tehdä.")
 
-    write_lines(os.path.join(args.work, "b.geojsonl"), building_features(records))
-    for c in config.DENSITY_GRIDS:
-        write_lines(os.path.join(args.work, f"g{c['size']}.geojsonl"), density(records, c["size"]))
-    make_tiles(args.work, os.path.join(args.out, "data", "talot.pmtiles"))
+    region_files = make_tiles(records, [b["_region"] for b in blds], args.work, os.path.join(args.out, "data"))
     with open(os.path.join(args.out, "data", "meta.json"), "w", encoding="utf-8") as f:
-        json.dump(meta(records, config.MUNICIPALITIES), f, ensure_ascii=False)
+        json.dump(meta(records, region_files), f, ensure_ascii=False)
     shutil.copytree(os.path.join(ROOT, "web"), args.out, dirs_exist_ok=True)
     # versionumero tiedostonimiin, jotta selaimet hakevat päivitetyn sivun eivätkä käytä vanhaa välimuistista
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")

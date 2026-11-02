@@ -1,5 +1,6 @@
 /* Talokartta – karttasovellus.
- * Data: data/talot.pmtiles (tasot "b" = rakennukset zoomista 12 alkaen, "g" = tiheysruudut) ja data/meta.json.
+ * Data: data/meta.json kertoo tiedostot: data/g.pmtiles (taso "g" = tiheysruudut, kaikki alueet) ja
+ * maakunnittain data/b-<maakunta>.pmtiles (taso "b" = rakennukset zoomista 12 alkaen).
  * Rakennuksen ominaisuudet: id rakennustunnus, k kiinteistötunnus, a osoite, pc postinumero, po postitoimipaikka,
  * p tyyppi, s käytössäolo, d valmistumispäivä, y vuosi, g kerrosala, t kokonaisala, f kerroksia, n asuntoja,
  * c rakennuksia samalla kiinteistöllä, pa palstan ala, ka kiinteistön ala, pn palstoja, ex/ny ETRS-TM35FIN.
@@ -102,7 +103,8 @@ function colorExpr() {
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 const HAD_VIEW = location.hash.includes("kartta=");  // jaettu linkki, jossa on valmis karttanäkymä
-const DATA_URL = "pmtiles://" + new URL("data/talot.pmtiles", location.href).href;
+const dataUrl = (file) => "pmtiles://" + new URL("data/" + file, location.href).href;
+let B_LAYERS = [], SEL_LAYERS = [];  // rakennustasot ja valintarenkaat, yksi kutakin maakuntaa kohden
 
 const map = new maplibregl.Map({
   container: "map",
@@ -119,12 +121,13 @@ map.addControl(new maplibregl.AttributionControl({ compact: true,
 
 function minZoomB() { return META?.building_minzoom ?? 12; }
 
+let styleReady = false;
 function addDataLayers() {
-  if (map.getSource("talot")) return;
-  map.addSource("talot", { type: "vector", url: DATA_URL });
+  if (!META?.regions || !styleReady || map.getSource("g")) return;  // odotetaan sekä taustakarttaa että meta.jsonia
   const halo = css("--halo");
+  map.addSource("g", { type: "vector", url: dataUrl(META.grid) });
   map.addLayer({
-    id: "g", type: "circle", source: "talot", "source-layer": "g", maxzoom: minZoomB(),
+    id: "g", type: "circle", source: "g", "source-layer": "g", maxzoom: minZoomB(),
     paint: {
       "circle-color": css("--grid"),
       "circle-opacity": 0.55,
@@ -139,44 +142,58 @@ function addDataLayers() {
     },
   });
   map.addLayer({
-    id: "g-n", type: "symbol", source: "talot", "source-layer": "g", minzoom: 8.5, maxzoom: 10,
+    id: "g-n", type: "symbol", source: "g", "source-layer": "g", minzoom: 8.5, maxzoom: 10,
     filter: [">=", ["get", "n"], 10],
     layout: { "text-field": ["to-string", ["get", "n"]], "text-size": 11, "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
     paint: { "text-color": css("--ink"), "text-halo-color": halo, "text-halo-width": 1.2 },
   });
-  map.addLayer({
-    id: "b", type: "circle", source: "talot", "source-layer": "b", minzoom: minZoomB(),
-    paint: {
-      "circle-color": colorExpr(),
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.6, 14, 4.5, 16, 7, 18, 10],
-      "circle-stroke-color": halo,
-      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 16, 1.5],
-      "circle-opacity": 0.92,
-    },
-  });
-  map.addLayer({
-    id: "b-sel", type: "circle", source: "talot", "source-layer": "b", minzoom: minZoomB(),
-    filter: ["==", ["get", "id"], state.selected ?? "__none__"],
-    paint: {
-      "circle-color": "rgba(0,0,0,0)",
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 16, 13, 18, 17],
-      "circle-stroke-color": css("--ink"), "circle-stroke-width": 3,
-    },
-  });
+  B_LAYERS = []; SEL_LAYERS = [];
+  // Jokainen maakunta on oma tiedostonsa; selain hakee vain niiden tiilet, jotka ovat näkyvissä.
+  for (const r of META.regions) {
+    const id = r.file.replace(/\.pmtiles$/, "");
+    map.addSource(id, { type: "vector", url: dataUrl(r.file) });
+    map.addLayer({
+      id, type: "circle", source: id, "source-layer": "b", minzoom: minZoomB(),
+      paint: {
+        "circle-color": colorExpr(),
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.6, 14, 4.5, 16, 7, 18, 10],
+        "circle-stroke-color": halo,
+        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 16, 1.5],
+        "circle-opacity": 0.92,
+      },
+    });
+    B_LAYERS.push(id);
+  }
+  for (const id of B_LAYERS) {
+    map.addLayer({
+      id: id + "-sel", type: "circle", source: id, "source-layer": "b", minzoom: minZoomB(),
+      filter: ["==", ["get", "id"], state.selected ?? "__none__"],
+      paint: {
+        "circle-color": "rgba(0,0,0,0)",
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 16, 13, 18, 17],
+        "circle-stroke-color": css("--ink"), "circle-stroke-width": 3,
+      },
+    });
+    SEL_LAYERS.push(id + "-sel");
+  }
   applyFilters();
 }
-map.on("style.load", addDataLayers);
+map.on("style.load", () => { styleReady = true; addDataLayers(); });
 
 function applyFilters() {
-  if (!map.getLayer("b") || !ranges.year) return;
-  map.setFilter("b", filterExpr());
+  if (!B_LAYERS.length || !ranges.year) return;
+  const f = filterExpr();
+  B_LAYERS.forEach((id) => map.getLayer(id) && map.setFilter(id, f));
   const n = activeFilterCount();
   $("fcount").hidden = !n; $("fcount").textContent = n;
   scheduleCount();
 }
 function applyColors() {
-  if (!map.getLayer("b")) return;
-  map.setPaintProperty("b", "circle-color", colorExpr());
+  const c = colorExpr();
+  B_LAYERS.forEach((id) => map.getLayer(id) && map.setPaintProperty(id, "circle-color", c));
+}
+function markSelected(id) {
+  SEL_LAYERS.forEach((l) => map.getLayer(l) && map.setFilter(l, ["==", ["get", "id"], id]));
 }
 
 /* ---------- laskuri ja vihje ---------- */
@@ -190,9 +207,9 @@ function updateCount() {
     $("visLabel").textContent = "rakennusta kartalla. Lähennä nähdäksesi ne ja käyttääksesi suodattimia.";
     return;
   }
-  if (!map.getLayer("b")) return;
+  if (!B_LAYERS.length) return;
   const seen = new Set();
-  map.queryRenderedFeatures({ layers: ["b"] }).forEach((f) => seen.add(f.properties.id));
+  map.queryRenderedFeatures({ layers: B_LAYERS }).forEach((f) => seen.add(f.properties.id));
   $("visCount").textContent = nf.format(seen.size);
   $("visLabel").textContent = activeFilterCount() ? "suodatettua rakennusta näkyvissä" : "rakennusta näkyvissä";
 }
@@ -202,7 +219,7 @@ map.on("idle", scheduleCount);
 /* ---------- valinta ja kohdekortti ---------- */
 function pick(point) {
   const pad = window.matchMedia("(pointer: coarse)").matches ? 14 : 7;
-  const fs = map.queryRenderedFeatures([[point.x - pad, point.y - pad], [point.x + pad, point.y + pad]], { layers: ["b"] });
+  const fs = map.queryRenderedFeatures([[point.x - pad, point.y - pad], [point.x + pad, point.y + pad]], { layers: B_LAYERS });
   if (!fs.length) return null;
   let best = fs[0], bd = Infinity;
   for (const f of fs) {
@@ -213,7 +230,7 @@ function pick(point) {
 }
 map.on("click", (e) => {
   if (map.getZoom() < minZoomB()) {
-    const g = map.queryRenderedFeatures(e.point, { layers: ["g"] })[0];
+    const g = map.getLayer("g") && map.queryRenderedFeatures(e.point, { layers: ["g"] })[0];
     if (g) map.flyTo({ center: g.geometry.coordinates, zoom: Math.max(minZoomB() + 0.6, map.getZoom() + 2) });
     return;
   }
@@ -221,14 +238,14 @@ map.on("click", (e) => {
   f ? select(f.properties, f.geometry.coordinates) : closeCard();
 });
 map.on("mousemove", (e) => {
-  const layers = map.getZoom() < minZoomB() ? ["g"] : ["b"];
-  const hit = map.getLayer(layers[0]) && map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers }).length;
+  const layers = map.getZoom() < minZoomB() ? ["g"] : B_LAYERS;
+  const hit = layers.length && map.getLayer(layers[0]) && map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers }).length;
   map.getCanvas().style.cursor = hit ? "pointer" : "";
 });
 
 function select(p, coords) {
   state.selected = p.id;
-  if (map.getLayer("b-sel")) map.setFilter("b-sel", ["==", ["get", "id"], p.id]);
+  markSelected(p.id);
   const [lon, lat] = coords;
   const addr = p.a || "Ei katuosoitetta";
   const place = [p.pc, p.po].filter(Boolean).join(" ");
@@ -287,7 +304,7 @@ function select(p, coords) {
 function closeCard() {
   state.selected = null;
   $("card").hidden = true;
-  if (map.getLayer("b-sel")) map.setFilter("b-sel", ["==", ["get", "id"], "__none__"]);
+  markSelected("__none__");
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeCard(); closePanel(); } });
 
@@ -335,6 +352,7 @@ fetch("data/meta.json", { cache: "no-cache" })
   .then((m) => {
     META = m;
     initControls();
+    addDataLayers();  // jos taustakartta ehti latautua ensin
     if (m) {
       if (m.title) $("sub").textContent = m.title;
       const d = new Date(m.updated);

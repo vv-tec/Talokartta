@@ -10,8 +10,8 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
   - `ryhti.py` – SYKE Ryhti OGC API Features: `open_building` (crs EPSG:3067), `open_address`. Suodatus CQL:llä `municipality_number='NNN'`.
   - `mml.py` – MML INSPIRE WFS `cp:CadastralParcel`, bbox järjestyksessä E,N + `urn:ogc:def:crs:EPSG::3067`. Haku 2 km ruuduissa, täysi ruutu jaetaan neljään. Pinta-ala shoelace, piste-palsta ruutuindeksillä.
     Palstat säilytetään ruuduittain välimuistissa (`cache/parcels.json.gz`, GitHub Actions cache) ja haetaan uudelleen 7 päivän välein; puuttuvat ruudut haetaan heti.
-  - `build.py` – yhdistää, kirjoittaa GeoJSONSeq:n ja ajaa `tippecanoe` (taso kerrallaan, ilman ominaisuuskohtaisia zoomeja) + `tile-join` → `dist/data/talot.pmtiles` + `meta.json`, kopioi `web/` → `dist/`.
-- `web/` – staattinen sivu, ei build-vaihetta. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä, taustakartta OpenFreeMap (positron/dark).
+  - `build.py` – yhdistää, kirjoittaa GeoJSONSeq:n ja ajaa `tippecanoe` (taso kerrallaan, ilman ominaisuuskohtaisia zoomeja) → `dist/data/b-<maakunta>.pmtiles` (rakennukset, yksi tiedosto per `config.REGIONS`-alue) + `g.pmtiles` (tiheysruudut, tile-join) + `meta.json` (luettelo tiedostoista), kopioi `web/` → `dist/`. Ajo keskeytyy, jos jokin tiedosto > 95 Mt.
+- `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle oman lähteen ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä, taustakartta OpenFreeMap (positron/dark).
 - `.github/workflows/build-deploy.yml` – yöllinen ajo + push + käsin; julkaisu GitHub Pagesiin. Epäonnistunut ajo ei julkaise.
 
 ## Tiilien sisältö
@@ -37,8 +37,8 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
 1. ✅ Tammela uudella rakenteella (karttatiilet, taustakartta, zoomausraja, yöllinen päivitys).
 2a. ✅ Kanta-Häme (11 kuntaa, `config.MUNICIPALITIES`) välivaiheena: palstojen viikkovälimuisti WFS:lle. 72 948 rakennusta, ensiajo ~15 min, välimuistilla ~4 min, tiilet 14 Mt.
 2b. ✅ Uusimaa (26 kuntaa) lisätty `config.REGIONS`-rakenteeseen samalla WFS-välimuistimallilla. Yhteensä 361 423 rakennusta,
-    ~593 000 palstaa, ensiajo ~34 min, tiilet 65 Mt. **Seuraava maakunta ylittää GitHub Pagesin 100 Mt:n tiedostorajan →
-    ennen lisäämistä tiilet jaettava maakunnittain (useampi .pmtiles) tai siirrettävä R2:een.**
+    ~593 000 palstaa, ensiajo ~34 min, tiilet 65 Mt. Tiilet jaettu maakunnittain (✅ 2.11.2026), joten uusi maakunta mahtuu.
+    GitHub Pagesin koko sivuston raja on 1 Gt: koko Suomi (~300–400 Mt) mahtuu, mutta seuraa kokoa.
 2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
    - Ryhti: koko maa haetaan kerran, sen jälkeen öisin vain muuttuneet rakennukset ja osoitteet
      (`modified_timestamp_utc` > edellisen ajon aika). Edellinen tila tallennetaan ajojen välillä

@@ -84,6 +84,7 @@ def run():
             assert mml.tiles_for_bbox(0, 0, 4000, 2000) == {(0, 0), (1, 0)}
     finally:
         mml._fetch_box = orig
+    assert build.slug("Kanta-Häme") == "kanta-hame" and build.slug("Etelä-Pohjanmaa") == "etela-pohjanmaa"
     print("selftest OK")
 
 
