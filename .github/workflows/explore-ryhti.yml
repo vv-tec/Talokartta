@@ -1,0 +1,21 @@
+name: Selvitys – Ryhti-kentät
+
+# Käsin käynnistettävä: listaa Ryhtin avointen aineistojen kentät ja täyttöasteet yhdestä kunnasta.
+on:
+  workflow_dispatch:
+    inputs:
+      kunta:
+        description: "Kuntanumero (esim. 834 = Tammela)"
+        default: "834"
+
+jobs:
+  explore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r pipeline/requirements.txt
+      - run: python -m pipeline.ryhti_explore "${{ inputs.kunta }}"
