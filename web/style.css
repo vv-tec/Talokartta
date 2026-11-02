@@ -30,11 +30,12 @@ a { color: var(--accent); }
 h1, h2, h3 { font-family: var(--f-display); margin: 0; }
 .muted { color: var(--muted); }
 
-.app { position: fixed; inset: 0; display: grid; grid-template-columns: var(--panel-w) 1fr; grid-template-rows: var(--top-h) 1fr; }
-.top { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+.app { position: fixed; inset: 0; display: grid; grid-template-columns: var(--panel-w) minmax(0, 1fr); grid-template-rows: var(--top-h) 1fr; }
+.top { grid-column: 1 / -1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
   background: var(--panel); border-bottom: 1px solid var(--line); z-index: 3; }
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 auto; }
+.brand > div { min-width: 0; }  /* pitkä alaotsikko lyhenee (…) eikä työnnä nappia näytön ulkopuolelle */
 .brand img { border-radius: 8px; flex: none; }
 .brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
 .brand p { margin: 0; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -116,9 +117,14 @@ h1, h2, h3 { font-family: var(--f-display); margin: 0; }
 
 @media (max-width: 760px) {
   :root { --top-h: 54px; }
-  .app { grid-template-columns: 1fr; }
+  .app { grid-template-columns: minmax(0, 1fr); }
   #map { grid-column: 1; }
   .only-mobile { display: inline-flex !important; }
+  .filters-btn { flex: none; background: var(--accent); color: var(--panel); border-color: var(--accent); font-weight: 600; padding: 8px 12px; }
+  .filters-btn:hover { background: var(--accent); }
+  .filters-btn[aria-expanded="true"] { background: var(--panel); color: var(--accent); }
+  .filters-btn .badge { background: var(--panel); color: var(--accent); }
+  .filters-btn[aria-expanded="true"] .badge { background: var(--accent); color: var(--panel); }
   .panel-h.only-mobile { display: flex !important; align-items: center; justify-content: space-between; position: sticky; top: -14px; background: var(--panel); margin: -14px -16px 0; padding: 10px 8px 6px 16px; z-index: 1; }
   .panel { position: fixed; left: 0; right: 0; bottom: 0; top: auto; max-height: 82vh; border-right: 0; border-top: 1px solid var(--line);
     border-radius: 16px 16px 0 0; box-shadow: var(--shadow); transform: translateY(105%); transition: transform .22s ease; z-index: 10;
@@ -127,4 +133,5 @@ h1, h2, h3 { font-family: var(--f-display); margin: 0; }
   .hint { left: 50%; }
   .card { left: 0; right: 0; top: auto; bottom: 0; width: auto; max-height: 70vh; border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom); }
 }
+@media (max-width: 340px) { .filters-btn .lbl { display: none; } }  /* hyvin kapea näyttö: pelkkä kuvake */
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
