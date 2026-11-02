@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       kunta:
-        description: "Kuntanumero (esim. 235 = Kauniainen)"
+        description: "Kuntanumero (esim. 235 = Kauniainen) tai koko = koko Suomi"
         default: "235"
       muoto:
         description: "Tiedostomuoto (GPKG, GeoJSON, GML, SHAPE)"
@@ -15,7 +15,7 @@ on:
 jobs:
   explore:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -26,9 +26,12 @@ def main():
     print(json.dumps(desc.get("inputs", desc), ensure_ascii=False, indent=1)[:4000])
 
     t0 = time.time()
-    job = m.execute(PROC, {"municipalityInput": kunta, "fileFormatInput": fmt, "crsOutputInput": "EPSG:3067"})
+    if kunta == "koko":  # koko Suomi yhtenä tiedostona
+        job = m.execute("kiinteistorekisterikartta_vektori_koko_suomi", {"fileFormatInput": fmt})
+    else:
+        job = m.execute(PROC, {"municipalityInput": kunta, "fileFormatInput": fmt, "crsOutputInput": "EPSG:3067"})
     print("Työ:", job)
-    m.wait(job)
+    m.wait(job, max_minutes=300)
     print(f"Valmis {time.time() - t0:.0f} s")
     res, files = m.results(job)
     print("Tulos:", json.dumps(res, ensure_ascii=False)[:3000])
@@ -36,8 +39,10 @@ def main():
     for i, f in enumerate(files):
         url = f.get("path") or f.get("href")
         name = os.path.join("mml_explore", f"{i}_" + os.path.basename(url.split("?")[0]))
+        print("Ladataan", url, "koko", f.get("length"))
         m.download(url, name)
-        print(f"Ladattu {name}: {os.path.getsize(name) / 1e6:.1f} Mt")
+        print(f"Ladattu {name}: {os.path.getsize(name) / 1e6:.1f} Mt, {time.time() - t0:.0f} s alusta")
+        os.system("df -h . | tail -1")
         paths = [name]
         if zipfile.is_zipfile(name):
             with zipfile.ZipFile(name) as z:
