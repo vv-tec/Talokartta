@@ -1,20 +1,51 @@
 """Data-ajon asetukset. Muuta tätä tiedostoa, kun kartan aluetta laajennetaan."""
 
-# Alue ja kunnat, joiden rakennukset haetaan (kuntanumerot).
-REGION_TITLE = "Kanta-Hämeen asuinrakennukset"
-MUNICIPALITIES = [
-    "061",  # Forssa
-    "082",  # Hattula
-    "086",  # Hausjärvi
-    "103",  # Humppila
-    "109",  # Hämeenlinna
-    "165",  # Janakkala
-    "169",  # Jokioinen
-    "433",  # Loppi
-    "694",  # Riihimäki
-    "834",  # Tammela
-    "981",  # Ypäjä
-]
+# Alueet ja niiden kunnat (kuntanumerot). Uusi maakunta lisätään tähän.
+REGIONS = {
+    "Kanta-Häme": [
+        "061",  # Forssa
+        "082",  # Hattula
+        "086",  # Hausjärvi
+        "103",  # Humppila
+        "109",  # Hämeenlinna
+        "165",  # Janakkala
+        "169",  # Jokioinen
+        "433",  # Loppi
+        "694",  # Riihimäki
+        "834",  # Tammela
+        "981",  # Ypäjä
+    ],
+    "Uusimaa": [
+        "018",  # Askola
+        "049",  # Espoo
+        "078",  # Hanko
+        "091",  # Helsinki
+        "092",  # Vantaa
+        "106",  # Hyvinkää
+        "149",  # Inkoo
+        "186",  # Järvenpää
+        "224",  # Karkkila
+        "235",  # Kauniainen
+        "245",  # Kerava
+        "257",  # Kirkkonummi
+        "407",  # Lapinjärvi
+        "434",  # Loviisa
+        "444",  # Lohja
+        "504",  # Myrskylä
+        "505",  # Mäntsälä
+        "543",  # Nurmijärvi
+        "611",  # Pornainen
+        "616",  # Pukkila
+        "638",  # Porvoo
+        "710",  # Raasepori
+        "753",  # Sipoo
+        "755",  # Siuntio
+        "858",  # Tuusula
+        "927",  # Vihti
+    ],
+}
+REGION_TITLE = "Kanta-Hämeen ja Uudenmaan asuinrakennukset"
+MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
 
 # Ryhdin avoin rakennusluokitus (main_purpose), joka otetaan mukaan:
 # 01 = vapaa-ajan asuinrakennus, 05 = pientalo, 06 = kerrostalo
