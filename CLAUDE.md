@@ -105,6 +105,13 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
    - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
    - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
+2x. KOE: rantatieto (3.11.2026). `pipeline/shore.py` + `shore_explore.py` + työnkulku "Selvitys – rantatesti"
+    (Shapely ~=2.1 asennetaan vain siinä; ei tuotannossa). Vesialueet: MTK OGC API Features (`maastotiedot/features/v1`,
+    kokoelmat `jarvi`, `meri`, `virtavesialue`; sama API-avain, Basic auth toimii; bbox-crs/crs EPSG:3067).
+    Tammela: 6 335 asuinrakennusta → ranta 2 659, erillinen rantapalsta 121, todennäköisesti (3–15 m) 201, ei 3 354;
+    vapaa-ajan asunnoista 64 % rannalla. Ajot: vesialueet 5 s, laskenta 18 s (3 ms/palsta), muisti 285 Mt.
+    Avoinna: Saimaan kaltaisten isojen järvien suorituskyky (palstakohtainen leikkaus isoon polygoniin), purot (viivoja).
+    Kumoaminen: poista nuo kolme tiedostoa. Tuotantoon vietäessä: oma kytkin configiin + tulos ParcelResultsiin.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste.
