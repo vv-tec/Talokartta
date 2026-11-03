@@ -11,6 +11,10 @@ on:
         description: "Koe: anna ajon epäonnistua heti (ilmoituksen testaus)"
         type: boolean
         default: false
+      ohita_tarkistukset:
+        description: "Julkaise, vaikka turvatarkistus huomauttaisi (vain kun pudotus on todellinen, esim. kunta poistettu)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -26,9 +30,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 240   # ensimmäinen palstojen haku kestää pisimpään
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -44,12 +48,12 @@ jobs:
       - name: Koe-epäonnistuminen
         if: inputs.koe_virhe
         run: |
-          echo "Ajo pysäytettiin tarkoituksella ilmoituksen testaamiseksi."
+          echo "::error title=Koe::Ajo pysäytettiin tarkoituksella ilmoituksen testaamiseksi (käsiajon valinta koe_virhe)."
           exit 1
 
       # Kiinteistöpalstat säilytetään ajojen välillä (ladataan uudelleen viikon välein), jotta MML:n palvelua ei kuormiteta turhaan.
       - name: Palauta palstojen välimuisti
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: cache
           key: parcels-none
@@ -58,6 +62,7 @@ jobs:
       - name: Hae rekisteritiedot ja tee karttatiilet
         env:
           MML_API_KEY: ${{ secrets.MML_API_KEY }}   # MML:n tiedostopalvelu (palstat); ilman avainta käytetään WFS:ää
+          SKIP_CHECKS: ${{ inputs.ohita_tarkistukset }}
         timeout-minutes: 210    # ohjelma lopettaa palstahaun itse jo 150 min kohdalla (config.PARCEL_TIME_BUDGET_MIN)
         run: python -m pipeline.build --out dist --work work --cache cache
 
@@ -69,7 +74,7 @@ jobs:
 
       - name: Tallenna palstojen välimuisti
         if: always() && steps.stamp.outputs.v != 'none'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         continue-on-error: true   # sama versio on jo tallessa
         with:
           path: cache
@@ -78,7 +83,7 @@ jobs:
       - name: Koko
         run: ls -la dist dist/data
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -90,7 +95,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # Ilmoitus omistajalle: epäonnistunut ajo avaa GitHub-ilmoituksen (issue), josta tulee sähköposti.
   # Seuraava onnistunut ajo sulkee sen. Sivulla näkyy epäonnistumisen ajan edellinen onnistunut versio.
@@ -101,6 +106,7 @@ jobs:
     permissions:
       issues: write
       actions: read
+      checks: read
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
@@ -114,11 +120,17 @@ jobs:
           OPEN=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number // empty')
           WHEN=$(TZ=Europe/Helsinki date '+%-d.%-m.%Y klo %H.%M')
           if [ "$FAILED" = "true" ]; then
-            WHERE=$(gh api "repos/$GH_REPO/actions/runs/${{ github.run_id }}/jobs" \
-              --jq '[.jobs[] | select(.conclusion=="failure") | .name + ": " + ([.steps[] | select(.conclusion=="failure") | .name] | join(", "))] | join("; ")')
+            JOBS=$(gh api "repos/$GH_REPO/actions/runs/${{ github.run_id }}/jobs")
+            WHERE=$(echo "$JOBS" | jq -r '[.jobs[] | select(.conclusion=="failure") | .name + ": " + ([.steps[] | select(.conclusion=="failure") | .name] | join(", "))] | join("; ")')
+            # ohjelman oma selitys (::error-rivit), ei GitHubin yleistä "exit code 1" -viestiä
+            WHY=""
+            for J in $(echo "$JOBS" | jq -r '.jobs[] | select(.conclusion=="failure") | .id'); do
+              WHY="$WHY$(gh api "repos/$GH_REPO/check-runs/$J/annotations" --jq '.[] | select(.annotation_level=="failure") | select(.message | test("exit code") | not) | .message' 2>/dev/null)"
+            done
             BODY="Päivitysajo epäonnistui $WHEN (${{ github.event_name }}).
 
           Kohta: ${WHERE:-ei tiedossa}
+          ${WHY:+Syy: }$WHY
           Ajon loki: $RUN_URL
 
           Sivulla näkyy edellinen onnistunut versio, joten mikään ei ole rikki – tiedot vain eivät päivittyneet.

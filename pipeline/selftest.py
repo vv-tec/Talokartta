@@ -194,6 +194,13 @@ def ryhti_store_tests(parcels):
             assert [c[0] for c in calls] == ["full", "delta"], calls
             # kunta poistettu asetuksista
             st.update(["834"]); assert all(x["municipality_number"] == "834" for x in st.buildings())
+            # täysi haku vertaa tallessa olleeseen tietoon (muutoshaun luotettavuus)
+            src["b"]["834"] = [b("b1", "834", x=1070)]
+            st.full("834"); assert st.stats["drift"]["834"] == {"uusia": 0, "poistuneita": 1, "muuttuneita": 1}, st.stats
+            # aikaraja: uusi kunta jää kesken, valmiit kunnat saavat silti muutoshaun
+            calls.clear()
+            st.update(["834", "235"], deadline=1)
+            assert st.missing == ["235"] and not st.ready("235") and st.ready("834") and calls[-1][0] == "delta", calls
 
             # palstatulokset kunnittain: tallessa vain [pa, ka, pn]
             fetched = []
@@ -216,6 +223,18 @@ def ryhti_store_tests(parcels):
             pr = mml.ParcelResults(os.path.join(d, "p2.json.gz"), 7, boom, today=day, log=lambda *x: None)
             build.migrate_parcel_cache(d, pr, bm)
             assert pr.get(["834"], bm) == res and not os.path.exists(os.path.join(d, "parcels-mml.json.gz"))
+        # turvatarkistus ennen julkaisua
+        from . import config
+        prev = {"regions": [{"name": "Kanta-Häme", "count": 1000}, {"name": "Uusimaa", "count": 5000}],
+                "muni_counts": {"834": 1000, "091": 5000}}
+        assert build.publish_problems(None, [], {}, {}) == []
+        assert build.publish_problems(prev, ["Kanta-Häme", "Uusimaa"], {"834": 990, "091": 4800}, {}) == []
+        p = build.publish_problems(prev, ["Kanta-Häme"], {"834": 900}, {})
+        assert len(p) == 2 and "Uusimaa" in p[0] and "834" in p[1], p     # maakunta putoaisi + kunnan pudotus 10 %
+        assert build.publish_problems({"regions": prev["regions"]}, ["Kanta-Häme", "Uusimaa"], {},
+                                      {"Kanta-Häme": 1000, "Uusimaa": 4000})[0].startswith("Maakunta Uusimaa")
+        assert config.DROP_MIN >= 20  # pienet kunnat: muutaman rakennuksen vaihtelu ei estä julkaisua
+        assert build.publish_problems({"regions": [], "muni_counts": {"235": 100}}, [], {"235": 85}, {}) == []
     finally:
         for k, v in orig.items():
             setattr(ryhti, k, v)

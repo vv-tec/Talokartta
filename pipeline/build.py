@@ -13,7 +13,7 @@ import sys
 import time
 from collections import Counter, defaultdict
 
-from . import config, mml, mml_files, ryhti, ryhti_store
+from . import config, mml, mml_files, net, ryhti, ryhti_store
 from .tm35 import tm35_to_latlon
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -168,23 +168,24 @@ def make_tiles(records, regions, work, data_dir):
         mb = os.path.getsize(os.path.join(data_dir, f)) / 1e6
         log(f"  {f}: {mb:.1f} Mt")
         if mb > MAX_FILE_MB:
-            sys.exit(f"{f} on {mb:.0f} Mt, yli GitHub Pagesin rajan. Alue pitää jakaa pienempiin osiin.")
+            fail(f"{f} on {mb:.0f} Mt, yli GitHub Pagesin rajan. Alue pitää jakaa pienempiin osiin.")
     return out
 
 
-def meta(records, region_files):
+def meta(records, region_files, regions=None, muni_counts=None):
     lats = [r[2] for r in records]
     lons = [r[3] for r in records]
     years = [r[4]["y"] for r in records if "y" in r[4]]
     return {
         "updated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "count": len(records),
-        "municipalities": config.MUNICIPALITIES,
+        "municipalities": list(muni_counts) if muni_counts else config.MUNICIPALITIES,
+        "muni_counts": muni_counts or {},
         "regions": region_files,
         "grid": "g.pmtiles",
         "bounds": [min(lons), min(lats), max(lons), max(lats)],
         "years": [min(years), max(years)] if years else None,
-        "title": config.REGION_TITLE,
+        "title": "Asuinrakennukset: " + ", ".join(regions) if regions else config.REGION_TITLE,
         "building_minzoom": config.BUILDING_MINZOOM,
         "by_type": Counter(r[4].get("p", "") for r in records),
         "by_status": Counter(r[4].get("s", "") for r in records),
@@ -209,13 +210,59 @@ def migrate_parcel_cache(cache_dir, pres, by_muni):
     os.remove(old)
 
 
+def fail(msg):
+    """Lopettaa ajon ilman julkaisua. GitHub Actionsissa viesti näkyy virheenä, ja ilmoitus (issue) poimii sen."""
+    if os.environ.get("GITHUB_ACTIONS"):
+        print(f"::error title=Julkaisua ei tehty::{msg}", flush=True)
+    sys.exit(msg)
+
+
+def previous_meta():
+    """Julkaistun sivun meta.json vertailua varten (None, jos ei saatavilla, esim. ensimmäinen julkaisu)."""
+    try:
+        return net.get(config.SITE_URL + "data/meta.json", {"t": str(int(time.time()))}, tries=3, timeout=30).json()
+    except Exception as e:  # noqa: BLE001
+        log(f"  julkaistua meta.jsonia ei saatu ({e}); turvatarkistus ohitetaan")
+        return None
+
+
+def publish_problems(prev, regions_ready, muni_counts, region_counts):
+    """Turvatarkistus ennen julkaisua: estää vajaan kartan julkaisemisen rekisterihäiriön sattuessa.
+
+    - asetuksissa oleva maakunta, joka on jo sivulla, ei saa pudota pois (esim. kesken jäänyt haku)
+    - kunnan (tai vanhassa metassa maakunnan) rakennusmäärä ei saa pudota yli DROP_PCT % (vähintään DROP_MIN rakennusta)
+    """
+    if not prev:
+        return []
+    out = []
+
+    def drop(name, old, new):
+        lost = old - new
+        if lost > max(config.DROP_MIN, old * config.DROP_PCT / 100):
+            out.append(f"{name}: rakennuksia {new}, edellisessä julkaisussa {old} (−{lost}, {100 * lost / old:.1f} %)")
+    for r in prev.get("regions", []):
+        if r["name"] in config.REGIONS and r["name"] not in regions_ready:
+            out.append(f"Maakunta {r['name']} on sivulla, mutta sen tiedot ovat nyt kesken; se putoaisi pois")
+    if prev.get("muni_counts"):
+        for m, old in prev["muni_counts"].items():
+            if m in muni_counts:
+                drop(f"Kunta {m}", old, muni_counts[m])
+    else:
+        for r in prev.get("regions", []):
+            if r["name"] in region_counts:
+                drop(f"Maakunta {r['name']}", r["count"], region_counts[r["name"]])
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="dist")
     ap.add_argument("--work", default="work")
     ap.add_argument("--cache", default="cache")
     args = ap.parse_args(argv)
-    deadline = time.time() + config.PARCEL_TIME_BUDGET_MIN * 60
+    t0 = time.time()
+    ryhti_deadline = t0 + config.RYHTI_TIME_BUDGET_MIN * 60
+    deadline = t0 + config.PARCEL_TIME_BUDGET_MIN * 60
     os.makedirs(args.work, exist_ok=True)
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
 
@@ -223,20 +270,20 @@ def main(argv=None):
 
     # 1) Rakennukset ja osoitteet: tallessa olevaan tilaan vain muutokset (täysi haku kunnittain kuukauden välein).
     store = ryhti_store.RyhtiStore(os.path.join(args.cache, "ryhti.json.gz"), config.RYHTI_FULL_DAYS, keep=keep, log=log)
-    store.update(config.MUNICIPALITIES)
+    store.update(config.MUNICIPALITIES, ryhti_deadline)
     by_muni = defaultdict(list)
     for b in store.buildings():
         by_muni[b["municipality_number"]].append(b)
     for m in config.MUNICIPALITIES:
-        if not by_muni.get(m):  # jokaisessa kunnassa on asuinrakennuksia; tyhjä tulos = haku epäonnistui
-            sys.exit(f"Kunta {m}: ei yhtään asuinrakennusta, julkaisua ei tehdä.")
-    blds = [b for m in config.MUNICIPALITIES for b in by_muni[m]]
-    addrs = store.addresses()
-    log(f"Rakennuksia {len(blds)}, osoitteita {len(addrs)} ({len(config.MUNICIPALITIES)} kuntaa)")
+        if store.ready(m) and not by_muni.get(m):  # jokaisessa kunnassa on asuinrakennuksia; tyhjä = haku epäonnistui
+            fail(f"Kunta {m}: ei yhtään asuinrakennusta, julkaisua ei tehdä.")
+    ryhti_ready = [m for m in config.MUNICIPALITIES if store.ready(m)]
+    log(f"Rakennuksia {sum(len(by_muni[m]) for m in ryhti_ready)} ({len(ryhti_ready)}/{len(config.MUNICIPALITIES)} kuntaa valmiina)")
 
     # 2) Kiinteistöpalstat: tallessa vain rakennuskohtaiset tulokset (palstan ala, kiinteistön ala, palstojen määrä).
+    #    Haetaan vain kunnille, joiden rakennukset ovat valmiina (tulokset lasketaan rakennuksille).
     if os.environ.get("MML_API_KEY"):
-        log(f"Kiinteistöpalstat: MML:n tiedostopalvelu, {len(config.MUNICIPALITIES)} kuntaa")
+        log(f"Kiinteistöpalstat: MML:n tiedostopalvelu, {len(ryhti_ready)} kuntaa")
         client = None
 
         def fetch(code):
@@ -245,39 +292,62 @@ def main(argv=None):
             return mml_files.municipality_parcels(client, code, args.work, log)
         pres = mml.ParcelResults(os.path.join(args.cache, "parcel-results.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch, log=log)
         migrate_parcel_cache(args.cache, pres, by_muni)
-        presults = pres.get(config.MUNICIPALITIES, by_muni, deadline)
-        missing = pres.missing
+        presults = pres.get(ryhti_ready, by_muni, deadline)
+        pres.prune(config.MUNICIPALITIES)
+        parcels_ready = pres.ready
     else:
-        # Varatapa ilman API-avainta: INSPIRE WFS ruuduittain (rajat tallessa ruuduittain).
+        # Varatapa ilman API-avainta: INSPIRE WFS ruuduittain (rajat tallessa ruuduittain); kaikki tai ei mitään.
         pad, tiles = config.PARCEL_BBOX_PAD_M, set()
-        for ms in by_muni.values():
-            xs, ys = [b["_x"] for b in ms], [b["_y"] for b in ms]
+        for m in ryhti_ready:
+            xs, ys = [b["_x"] for b in by_muni[m]], [b["_y"] for b in by_muni[m]]
             tiles |= mml.tiles_for_bbox(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
         log(f"Kiinteistöpalstat: WFS, {len(tiles)} hakuruutua")
         pres = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS,
                                mml.wfs_tile_fetch, log=log, label="ruutu")
-        presults = mml.parcel_results(blds, pres.get((f"{i},{j}" for i, j in tiles), deadline))
-        missing = pres.missing
+        presults = mml.parcel_results([b for m in ryhti_ready for b in by_muni[m]],
+                                      pres.get((f"{i},{j}" for i, j in tiles), deadline))
+        complete = not pres.missing
+        parcels_ready = lambda m: complete  # noqa: E731
     # Tila tallennetaan joka ajossa (myös kun jotain puuttuu), jotta seuraava ajo jatkaa siitä.
     store.save()
     pres.save()
     with open(os.path.join(args.cache, "parcels.stamp"), "w") as f:
         f.write(dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S"))
-    if missing:
-        # haetut on tallennettu; seuraava ajo jatkaa siitä. Vanha sivu jää näkyviin siihen asti.
-        sys.exit(f"Palstat puuttuvat vielä {len(missing)} erältä ({', '.join(missing[:10])}); "
-                 "haetut tallennettiin, seuraava ajo jatkaa. Julkaisua ei tehdä.")
+
+    # 3) Julkaistaan maakunnat, joiden kaikki kunnat ovat valmiina; keskeneräiset tulevat sivulle myöhemmin.
+    ready = {m for m in ryhti_ready if parcels_ready(m)}
+    regions_ready = [r for r, ms in config.REGIONS.items() if all(m in ready for m in ms)]
+    for r, ms in config.REGIONS.items():
+        if r not in regions_ready:
+            log(f"Maakunta {r} kesken: valmiina {sum(m in ready for m in ms)}/{len(ms)} kuntaa; julkaistaan, kun kaikki ovat valmiit")
+    if not regions_ready:
+        fail("Yksikään maakunta ei ole vielä valmis; haetut tiedot tallennettiin ja seuraava ajo jatkaa.")
+    pub_munis = [m for r in regions_ready for m in config.REGIONS[r]]
+    blds = [b for m in pub_munis for b in by_muni[m]]
+    keys = {b["building_key"] for b in blds}
+    addrs = [a for a in store.addresses() if a["building_key"] in keys]
+    muni_counts = {m: len(by_muni[m]) for m in pub_munis}
+    region_counts = {r: sum(muni_counts[m] for m in config.REGIONS[r]) for r in regions_ready}
+
+    problems = publish_problems(previous_meta(), regions_ready, muni_counts, region_counts)
+    if problems:
+        if os.environ.get("SKIP_CHECKS") == "true":
+            log("Turvatarkistuksen huomiot ohitettu käsiajon valinnalla:\n  " + "\n  ".join(problems))
+        else:
+            fail("Turvatarkistus esti julkaisun (tarkista, onko muutos todellinen; tarvittaessa käsiajo "
+                 "valinnalla 'ohita_tarkistukset'): " + "; ".join(problems))
+
     for b in blds:
         b["_region"] = region_of[b["municipality_number"]]
     records = make_records(blds, addrs, presults)
     log(f"Valmis: {len(records)} rakennusta, joista palsta löytyi {sum(1 for r in records if 'pa' in r[4])}")
 
     if len(records) < 100:
-        sys.exit(f"Liian vähän rakennuksia ({len(records)}); jotain meni pieleen, julkaisua ei tehdä.")
+        fail(f"Liian vähän rakennuksia ({len(records)}); jotain meni pieleen, julkaisua ei tehdä.")
 
     region_files = make_tiles(records, [b["_region"] for b in blds], args.work, os.path.join(args.out, "data"))
     with open(os.path.join(args.out, "data", "meta.json"), "w", encoding="utf-8") as f:
-        json.dump(meta(records, region_files), f, ensure_ascii=False)
+        json.dump(meta(records, region_files, regions_ready, muni_counts), f, ensure_ascii=False)
     shutil.copytree(os.path.join(ROOT, "web"), args.out, dirs_exist_ok=True)
     # versionumero tiedostonimiin, jotta selaimet hakevat päivitetyn sivun eivätkä käytä vanhaa välimuistista
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")

@@ -12,6 +12,7 @@ import gzip
 import json
 import math
 import os
+import time
 
 from . import ryhti
 
@@ -46,7 +47,8 @@ class RyhtiStore:
                 self.data = json.load(f)
             log(f"  Ryhti tallessa: {len(self.data['b'])} rakennusta, {len(self.data['a'])} osoitetta, "
                 f"viimeisin muutos {self.data['mark']}")
-        self.stats = {"full": [], "changed_b": 0, "changed_a": 0, "removed_b": 0, "removed_a": 0}
+        self.stats = {"full": [], "drift": {}, "changed_b": 0, "changed_a": 0, "removed_b": 0, "removed_a": 0}
+        self.missing = []
 
     def _mark(self, ts):
         if ts and (not self.data["mark"] or ts > self.data["mark"]):
@@ -55,6 +57,7 @@ class RyhtiStore:
     def full(self, m):
         """Kunnan täysi haku: korvaa kunnan rakennukset ja osoitteet."""
         d = self.data
+        before = {k: b for k, b in d["b"].items() if b.get("municipality_number") == m}
         d["b"] = {k: b for k, b in d["b"].items() if b.get("municipality_number") != m}
         d["a"] = {k: a for k, a in d["a"].items() if a[4] != m}
         n = 0
@@ -69,8 +72,17 @@ class RyhtiStore:
             if a.get("building_key") in d["b"] and a.get("address_key"):
                 d["a"][a["address_key"]] = addr_row(a)
                 na += 1
+        had = m in d["munis"]
         d["munis"][m] = self.today.isoformat()
-        self.log(f"  kunta {m}: täysi haku, {n} asuinrakennusta, {na} osoitetta")
+        msg = f"  kunta {m}: täysi haku, {n} asuinrakennusta, {na} osoitetta"
+        if had:
+            # kuinka paljon tallessa ollut (muutoshaulla ylläpidetty) tieto poikkesi rekisteristä
+            after = {k: b for k, b in d["b"].items() if b.get("municipality_number") == m}
+            drift = {"uusia": len(after.keys() - before.keys()), "poistuneita": len(before.keys() - after.keys()),
+                     "muuttuneita": sum(1 for k in after.keys() & before.keys() if after[k] != before[k])}
+            self.stats["drift"][m] = drift
+            msg += f"; erot tallessa olleeseen: {drift['uusia']} uutta, {drift['poistuneita']} poistunutta, {drift['muuttuneita']} muuttunutta"
+        self.log(msg)
         return n
 
     def changes(self, since, munis):
@@ -106,7 +118,9 @@ class RyhtiStore:
                 if a.get("address_key") and a.get("building_key") in d["b"]:
                     d["a"][a["address_key"]] = addr_row(a)
 
-    def update(self, munis):
+    def update(self, munis, deadline=None):
+        """Täydet haut (puuttuvat ensin) aikarajaan asti, sitten muutokset valmiille kunnille.
+        Kunnat, joiden täysi haku ei ehtinyt, jäävät listaan self.missing ja haetaan seuraavalla ajolla."""
         munis = [str(m) for m in munis]
         d = self.data
         prev_mark = d["mark"]
@@ -117,12 +131,15 @@ class RyhtiStore:
         todo = missing + stale[:math.ceil(len(munis) / self.full_days)]
         if todo:
             self.log(f"  Ryhti: täysi haku {len(todo)} kunnalle ({len(missing)} uutta, {len(stale)} yli {self.full_days} pv vanhaa)")
-        for m in todo:
+        for n, m in enumerate(todo):
+            if deadline and time.time() > deadline:
+                self.log(f"  Ryhti: aikaraja täynnä, {len(todo) - n} kunnan täysi haku jää seuraavaan ajoon")
+                break
             self.full(m)
             self.stats["full"].append(m)
         if prev_mark:
             since = (dt.datetime.fromisoformat(prev_mark.replace("Z", "+00:00")) - OVERLAP).strftime("%Y-%m-%dT%H:%M:%SZ")
-            self.changes(since, set(munis))
+            self.changes(since, {m for m in munis if m in d["munis"]})
             s = self.stats
             self.log(f"  Ryhti: muutokset {since} jälkeen: {s['changed_b']} rakennusta ({s['removed_b']} poistui), "
                      f"{s['changed_a']} osoitetta ({s['removed_a']} poistettu)")
@@ -133,6 +150,10 @@ class RyhtiStore:
             d["a"] = {k: a for k, a in d["a"].items() if a[4] not in gone}
             for m in gone:
                 del d["munis"][m]
+        self.missing = [m for m in munis if m not in d["munis"]]
+
+    def ready(self, m):
+        return m in self.data["munis"]
 
     def buildings(self, m=None):
         return [b for b in self.data["b"].values() if m is None or b.get("municipality_number") == m]

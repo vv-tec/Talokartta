@@ -297,13 +297,19 @@ class ParcelResults:
             self.put(m, buildings_by_muni.get(m, []), parcels)
             self.log(f"  kunta {n}/{len(todo)} ({m}): {len(parcels)} palstaa, tulos {len(d[m]['res'])} rakennukselle")
         self.missing = [m for m in munis if m not in d]
-        for m in set(d) - set(munis):  # asetuksista poistetut kunnat
-            del d[m]
         out = {}
         for m in munis:
             if m in d:
                 out.update(d[m]["res"])
         return out
+
+    def ready(self, m):
+        return m in self.data["munis"]
+
+    def prune(self, munis):
+        """Poistaa asetuksista poistettujen kuntien tulokset."""
+        for m in set(self.data["munis"]) - {str(x) for x in munis}:
+            del self.data["munis"][m]
 
     def save(self):
         os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)

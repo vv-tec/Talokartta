@@ -13,7 +13,9 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
   - `ryhti_store.py` – rakennukset ja osoitteet tallessa (`cache/ryhti.json.gz`, vain asuinrakennukset kevennettyinä).
     Kunta haetaan kokonaan, jos puuttuu tai yli `RYHTI_FULL_DAYS` (30) pv vanha (1/30 kunnista per yö); muuten vain koko maan
     muutokset edellisen tallessa olevan muutoksen jälkeen (1 pv päällekkäisyys), ja uusille rakennuksille osoitteet erikseen.
-    Rekisteristä kokonaan poistetut rakennukset siivoutuvat kunnan seuraavassa täydessä haussa.
+    Rekisteristä kokonaan poistetut rakennukset siivoutuvat kunnan seuraavassa täydessä haussa. Täysi haku lokittaa erot
+    tallessa olleeseen ("erot tallessa olleeseen: N uutta, N poistunutta, N muuttunutta") → muutoshaun luotettavuuden seuranta.
+    Täysiä hakuja tehdään enintään `RYHTI_TIME_BUDGET_MIN` (60) min ajon alusta; loput seuraavalla ajolla (`store.missing`).
   - `mml.py` – MML INSPIRE WFS `cp:CadastralParcel`, bbox järjestyksessä E,N + `urn:ogc:def:crs:EPSG::3067`. Haku 2 km ruuduissa, täysi ruutu jaetaan neljään. Pinta-ala shoelace, piste-palsta ruutuindeksillä.
     WFS on nykyään vain varatapa (jos `MML_API_KEY` puuttuu).
   - `mml_files.py` – **ensisijainen palstalähde**: MML:n paikkatiedon tiedostopalvelu (OGC API Processes,
@@ -30,6 +32,12 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
     1/7 eristä per ajo (kuorma jakautuu viikon öille). Palstahaku lopetetaan hallitusti 150 min kohdalla
     (`PARCEL_TIME_BUDGET_MIN`) ja yksittäisen erän virhe ohitetaan; jos eriä puuttuu, haetut tallennetaan
     (välimuistin tallennus `if: always()`), ajo päättyy virheeseen eikä julkaise, ja seuraava ajo jatkaa.
+  - Julkaisu maakunnittain: maakunta julkaistaan, kun sen kaikkien kuntien rakennukset (Ryhti) ja palstatulokset ovat valmiina;
+    keskeneräinen (esim. uusi) maakunta odottaa, muut päivittyvät normaalisti. Palstat haetaan vain Ryhti-valmiille kunnille.
+  - Turvatarkistus (`build.publish_problems`) vertaa julkaistun sivun meta.jsoniin (`config.SITE_URL`): julkaisu estetään,
+    jos sivulla oleva maakunta putoaisi pois tai kunnan rakennusmäärä putoaa yli `DROP_PCT` 5 % (ja yli `DROP_MIN` 20).
+    meta.json:ssa `muni_counts`. Ohitus: käsiajo valinnalla `ohita_tarkistukset` (env `SKIP_CHECKS`).
+    `build.fail()` tulostaa `::error`-rivin, jonka `notify` poimii issueen kohtaan "Syy".
   - `build.py` – yhdistää, kirjoittaa GeoJSONSeq:n ja ajaa `tippecanoe` (taso kerrallaan, ilman ominaisuuskohtaisia zoomeja) → `dist/data/b-<maakunta>.pmtiles` (rakennukset, yksi tiedosto per `config.REGIONS`-alue) + `g.pmtiles` (tiheysruudut, tile-join) + `meta.json` (luettelo tiedostoista), kopioi `web/` → `dist/`. Ajo keskeytyy, jos jokin tiedosto > 95 Mt.
 - `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle oman lähteen ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä, taustakartta OpenFreeMap (positron/dark).
 - `.github/workflows/build-deploy.yml` – yöllinen ajo + push + käsin; julkaisu GitHub Pagesiin. Epäonnistunut ajo ei julkaise.

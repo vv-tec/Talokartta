@@ -94,6 +94,9 @@ PARCEL_PAGE = 1000          # kuinka monta palstaa yhdellä pyynnöllä enintä�
 PARCEL_BBOX_PAD_M = 3000    # haetaan palstoja myös rakennusten alueen ympäriltä
 PARCEL_MAX_AGE_DAYS = 7     # palstat haetaan uudelleen viikon välein (1/7 eristä joka yö); muuten käytetään välimuistia
 RYHTI_FULL_DAYS = 30        # kunta haetaan Ryhtistä kokonaan kuukauden välein (1/30 kunnista per yö); muuten vain muutokset
+RYHTI_TIME_BUDGET_MIN = 60   # Ryhtin täysiä kuntahakuja tehdään enintään näin kauan ajon alusta; loput seuraavalla ajolla
+DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pudota yli 5 % (ja yli 20 rakennusta) yhdessä ajossa
+SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
 # Karttatiilet: yksittäiset rakennukset näkyvät tästä zoomitasosta alkaen.
