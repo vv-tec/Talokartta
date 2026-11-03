@@ -108,6 +108,24 @@ REGIONS = {
         "576",  # Padasjoki
         "781",  # Sysmä
     ],
+    "Satakunta": [
+        "050",  # Eura
+        "051",  # Eurajoki
+        "079",  # Harjavalta
+        "102",  # Huittinen
+        "181",  # Jämijärvi
+        "214",  # Kankaanpää
+        "230",  # Karvia
+        "271",  # Kokemäki
+        "484",  # Merikarvia
+        "531",  # Nakkila
+        "608",  # Pomarkku
+        "609",  # Pori
+        "684",  # Rauma
+        "747",  # Siikainen
+        "783",  # Säkylä
+        "886",  # Ulvila
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
