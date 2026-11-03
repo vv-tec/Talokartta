@@ -81,6 +81,7 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
     palsta löytyi 534 660 / 534 667 rakennukselle. Ensilataus ~1 h 55 min (isot kunnat 4–8 min), koko ajo ~2 h 30 min;
     välimuistilla ajo ~24 min (Ryhti ~15 min, yhdistäminen ~7 min). Välimuisti ~262 Mt.
     "Cache save failed" ajossa, jossa mitään ei haettu, on odotettu (sama avain on jo tallessa).
+2d. Pirkanmaa (22 kuntaa) lisätty 3.11.2026 ensimmäisenä maakuntana uudella pohjalla (muutoshaku, tulostallennus, julkaisu maakunnittain).
 2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
    - Ryhti: ✅ muutoshaku ja tallennettu tila (`ryhti_store.py`, 3.11.2026). Koko maan ensimmäinen haku voi kestää
      tunteja → lisää maakunnat erissä tai lisää Ryhti-haulle aikaraja kuten palstoille.

@@ -72,6 +72,30 @@ REGIONS = {
         "895",  # Uusikaupunki
         "918",  # Vehmaa
     ],
+    "Pirkanmaa": [
+        "020",  # Akaa
+        "108",  # Hämeenkyrö
+        "143",  # Ikaalinen
+        "177",  # Juupajoki
+        "211",  # Kangasala
+        "250",  # Kihniö
+        "418",  # Lempäälä
+        "508",  # Mänttä-Vilppula
+        "536",  # Nokia
+        "562",  # Orivesi
+        "581",  # Parkano
+        "604",  # Pirkkala
+        "619",  # Punkalaidun
+        "635",  # Pälkäne
+        "702",  # Ruovesi
+        "790",  # Sastamala
+        "837",  # Tampere
+        "887",  # Urjala
+        "908",  # Valkeakoski
+        "922",  # Vesilahti
+        "936",  # Virrat
+        "980",  # Ylöjärvi
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
