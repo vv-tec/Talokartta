@@ -105,13 +105,34 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
    - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
    - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
-2x. KOE: rantatieto (3.11.2026). `pipeline/shore.py` + `shore_explore.py` + työnkulku "Selvitys – rantatesti"
-    (Shapely ~=2.1 asennetaan vain siinä; ei tuotannossa). Vesialueet: MTK OGC API Features (`maastotiedot/features/v1`,
-    kokoelmat `jarvi`, `meri`, `virtavesialue`; sama API-avain, Basic auth toimii; bbox-crs/crs EPSG:3067).
-    Tammela: 6 335 asuinrakennusta → ranta 2 659, erillinen rantapalsta 121, todennäköisesti (3–15 m) 201, ei 3 354;
-    vapaa-ajan asunnoista 64 % rannalla. Ajot: vesialueet 5 s, laskenta 18 s (3 ms/palsta), muisti 285 Mt.
-    Avoinna: Saimaan kaltaisten isojen järvien suorituskyky (palstakohtainen leikkaus isoon polygoniin), purot (viivoja).
-    Kumoaminen: poista nuo kolme tiedostoa. Tuotantoon vietäessä: oma kytkin configiin + tulos ParcelResultsiin.
+2x. Rantatieto – KOE TEHTY, TOTEUTUS ODOTTAA OMISTAJAN PÄÄTÖSTÄ (3.11.2026). Älä ota käyttöön ilman omistajan lupaa.
+    Koe: `pipeline/shore.py` + `shore_explore.py` + työnkulku "Selvitys – rantatesti" (Shapely ~=2.1 asennetaan vain siinä).
+    Vesialueet: MTK OGC API Features (`maastotiedot/features/v1`, kokoelmat `jarvi`, `meri`, `virtavesialue`; sama API-avain,
+    Basic auth toimii; bbox-crs/crs EPSG:3067). Tammela: 6 335 asuinrakennusta → ranta 2 659, erillinen rantapalsta 121,
+    todennäköisesti (3–15 m) 201, ei 3 354; vapaa-ajan asunnoista 64 % rannalla. Vesialueet 5 s, laskenta 18 s
+    (3 ms/palsta), muisti 285 Mt. Tulos omistajalle Excelinä tarkistettavaksi (Karttapaikka-linkit).
+    Ennen käyttöönottoa:
+    a) omistaja tarkistaa Tammelan rajatapauksia → kynnysarvojen säätö (nyt ranta ≤ 3 m, todennäköisesti ≤ 15 m);
+    b) suorituskykytesti Saimaan kunnalle (esim. Puumala 623): isot rikkonaiset järvipolygonit, palstakohtainen leikkaus;
+       tarvittaessa järvet pilkotaan ruutuihin (esim. 1 km) ennen laskentaa.
+    Toteutusmalli (helposti kumottava):
+    1. `config.SHORE_ENABLED = False` -kytkin + `SHORE_TOL_SHORE`, `SHORE_TOL_LIKELY`. Shapely tuodaan vain kytkimen ollessa
+       päällä (laiska import), versio lukittuna requirements.txt:ssä.
+    2. Vesialueet haetaan samassa viikoittaisessa kuntakohtaisessa palstahaussa (kunnan rakennusten bbox + 2 km); ei omaa välimuistia.
+    3. Laskenta `ParcelResults.put`-vaiheessa: tulos laajenee [pa, ka, pn] → [pa, ka, pn, ranta-luokka, rantaviiva m,
+       etäisyys vedestä m, vesilaji, vesialueen ala ha]; kiinteistötasolla "erillinen rantapalsta" (saman kiinteistön toinen palsta rannassa).
+    4. Käyttöönotto leviää viikoittaisen uudelleenhaun mukana (1/7 kunnista per yö) → kaikki kunnat viikossa ilman erillistä
+       raskasta ajoa; siihen asti "ei vielä laskettu". Lisäaika koko Suomessa arviolta ~10 min/yö.
+    5. Tiiliin uudet avaimet: `ra` (0 ei, 1 todennäköisesti, 2 ranta, 3 erillinen rantapalsta), `rl` rantaviiva m,
+       `rd` etäisyys vedestä m, `rw` vesilaji (j järvi, m meri, v joki), `rwa` vesialueen ala ha. Arvio tiilikoon kasvusta ~3–5 %.
+    6. Käyttöliittymä: suodatinryhmä "Ranta" (Oma ranta / Erillinen rantapalsta / Todennäköisesti / Ei rantaa / Ei laskettu),
+       mahdollisesti liukusäädin "etäisyys vedestä" ja "vesialueen koko" (lammet pois); kortissa osio "Ranta" + selite rajoituksista.
+    7. Pikatestit yksinkertaisilla geometrioilla (ohitetaan, jos Shapely puuttuu).
+    8. Kumoaminen: `SHORE_ENABLED = False` → build jättää rantakentät pois heti seuraavassa ajossa; riippuvuuden voi poistaa myöhemmin.
+    Rajoitukset (kerrotaan käyttäjälle): yhteinen ranta-alue/venevalkama tontin ja veden välissä → "ei" (oikein, mutta voi yllättää);
+    kiinteistörajojen epätarkkuus maaseudulla; maankohoamisrannikko (vesijättö); purot (viivoja, `virtavesikapea`) eivät mukana;
+    tieto ei kerro vesialueen omistuksesta eikä rannan laadusta.
+    Avoimet kysymykset: kynnysarvot, otetaanko alle 1 ha lammet mukaan, lisätäänkö "puron varrella" puroviivoista.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste.
