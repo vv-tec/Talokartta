@@ -1,37 +1,31 @@
 # Talokartta
 
-Kartta, jolla näkyvät asuinrakennukset ja niiden tiedot (valmistumisvuosi, pinta-alat, tontti, kiinteistötunnus) suoraan avoimista rekistereistä. Tiedot päivittyvät automaattisesti joka yö.
+Kartta, jolla näkyvät asuinrakennukset ja niiden tiedot (valmistumisvuosi, pinta-alat, rakenteet, lämmitys, tontti,
+kiinteistötunnus) suoraan avoimista rekistereistä. Tiedot päivittyvät automaattisesti joka yö.
 
-**Nykyinen vaihe:** Tammelan kunta (vaihe 1). Koko Suomi tulee vaiheessa 2.
+- **Sivu:** https://vv-tec.github.io/Talokartta/
+- **Käyttöohje omistajalle:** [KAYTTOOHJE.md](KAYTTOOHJE.md) – ilmoitukset, käsiajo, avaimet, maakuntien lisääminen
+- **Kehittäjän muistio:** [CLAUDE.md](CLAUDE.md) – arkkitehtuuri, päätökset ja tiekartta
 
-## Miten tämä toimii
+## Rakenne
 
 ```
-Ryhti (SYKE) ──┐                         ┌─> data/talot.pmtiles  (karttatiilet)
-               ├─> pipeline/ (Python) ───┤
-MML palstat ───┘    joka yö GitHubissa   └─> data/meta.json      (päivitysaika, määrät)
-                                                    │
-                                    web/ (sivu) ────┴─> GitHub Pages -julkaisu
+Ryhti (SYKE) ───────┐                              ┌─> data/b-<maakunta>.pmtiles  (rakennukset)
+                    ├─> pipeline/ (Python) ────────┼─> data/g.pmtiles             (tiheysruudut)
+Maanmittauslaitos ──┘   joka yö GitHub Actionsissa └─> data/meta.json             (päivitysaika, määrät)
+                                                              │
+                                          web/ (sivu) ────────┴─> GitHub Pages
 ```
 
-1. **Data-ajo** (`pipeline/`) hakee rakennukset ja osoitteet Ryhdistä sekä kiinteistöpalstat Maanmittauslaitokselta, laskee palstojen pinta-alat ja tekee niistä karttatiilet.
-2. **Verkkosivu** (`web/`) näyttää tiilet kartalla. Kaukaa katsottuna näkyy rakennusten tiheys, lähempää (zoom 12+) yksittäiset rakennukset, joita voi suodattaa.
-3. **GitHub Actions** (`.github/workflows/build-deploy.yml`) ajaa data-ajon joka yö ja aina kun koodi muuttuu, ja julkaisee sivun GitHub Pagesiin. Jos ajo epäonnistuu, edellinen versio jää näkyviin.
-
-## Käyttöönotto (tehdään kerran)
-
-1. GitHubissa: repositorion **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. **Actions**-välilehti → *Päivitä tiedot ja julkaise* → **Run workflow**.
-3. Kun ajo on vihreä, sivu löytyy osoitteesta `https://<käyttäjätunnus>.github.io/<repositorio>/`.
-
-## Tietojen päivitys käsin
-
-Actions → *Päivitä tiedot ja julkaise* → Run workflow.
+- `pipeline/` hakee rakennukset ja osoitteet Ryhtistä (muutoshaulla) sekä kiinteistöpalstat Maanmittauslaitokselta,
+  yhdistää ne ja tekee karttatiilet. Pikatestit: `python -m pipeline.selftest`.
+- `web/` näyttää tiilet kartalla (MapLibre GL + PMTiles).
+- `.github/workflows/build-deploy.yml` ajaa päivityksen joka yö ja julkaisee sivun; epäonnistunut ajo ei julkaise ja avaa ilmoituksen.
 
 ## Lähteet ja lisenssit
 
-- Rakennukset ja osoitteet: Suomen ympäristökeskus, Ryhti – rakennetun ympäristön tietojärjestelmä, CC BY 4.0
-- Kiinteistöpalstat: Maanmittauslaitos, INSPIRE-kiinteistöpalstat, CC BY 4.0
+- Rakennukset ja osoitteet: Suomen ympäristökeskus, Ryhti, CC BY 4.0
+- Kiinteistöpalstat: Maanmittauslaitos, CC BY 4.0
 - Taustakartta: OpenFreeMap, © OpenStreetMapin tekijät (ODbL)
 
 Kartassa ei ole omistajatietoja.

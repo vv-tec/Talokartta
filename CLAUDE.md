@@ -2,6 +2,8 @@
 
 Omistaja ei ole ohjelmoija: Claude kirjoittaa kaiken koodin. Selitä muutokset suomeksi selkokielellä, tee pieniä
 kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mitä avata, mitä pitäisi näkyä).
+Omistajan käyttöohje on `KAYTTOOHJE.md` (ilmoitukset, käsiajo, avaimet, maakuntien lisääminen, kulut). **Päivitä se aina,
+kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitetty viimeksi" ja luvut).
 
 ## Arkkitehtuuri
 
@@ -134,5 +136,20 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
     tieto ei kerro vesialueen omistuksesta eikä rannan laadusta.
     Avoimet kysymykset: kynnysarvot, otetaanko alle 1 ha lammet mukaan, lisätäänkö "puron varrella" puroviivoista.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
+3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
+    omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
+    näe sivua suoraan. Malli: uusi jobi `check` deployn jälkeen (`needs: deploy`), ennen `notify`a:
+    - Playwright + Chromium GitHubin ajokoneella (`npx playwright install --with-deps chromium` tai pip-versio);
+    - avaa `SITE_URL` (välimuistin ohitus `?v=<ajon id>`), odottaa `meta.json`:n ja kartan latautumisen;
+    - tarkistaa: ei sivun JS-virheitä (`pageerror`), `meta.json`:n määrä ja maakunnat vastaavat buildin lukuja,
+      taustakartta latautui, jokaisen maakunnan pmtiles vastaa (HTTP 206 Range-pyyntöön);
+    - siirtyy tunnettuihin kohteisiin (esim. Tampereen keskusta z15, Tammela z14) ja tarkistaa `map.queryRenderedFeatures`
+      → rakennuspisteitä > 0; avaa yhden kohteen tietokortin ja tarkistaa, että siinä on osoite ja tontin ala;
+    - testaa myös puhelinkoon (390 px): Suodattimet-nappi näkyy ja avaa paneelin;
+    - ottaa kuvakaappaukset (työpöytä + puhelin) ajon liitteiksi; epäonnistuessa `notify` avaa ilmoituksen syineen
+      (`::error`-rivit kuten buildissa) ja liittää kuvakaappauksen linkin.
+    Huom: tarkistus ei voi estää jo tehtyä julkaisua (Pages-julkaisu on tehty); se hälyttää. Vaihtoehto myöhemmin:
+    tarkistus ennen julkaisua paikallisesti tarjoillusta dist/-kansiosta (estää rikkinäisen julkaisun) + kevyt tarkistus julkaisun jälkeen.
+    Kesto arviolta 1–2 min/ajo, ei kuormita rekistereitä.
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste.

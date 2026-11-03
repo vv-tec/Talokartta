@@ -1,0 +1,167 @@
+# Talokartta – käyttöohje omistajalle
+
+Tämä ohje on sinulle, palvelun omistajalle. Siinä kerrotaan, miten palvelu toimii, mitä sinun pitää (ja ei tarvitse)
+tehdä, mitä ilmoitukset tarkoittavat ja missä tärkeät tunnukset ovat. Ohjelmointia ei tarvita.
+Kehittäjän (Clauden) tekninen muistio on tiedostossa [CLAUDE.md](CLAUDE.md).
+
+- **Sivu:** https://vv-tec.github.io/Talokartta/
+- **Koodi ja asetukset:** https://github.com/vv-tec/Talokartta
+- **Päivitetty viimeksi:** 3.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
+
+---
+
+## 1. Miten palvelu toimii lyhyesti
+
+```
+Ryhti (SYKE): rakennukset, osoitteet ──┐
+                                       ├─> yöajo GitHubissa ─> karttatiedostot ─> sivu (GitHub Pages)
+Maanmittauslaitos: tontit ─────────────┘     noin klo 4–6
+```
+
+- **Joka yö** GitHub ajaa päivityksen automaattisesti. Se hakee rekistereistä vain edellisen yön jälkeen muuttuneet
+  rakennukset ja osoitteet, ja tontit noin seitsemäsosalle kunnista (jokainen kunta kerran viikossa). Lisäksi muutama
+  kunta haetaan joka yö kokonaan varmistukseksi (jokainen kunta kerran kuukaudessa). Yöajo kestää noin 30 minuuttia,
+  josta suurin osa on tonttien latausta (ilman tonttien latausta noin 3–5 minuuttia).
+- **Sivu** on pelkkiä tiedostoja, ei omaa palvelinta tai tietokantaa. Siksi palvelu on ilmainen ja kestää paljon käyttäjiä.
+- **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
+- Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
+
+**Mukana nyt (3.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme ja Satakunta –
+112 kuntaa, noin 876 000 asuinrakennusta.
+
+---
+
+## 2. Mitä sinun tarvitsee tehdä
+
+**Normaalisti ei mitään.** Palvelu päivittyy itsestään.
+
+Kun saat sähköpostin otsikolla **"Talokartan päivitys epäonnistui"**, katso kohta 4.
+
+Hyvä tapa: avaa sivu silloin tällöin ja katso, että päivitysaika on tuore (enintään vuorokauden vanha).
+
+---
+
+## 3. Mistä näet tilanteen GitHubissa
+
+Avaa https://github.com/vv-tec/Talokartta (kirjaudu sisään).
+
+| Välilehti | Mitä siellä on |
+|---|---|
+| **Actions** | Kaikki ajot. Vihreä ✓ = onnistui, punainen ✗ = epäonnistui, keltainen pyörivä = käynnissä. |
+| **Issues** | Ilmoitukset epäonnistuneista ajoista. Avoin ilmoitus = viimeisin ajo epäonnistui. Ilmoitus sulkeutuu itsestään, kun seuraava ajo onnistuu. |
+| **Code** | Koodi, tämä ohje ja kehittäjän muistio. |
+
+Ajon yksityiskohdat: Actions → klikkaa ajoa → klikkaa **build** → avautuu loki.
+Lokin lopussa näkyy esimerkiksi rakennusten määrä ja karttatiedostojen koot.
+
+---
+
+## 4. Kun saat ilmoituksen epäonnistuneesta ajosta
+
+Ilmoituksessa (GitHubin Issues ja sähköposti) lukee **Kohta** (mikä vaihe epäonnistui), usein myös **Syy**, ja linkki ajon lokiin.
+
+| Syy tai tilanne | Mitä tehdä |
+|---|---|
+| Yksittäinen epäonnistuminen, syy esim. yhteysvirhe tai "HTTP 500/502/503" | Ei mitään. Rekisteri oli todennäköisesti hetken katkolla. Seuraava yöajo yrittää uudelleen. Jos haluat heti, käynnistä ajo käsin (kohta 5). |
+| Sama ilmoitus useana yönä peräkkäin (ilmoitukseen tulee uusia kommentteja) | Pyydä Claudea selvittämään: kerro ilmoituksen numero tai liitä sen teksti. |
+| **"Turvatarkistus esti julkaisun"** | Jonkin kunnan rakennusmäärä putosi yhdessä yössä yli 5 % tai maakunta olisi pudonnut sivulta. Yleensä kyse on rekisterin häiriöstä, joka korjaantuu itsestään. Jos sama toistuu, pyydä Claudea katsomaan. Ohita tarkistus (kohta 5) vain, jos tiedät pudotuksen olevan todellinen. |
+| Syy mainitsee **401** tai **403** ja Maanmittauslaitoksen | API-avain ei kelpaa. Katso kohta 7, "Maanmittauslaitoksen API-avain". |
+| "on X Mt, yli GitHub Pagesin rajan" | Jokin karttatiedosto kasvoi liian suureksi. Pyydä Claudea jakamaan alue pienempiin osiin. |
+| "Koe-epäonnistuminen" | Testiajo, joka pysäytettiin tarkoituksella. Ei toimenpiteitä. |
+
+---
+
+## 5. Ajon käynnistäminen käsin
+
+1. GitHub → **Actions** → vasemmalta **Päivitä tiedot ja julkaise**.
+2. Oikealta **Run workflow** → avautuu valikko.
+3. Jätä valinnat tyhjiksi ja paina vihreää **Run workflow** -nappia.
+4. Ajo ilmestyy listaan muutamassa sekunnissa. Ajo kestää 3–40 minuuttia sen mukaan, montako kunnan tontteja on vuorossa.
+
+Valikon valinnat (jätä normaalisti tyhjiksi):
+
+- **koe_virhe** – pysäyttää ajon tarkoituksella. Vain ilmoituksen testaamiseen; saat testisähköpostin.
+- **ohita_tarkistukset** – julkaisee, vaikka turvatarkistus huomauttaisi. Käytä vain, kun tiedät rakennusmäärän
+  pudotuksen olevan todellinen (esim. kunta on poistettu asetuksista tarkoituksella).
+
+Muut ajot Actions-välilehdellä (**Selvitys – …**) ovat Clauden koeajoja. Ne eivät vaikuta sivuun.
+
+---
+
+## 6. Uuden maakunnan lisääminen
+
+Pyydä Claudea, esimerkiksi: *"Lisää Keski-Suomi."*
+
+- Claude lisää maakunnan kunnat asetuksiin, ja ensimmäinen ajo alkaa heti.
+- Ensimmäinen ajo kestää noin 30–60 minuuttia (tontit ladataan Maanmittauslaitokselta kunta kerrallaan).
+- Uusi maakunta tulee sivulle vasta, kun kaikki sen kuntien tiedot ovat valmiina. Jos ajo ei ehdi kerralla, se
+  jatkuu seuraavana yönä. Muut maakunnat päivittyvät sillä välin normaalisti.
+- Yhteen ajoon mahtuu noin 20–25 kuntaa (1–2 keskikokoista maakuntaa).
+
+Puuttuvat maakunnat (3.11.2026): Etelä-Karjala, Etelä-Pohjanmaa, Etelä-Savo, Kainuu, Keski-Pohjanmaa, Keski-Suomi,
+Kymenlaakso, Lappi, Pohjanmaa, Pohjois-Karjala, Pohjois-Pohjanmaa ja Pohjois-Savo. Ahvenanmaalla on oma
+rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
+
+---
+
+## 7. Tunnukset, avaimet ja asetukset
+
+Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja keskusteluun Clauden kanssa.**
+
+### GitHub-tili (vv-tec)
+- Koko palvelu on tämän tilin alla. Varmista, että tilillä on **kaksivaiheinen tunnistautuminen**:
+  GitHub → oikean yläkulman kuva → **Settings → Password and authentication → Two-factor authentication**.
+- Tallenna GitHubin varakoodit (recovery codes) turvalliseen paikkaan.
+
+### Maanmittauslaitoksen API-avain
+- Tarvitaan tonttien ja vesialueiden hakuun. Avain on GitHubissa salaisuutena nimellä **MML_API_KEY**:
+  repositorio → **Settings → Secrets and variables → Actions**. Arvoa ei näe enää tallennuksen jälkeen (näin pitääkin olla).
+- Jos avain lakkaa toimimaan tai haluat vaihtaa sen:
+  1. Kirjaudu Maanmittauslaitoksen **OmaTiliin** ja luo uusi API-avain avoimille rajapinnoille.
+  2. GitHub → repositorio → **Settings → Secrets and variables → Actions** → **MML_API_KEY** → kynäkuvake → liitä uusi avain → **Update secret**.
+  3. Käynnistä ajo käsin (kohta 5) ja katso, että se onnistuu.
+- Jos avain puuttuu, palvelu käyttää hitaampaa varatapaa tonteille.
+
+### Clauden oikeus repositorioon
+- Claude tekee muutokset GitHub-sovelluksen kautta. Oikeudet näet: GitHub → **Settings → Applications → Installed GitHub Apps**.
+  Suositus: oikeus vain tähän repositorioon (*Only select repositories*).
+
+### GitHub Pages
+- Julkaisuasetus: repositorio → **Settings → Pages → Source: GitHub Actions**. Tätä ei tarvitse muuttaa.
+
+---
+
+## 8. Kun jatkat kehitystä Clauden kanssa
+
+- **Aloita uusi keskustelu** isommille uusille asioille. Kirjoita alkuun esimerkiksi:
+  *"Jatketaan Talokartta-projektia (GitHub vv-tec/Talokartta). Lue ensin CLAUDE.md ja KAYTTOOHJE.md."*
+- **Pyydä kirjaamaan päätökset** suunnitelmaan (CLAUDE.md). Keskusteluun jääneet päätökset unohtuvat.
+- **Tallenna itsellesi tiedostot**, joita haluat säilyttää (esim. Claudelta saadut Excelit) – Clauden työkone on väliaikainen.
+- Pyydä isoista muutoksista silloin tällöin **erillinen katselmointi** uudessa keskustelussa.
+- Tarkista uudet ominaisuudet itse sivulta: Claude kertoo aina, mitä avata ja mitä pitäisi näkyä.
+
+---
+
+## 9. Kulut ja rajat
+
+- **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 190 Mt), yksittäinen tiedosto enintään 100 Mt
+  (suurin, Uusimaa, noin 58 Mt). Koko Suomi mahtuu arviolta hyvin.
+- **Ulkoiset palvelut, joista sivu riippuu:** OpenFreeMap (taustakartta) ja unpkg (karttakirjastot). Jos jompikumpi on
+  katkolla, sivu ei toimi kunnes palvelu palaa.
+
+---
+
+## 10. Avoimet asiat ja suunnitelmat (3.11.2026)
+
+- **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
+- **Rantatieto** ("oma ranta" -suodatin) – koe tehty Tammelassa, odottaa päätöstäsi.
+- **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
+- Muut maakunnat, osoitehaku, oma verkko-osoite.
+
+## Lähteet ja lisenssit
+
+- Rakennukset ja osoitteet: Suomen ympäristökeskus (SYKE), Ryhti, CC BY 4.0
+- Kiinteistöpalstat: Maanmittauslaitos, kiinteistörekisterikartta, CC BY 4.0
+- Taustakartta: OpenFreeMap, © OpenStreetMapin tekijät (ODbL)
+- Kartassa ei ole omistajatietoja.
