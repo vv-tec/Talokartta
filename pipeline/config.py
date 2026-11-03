@@ -96,6 +96,18 @@ REGIONS = {
         "936",  # Virrat
         "980",  # Ylöjärvi
     ],
+    "Päijät-Häme": [
+        "016",  # Asikkala
+        "081",  # Hartola
+        "098",  # Hollola
+        "111",  # Heinola
+        "142",  # Iitti
+        "316",  # Kärkölä
+        "398",  # Lahti
+        "560",  # Orimattila
+        "576",  # Padasjoki
+        "781",  # Sysmä
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
