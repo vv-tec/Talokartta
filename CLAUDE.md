@@ -28,10 +28,14 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Kauniaisten tiedosto 3,9 Mt, työ ~40 s. Selvitysajo: työnkulku "Selvitys – MML-tiedostolataus" (`pipeline/mml_explore.py`).
   - Palstoista säilytetään vain rakennuskohtaiset tulokset kunnittain (`mml.ParcelResults`, `cache/parcel-results.json.gz`:
     {kunta: {date, res: {building_key: [pa, ka, pn]}}}), ei rajoja → muisti ja välimuisti pysyvät pieninä koko Suomellekin.
-    Kunnan rekisteriin tullut uusi rakennus saa palstatiedot kunnan seuraavassa haussa (≤ 7 pv). WFS-varatapa säilyttää
+    Kunnan tiedosto haetaan uudelleen `PARCEL_MAX_AGE_DAYS` (14) pv välein (1/14 kunnista per yö; rajat muuttuvat harvoin).
+    Uusi rakennus (ei tulosta) saa palstatiedon heti samassa ajossa pienellä aluehaulla `ParcelResults.fill_new`
+    (INSPIRE WFS `_fetch_box`, lähekkäiset rakennukset 500 m ruuduittain yhteen pyyntöön, enintään
+    `NEW_BUILDINGS_MAX_PER_RUN` 500/ajo; jos palstaa ei löydy, uusi yritys 7 pv päästä, kirjanpito `tried`).
+    Aluehaun kiinteistön ala voi jäädä vajaaksi, jos kiinteistön muut palstat ovat kaukana; tarkentuu täydessä haussa (≤ 14 pv). WFS-varatapa säilyttää
     edelleen rajat ruuduittain (`mml.ParcelCache`, `cache/parcels.json.gz`). Vanha rajavälimuisti `parcels-mml.json.gz`
-    muunnetaan tuloksiksi kerran (`build.migrate_parcel_cache`). Jokaisella erällä oma hakupäivä. Puuttuvat erät haetaan heti; yli 7 pv vanhat uudelleen vanhimmasta alkaen, enintään
-    1/7 eristä per ajo (kuorma jakautuu viikon öille). Palstahaku lopetetaan hallitusti 150 min kohdalla
+    muunnetaan tuloksiksi kerran (`build.migrate_parcel_cache`). Jokaisella erällä oma hakupäivä. Puuttuvat erät haetaan heti; vanhentuneet uudelleen vanhimmasta alkaen
+    (kuorma jakautuu tasaisesti öille; WFS-varatavalla edelleen 1/7 per ajo). Palstahaku lopetetaan hallitusti 150 min kohdalla
     (`PARCEL_TIME_BUDGET_MIN`) ja yksittäisen erän virhe ohitetaan; jos eriä puuttuu, haetut tallennetaan
     (välimuistin tallennus `if: always()`), ajo päättyy virheeseen eikä julkaise, ja seuraava ajo jatkaa.
   - Julkaisu maakunnittain: maakunta julkaistaan, kun sen kaikkien kuntien rakennukset (Ryhti) ja palstatulokset ovat valmiina;

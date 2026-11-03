@@ -258,7 +258,8 @@ class ParcelResults:
 
     Kunnan tiedosto haetaan, kun kunta puuttuu tai sen tulokset ovat yli max_age_days vanhoja (vanhimmasta alkaen,
     enintään 1/max_age_days kunnista per ajo). Rakennus, joka on tullut rekisteriin kunnan edellisen haun jälkeen,
-    saa palstatietonsa kunnan seuraavassa haussa (viimeistään viikon päästä).
+    saa palstatietonsa heti seuraavassa ajossa pienellä aluehaulla (fill_new, INSPIRE WFS); kiinteistön ala voi
+    tällöin jäädä vajaaksi, jos kiinteistön palstoja on kaukana, ja tarkentuu kunnan seuraavassa täydessä haussa.
     """
 
     def __init__(self, path, max_age_days, fetch, today=None, log=print):
@@ -297,11 +298,61 @@ class ParcelResults:
             self.put(m, buildings_by_muni.get(m, []), parcels)
             self.log(f"  kunta {n}/{len(todo)} ({m}): {len(parcels)} palstaa, tulos {len(d[m]['res'])} rakennukselle")
         self.missing = [m for m in munis if m not in d]
-        out = {}
+        return self.collect(munis)
+
+    def collect(self, munis):
+        """Tallessa olevat tulokset annetuille kunnille (ei hakuja)."""
+        d, out = self.data["munis"], {}
         for m in munis:
-            if m in d:
-                out.update(d[m]["res"])
+            if str(m) in d:
+                out.update(d[str(m)]["res"])
         return out
+
+    def fill_new(self, munis, buildings_by_muni, fetch_box, deadline=None, limit=500, retry_days=7, cell=500, pad=150):
+        """Tulokset rakennuksille, joilta ne puuttuvat (uudet rakennukset): palstat haetaan pieneltä alueelta.
+
+        Lähekkäiset rakennukset haetaan yhdellä pyynnöllä (cell×cell-ruutu + pad). Jos palstaa ei löydy, rakennusta
+        ei yritetä uudelleen retry_days päivään. Enintään limit rakennusta per ajo.
+        """
+        d, today = self.data["munis"], self.today.isoformat()
+        todo = []
+        for m in munis:
+            if m not in d:
+                continue
+            res, tried = d[m]["res"], d[m].setdefault("tried", {})
+            for b in buildings_by_muni.get(m, []):
+                k = b["building_key"]
+                t = tried.get(k)
+                if k in res or (t and (self.today - dt.date.fromisoformat(t)).days < retry_days):
+                    continue
+                todo.append((m, b))
+        if not todo:
+            return 0
+        todo = todo[:limit]
+        cells = {}
+        for m, b in todo:
+            cells.setdefault((int(b["_x"] // cell), int(b["_y"] // cell)), []).append((m, b))
+        found = 0
+        for (i, j), items in cells.items():
+            if deadline and time.time() > deadline:
+                self.log("  uudet rakennukset: aikaraja täynnä, loput seuraavassa ajossa")
+                break
+            xs, ys = [b["_x"] for _, b in items], [b["_y"] for _, b in items]
+            try:
+                parcels = fetch_box(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
+            except Exception as e:  # noqa: BLE001
+                self.log(f"  uudet rakennukset: aluehaku epäonnistui ({e}); yritetään seuraavassa ajossa")
+                continue
+            for m, b in items:
+                r = parcel_results([b], parcels)
+                if r:
+                    d[m]["res"].update(r)
+                    d[m]["tried"].pop(b["building_key"], None)
+                    found += 1
+                else:
+                    d[m]["tried"][b["building_key"]] = today
+        self.log(f"  uudet rakennukset: {len(todo)} ilman palstatietoa, {len(cells)} aluehakua, palsta löytyi {found}:lle")
+        return found
 
     def ready(self, m):
         return m in self.data["munis"]

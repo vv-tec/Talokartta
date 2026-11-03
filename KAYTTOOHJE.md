@@ -18,10 +18,17 @@ Ryhti (SYKE): rakennukset, osoitteet ──┐
 Maanmittauslaitos: tontit ─────────────┘     noin klo 4–6
 ```
 
-- **Joka yö** GitHub ajaa päivityksen automaattisesti. Se hakee rekistereistä vain edellisen yön jälkeen muuttuneet
-  rakennukset ja osoitteet, ja tontit noin seitsemäsosalle kunnista (jokainen kunta kerran viikossa). Lisäksi muutama
-  kunta haetaan joka yö kokonaan varmistukseksi (jokainen kunta kerran kuukaudessa). Yöajo kestää noin 30 minuuttia,
-  josta suurin osa on tonttien latausta (ilman tonttien latausta noin 3–5 minuuttia).
+- **Joka yö** GitHub ajaa päivityksen automaattisesti. Tiedot haetaan eri rytmeissä:
+
+  | Mitä | Mistä | Kuinka usein |
+  |---|---|---|
+  | Muuttuneet rakennukset ja osoitteet | Ryhti (SYKE) | joka yö, vain edellisen yön jälkeen muuttuneet |
+  | Uusien rakennusten tonttitieto | Maanmittauslaitos | joka yö, pieni aluehaku vain uusien rakennusten kohdalta |
+  | Kunnan kaikki rakennukset ja osoitteet (varmistus) | Ryhti | kerran kuukaudessa, muutama kunta joka yö |
+  | Kunnan kaikkien tonttien rajat | Maanmittauslaitos | kerran kahdessa viikossa, noin 1/14 kunnista joka yö |
+
+  Yöajo kestää noin 15–20 minuuttia, josta suurin osa on tonttien latausta. Uuden rakennuksen kiinteistön kokonaisala
+  voi tarkentua vasta kunnan seuraavassa täydessä tonttihaussa (enintään kahden viikon päästä).
 - **Sivu** on pelkkiä tiedostoja, ei omaa palvelinta tai tietokantaa. Siksi palvelu on ilmainen ja kestää paljon käyttäjiä.
 - **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
@@ -76,7 +83,7 @@ Ilmoituksessa (GitHubin Issues ja sähköposti) lukee **Kohta** (mikä vaihe ep�
 1. GitHub → **Actions** → vasemmalta **Päivitä tiedot ja julkaise**.
 2. Oikealta **Run workflow** → avautuu valikko.
 3. Jätä valinnat tyhjiksi ja paina vihreää **Run workflow** -nappia.
-4. Ajo ilmestyy listaan muutamassa sekunnissa. Ajo kestää 3–40 minuuttia sen mukaan, montako kunnan tontteja on vuorossa.
+4. Ajo ilmestyy listaan muutamassa sekunnissa. Ajo kestää 3–20 minuuttia sen mukaan, montako kunnan tontteja on vuorossa.
 
 Valikon valinnat (jätä normaalisti tyhjiksi):
 

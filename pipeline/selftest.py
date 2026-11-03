@@ -216,6 +216,17 @@ def ryhti_store_tests(parcels):
             boom = lambda m: (_ for _ in ()).throw(RuntimeError("katko"))
             pr = mml.ParcelResults(pr_path, 7, boom, today=day + dt.timedelta(days=9), log=lambda *x: None)
             assert pr.get(["834", "235"], bm) == res and pr.missing == ["235"]  # virhe: vanha tulos säilyy
+            # uusi rakennus: palstatieto heti pienellä aluehaulla, ei koko kunnan latausta
+            boxes = []
+            fb = lambda *bb: boxes.append(bb) or [dict(p) for p in parcels]
+            pr = mml.ParcelResults(pr_path, 14, boom, today=day + dt.timedelta(days=3), log=lambda *x: None)
+            bm2 = {"834": bm["834"] + [{"building_key": "bn", "_x": 2010, "_y": 2010, "property_identifier": "83440400030064"},
+                                       {"building_key": "bn2", "_x": 2040, "_y": 2040, "property_identifier": "83440400030064"}]}
+            assert pr.fill_new(["834"], bm2, fb) == 2 and len(boxes) == 2    # lähekkäiset bn+bn2 yhdellä haulla, bx omalla
+            assert pr.collect(["834"])["bn"] == [2500, 12400, 2], pr.collect(["834"])
+            assert pr.data["munis"]["834"]["tried"] == {"bx": (day + dt.timedelta(days=3)).isoformat()}  # ei palstaa
+            boxes.clear(); assert pr.fill_new(["834"], bm2, fb) == 0 and boxes == []  # ei uusintayritystä heti
+            pr.today = day + dt.timedelta(days=11); pr.fill_new(["834"], bm2, fb); assert len(boxes) == 1  # viikon päästä uudelleen
             # vanhan rajavälimuistin muunnos tuloksiksi
             old = mml.ParcelCache(os.path.join(d, "parcels-mml.json.gz"), 7, lambda k: [dict(p) for p in parcels],
                                   today=day, log=lambda *x: None)

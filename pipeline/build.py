@@ -293,6 +293,9 @@ def main(argv=None):
         pres = mml.ParcelResults(os.path.join(args.cache, "parcel-results.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch, log=log)
         migrate_parcel_cache(args.cache, pres, by_muni)
         presults = pres.get(ryhti_ready, by_muni, deadline)
+        # uusille rakennuksille palstatieto heti pienellä aluehaulla (koko kunta haetaan vain PARCEL_MAX_AGE_DAYS välein)
+        if pres.fill_new(ryhti_ready, by_muni, mml._fetch_box, deadline, limit=config.NEW_BUILDINGS_MAX_PER_RUN):
+            presults = pres.collect(ryhti_ready)
         pres.prune(config.MUNICIPALITIES)
         parcels_ready = pres.ready
     else:
