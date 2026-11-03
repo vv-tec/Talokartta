@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       kunta:
-        description: "Kuntanumero (esim. 834 = Tammela)"
+        description: "Kuntanumero (esim. 834 = Tammela) tai delta = muutoshaun testi"
         default: "834"
 
 jobs:
@@ -19,5 +19,5 @@ jobs:
           python-version: "3.12"
       - run: pip install -r pipeline/requirements.txt
       - run: |
-          python -m pipeline.codes_explore
+          if [ "${{ inputs.kunta }}" != "delta" ]; then python -m pipeline.codes_explore; fi
           python -m pipeline.ryhti_explore "${{ inputs.kunta }}"

@@ -11,8 +11,38 @@ from .config import RYHTI_BASE
 from .net import get
 
 
+def delta():
+    """Testaa muutoshakua: toimiiko aikaleimasuodatus ja millaisia määriä palautuu."""
+    tests = [
+        ("open_building", "modified_timestamp_utc > '2026-11-01T00:00:00Z'"),
+        ("open_building", "modified_timestamp_utc AFTER 2026-11-01T00:00:00Z"),
+        ("open_building", "modified_timestamp_utc > '2026-10-01T00:00:00Z'"),
+        ("open_building", "modified_timestamp_utc > '2026-11-01T00:00:00Z' AND municipality_number IN ('091','834','853')"),
+        ("open_address", "modified_timestamp_utc > '2026-11-01T00:00:00Z'"),
+        ("open_address", "modified_timestamp_utc > '2026-10-01T00:00:00Z'"),
+        ("open_address_deleted", "modified_timestamp_utc > '2026-10-01T00:00:00Z'"),
+    ]
+    for col, flt in tests:
+        try:
+            j = get(f"{RYHTI_BASE}/{col}/items", {"f": "application/json", "limit": "1000", "filter-lang": "cql-text",
+                                                   "filter": flt}, tries=2).json()
+            fs = j.get("features", [])
+            ts = sorted(f["properties"].get("modified_timestamp_utc") or "" for f in fs)
+            munis = Counter(f["properties"].get("municipality_number") for f in fs)
+            nxt = any(l.get("rel") == "next" for l in j.get("links", []))
+            print(f"{col} | {flt}\n  numberMatched={j.get('numberMatched')} sivulla={len(fs)} seuraava={nxt} "
+                  f"aikaleimat {ts[:1]}…{ts[-1:]} kunnat {munis.most_common(5)}")
+        except Exception as e:  # noqa: BLE001
+            print(f"{col} | {flt}\n  VIRHE {str(e)[:300]}")
+    j = get(f"{RYHTI_BASE}/open_building/items", {"f": "application/json", "limit": "2", "filter-lang": "cql-text",
+            "filter": "municipality_number='834'", "properties": "building_key,modified_timestamp_utc,volume"}).json()
+    print("properties-parametri:", [f["properties"] for f in j["features"]])
+
+
 def main():
     muni = sys.argv[1] if len(sys.argv) > 1 else "834"
+    if muni == "delta":
+        return delta()
     cols = get(RYHTI_BASE, {"f": "application/json"}).json()
     names = [c["id"] for c in cols.get("collections", [])]
     print("Kokoelmat:", names)
