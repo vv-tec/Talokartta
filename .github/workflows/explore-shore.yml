@@ -1,0 +1,30 @@
+name: Selvitys – rantatesti
+
+# KOE: laskee yhdelle kunnalle, rajautuuko asuinrakennusten tontti veteen (Shapely + MML:n maastotietokanta).
+# Ei vaikuta julkaistuun sivuun eikä yölliseen ajoon. Tulos: ajon loki + ladattava CSV (Artifacts).
+# Kumoaminen: poista tämä tiedosto sekä pipeline/shore.py ja pipeline/shore_explore.py.
+on:
+  workflow_dispatch:
+    inputs:
+      kunta:
+        description: "Kuntanumero (esim. 834 = Tammela)"
+        default: "834"
+
+jobs:
+  shore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r pipeline/requirements.txt "shapely~=2.1.0"
+      - name: Rantatesti
+        env:
+          MML_API_KEY: ${{ secrets.MML_API_KEY }}
+        run: python -m pipeline.shore_explore "${{ inputs.kunta }}" rantatesti
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rantatesti-${{ inputs.kunta }}
+          path: rantatesti/*.csv
