@@ -228,3 +228,86 @@ class ParcelIndex:
                 if p["ref"] == prefer_ref:
                     return p
         return min(cands, key=lambda p: p["area"])
+
+
+def parcel_results(buildings, parcels):
+    """Rakennuksille palstan ala (pa), kiinteistön ala (ka) ja palstojen määrä (pn): {building_key: [pa, ka, pn]}.
+
+    Palsta on se, jonka sisällä rakennuksen piste on (saman kiinteistön palstaa suositaan). Kiinteistön ala on
+    rakennuksen kiinteistötunnuksen kaikkien palstojen summa; jos tunnusta ei löydy, käytetään osuman palstan kiinteistöä.
+    """
+    ref_area, ref_n = {}, {}
+    for p in parcels:
+        p.setdefault("area", parcel_area(p))
+        ref_area[p["ref"]] = ref_area.get(p["ref"], 0.0) + p["area"]
+        ref_n[p["ref"]] = ref_n.get(p["ref"], 0) + 1
+    index = ParcelIndex(parcels) if parcels else None
+    out = {}
+    for b in buildings:
+        kt = b.get("property_identifier") or ""
+        par = index.find(b["_x"], b["_y"], prefer_ref=kt) if index else None
+        ref = kt if kt in ref_area else (par["ref"] if par else None)
+        if par or ref:
+            out[b["building_key"]] = [round(par["area"]) if par else None,
+                                      round(ref_area[ref]) if ref else None, ref_n[ref] if ref else None]
+    return out
+
+
+class ParcelResults:
+    """Palstoista tallessa vain rakennuskohtaiset tulokset kunnittain, ei rajoja: {kunta: {"date", "res": {building_key: [pa, ka, pn]}}}.
+
+    Kunnan tiedosto haetaan, kun kunta puuttuu tai sen tulokset ovat yli max_age_days vanhoja (vanhimmasta alkaen,
+    enintään 1/max_age_days kunnista per ajo). Rakennus, joka on tullut rekisteriin kunnan edellisen haun jälkeen,
+    saa palstatietonsa kunnan seuraavassa haussa (viimeistään viikon päästä).
+    """
+
+    def __init__(self, path, max_age_days, fetch, today=None, log=print):
+        self.path, self.max_age, self.fetch, self.log = path, max_age_days, fetch, log
+        self.today = today or dt.date.today()
+        self.data = {"munis": {}}
+        if os.path.exists(path):
+            with gzip.open(path, "rt", encoding="utf-8") as f:
+                self.data = json.load(f)
+            dates = sorted(v["date"] for v in self.data["munis"].values()) or ["-"]
+            log(f"  palstatulokset tallessa: {len(self.data['munis'])} kuntaa, haettu {dates[0]} … {dates[-1]}")
+        self.missing = []
+
+    def put(self, m, buildings, parcels, date=None):
+        self.data["munis"][m] = {"date": date or self.today.isoformat(), "res": parcel_results(buildings, parcels)}
+
+    def get(self, munis, buildings_by_muni, deadline=None):
+        munis = sorted({str(m) for m in munis})
+        d = self.data["munis"]
+        missing = [m for m in munis if m not in d]
+        stale = sorted((m for m in munis if m in d and
+                        (self.today - dt.date.fromisoformat(d[m]["date"])).days >= self.max_age), key=lambda m: d[m]["date"])
+        todo = missing + stale[:math.ceil(len(munis) / self.max_age)]
+        if todo:
+            self.log(f"  palstat: haetaan {len(missing)} puuttuvaa ja {len(todo) - len(missing)} vanhentunutta kuntaa "
+                     f"(vanhentuneita yhteensä {len(stale)})")
+        for n, m in enumerate(todo, 1):
+            if deadline and time.time() > deadline:
+                self.log(f"  aikaraja täynnä: {len(todo) - n + 1} kuntaa jää seuraavaan ajoon")
+                break
+            try:
+                parcels = list(self.fetch(m))
+            except Exception as e:  # noqa: BLE001 – yksi epäonnistunut kunta ei kaada koko ajoa
+                self.log(f"  kunta {m}: palstojen haku epäonnistui: {e}")
+                continue
+            self.put(m, buildings_by_muni.get(m, []), parcels)
+            self.log(f"  kunta {n}/{len(todo)} ({m}): {len(parcels)} palstaa, tulos {len(d[m]['res'])} rakennukselle")
+        self.missing = [m for m in munis if m not in d]
+        for m in set(d) - set(munis):  # asetuksista poistetut kunnat
+            del d[m]
+        out = {}
+        for m in munis:
+            if m in d:
+                out.update(d[m]["res"])
+        return out
+
+    def save(self):
+        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+        tmp = self.path + ".tmp"
+        with gzip.open(tmp, "wt", encoding="utf-8") as f:
+            json.dump(self.data, f, separators=(",", ":"))
+        os.replace(tmp, self.path)

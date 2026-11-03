@@ -6,6 +6,11 @@ on:
   schedule:
     - cron: "17 2 * * *"   # joka yö noin klo 4–5 Suomen aikaa
   workflow_dispatch:        # käsin: Actions → "Päivitä tiedot ja julkaise" → Run workflow
+    inputs:
+      koe_virhe:
+        description: "Koe: anna ajon epäonnistua heti (ilmoituksen testaus)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -35,6 +40,12 @@ jobs:
 
       - name: Pikatestit
         run: python -m pipeline.selftest
+
+      - name: Koe-epäonnistuminen
+        if: inputs.koe_virhe
+        run: |
+          echo "Ajo pysäytettiin tarkoituksella ilmoituksen testaamiseksi."
+          exit 1
 
       # Kiinteistöpalstat säilytetään ajojen välillä (ladataan uudelleen viikon välein), jotta MML:n palvelua ei kuormiteta turhaan.
       - name: Palauta palstojen välimuisti
@@ -80,3 +91,45 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Ilmoitus omistajalle: epäonnistunut ajo avaa GitHub-ilmoituksen (issue), josta tulee sähköposti.
+  # Seuraava onnistunut ajo sulkee sen. Sivulla näkyy epäonnistumisen ajan edellinen onnistunut versio.
+  notify:
+    needs: [build, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      FAILED: ${{ needs.build.result == 'failure' || needs.deploy.result == 'failure' }}
+    steps:
+      - name: Avaa tai sulje ilmoitus
+        run: |
+          LABEL="ajo-epäonnistui"
+          gh label create "$LABEL" --color d73a4a --description "Talokartan päivitysajo epäonnistui" 2>/dev/null || true
+          OPEN=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number // empty')
+          WHEN=$(TZ=Europe/Helsinki date '+%-d.%-m.%Y klo %H.%M')
+          if [ "$FAILED" = "true" ]; then
+            WHERE=$(gh api "repos/$GH_REPO/actions/runs/${{ github.run_id }}/jobs" \
+              --jq '[.jobs[] | select(.conclusion=="failure") | .name + ": " + ([.steps[] | select(.conclusion=="failure") | .name] | join(", "))] | join("; ")')
+            BODY="Päivitysajo epäonnistui $WHEN (${{ github.event_name }}).
+
+          Kohta: ${WHERE:-ei tiedossa}
+          Ajon loki: $RUN_URL
+
+          Sivulla näkyy edellinen onnistunut versio, joten mikään ei ole rikki – tiedot vain eivät päivittyneet.
+          Tämä ilmoitus sulkeutuu itsestään, kun seuraava ajo onnistuu. @vv-tec"
+            if [ -n "$OPEN" ]; then
+              gh issue comment "$OPEN" --body "$BODY"
+            else
+              gh issue create --title "Talokartan päivitys epäonnistui" --label "$LABEL" --body "$BODY"
+            fi
+          elif [ -n "$OPEN" ]; then
+            gh issue close "$OPEN" --comment "Päivitys onnistui taas $WHEN ($RUN_URL). Sivu on ajan tasalla."
+          else
+            echo "Ajo onnistui, ei avoimia ilmoituksia."
+          fi

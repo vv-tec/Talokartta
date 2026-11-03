@@ -57,7 +57,7 @@ def run():
     assert not build.keep({**blds[0], "main_purpose": ".../code/04"})
     addrs = [{"building_key": "k1", "address_fin": "Testitie 1", "postal_code": "31300", "postal_office_fin": "TAMMELA"},
              {"building_key": "k1", "address_fin": "Testitie 1", "postal_code": "31300", "postal_office_fin": "TAMMELA"}]
-    recs = build.make_records(blds, addrs, parcels)
+    recs = build.make_records(blds, addrs, mml.parcel_results(blds, parcels))
     p0, p1 = recs[0][4], recs[1][4]
     assert p0["k"] == "834-404-3-64" and p0["a"] == "Testitie 1" and p0["po"] == "Tammela", p0
     assert p0["y"] == 2004 and p0["d"] == "2004-07-05" and p0["p"] == "05" and p0["s"] == "01"
@@ -132,7 +132,93 @@ def run():
         con.commit(); con.close()
         ps = mml_files.read_parcels(gp)
         assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
+    ryhti_store_tests(parcels)
     print("selftest OK")
+
+
+def ryhti_store_tests(parcels):
+    """Rakennusten muutoshaku ja palstatulokset (verkkohaut korvattu testidatalla)."""
+    import datetime as dt, os, tempfile
+    from . import ryhti, ryhti_store
+    U = "http://uri.suomi.fi/codelist/rytj/avoin_rakennusluokitus/code/"
+
+    def b(key, muni, purpose="05", ts="2026-11-01T10:00:00Z", x=1050, **kw):
+        return {"building_key": key, "municipality_number": muni, "main_purpose": U + purpose,
+                "usage_status": ".../code/01", "modified_timestamp_utc": ts, "property_identifier": "83440400030064",
+                "_x": x, "_y": 1050, "facade_material": ".../code/05", **kw}
+
+    def a(key, bkey, muni, text, ts="2026-11-01T10:00:00Z"):
+        return {"address_key": key, "building_key": bkey, "municipality_number": muni, "address_fin": text,
+                "postal_code": "31300", "postal_office_fin": "TAMMELA", "modified_timestamp_utc": ts}
+    src = {"b": {"834": [b("b1", "834"), b("b2", "834", purpose="03")], "235": [b("b3", "235")]},
+           "a": {"834": [a("a1", "b1", "834", "Tie 1"), a("a2", "b2", "834", "Liiteri")], "235": [a("a3", "b3", "235", "Katu 3")]},
+           "cb": [], "ca": [], "da": [], "for": []}
+    calls = []
+    orig = {k: getattr(ryhti, k) for k in ("buildings", "addresses", "changed_buildings", "changed_addresses",
+                                            "deleted_addresses", "addresses_for")}
+    ryhti.buildings = lambda m: calls.append(("full", m)) or [dict(x) for x in src["b"][m]]
+    ryhti.addresses = lambda m: [dict(x) for x in src["a"][m]]
+    ryhti.changed_buildings = lambda since: calls.append(("delta", since)) or src["cb"]
+    ryhti.changed_addresses = lambda since: src["ca"]
+    ryhti.deleted_addresses = lambda since: src["da"]
+    ryhti.addresses_for = lambda keys: [x for x in src["for"] if x["building_key"] in keys]
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            path, day = os.path.join(d, "r.json.gz"), dt.date(2026, 11, 3)
+            mk = lambda t: ryhti_store.RyhtiStore(path, 30, keep=build.keep, today=t, log=lambda *x: None)
+            st = mk(day); st.update(["834", "235"]); st.save()
+            assert calls == [("full", "834"), ("full", "235")] or calls == [("full", "235"), ("full", "834")], calls
+            assert sorted(x["building_key"] for x in st.buildings()) == ["b1", "b3"]  # talousrakennus pois
+            assert st.buildings("834")[0]["main_purpose"] == "05" and st.buildings("834")[0]["facade_material"] == "05"
+            assert [x["address_fin"] for x in st.addresses()] == ["Tie 1", "Katu 3"]
+            assert st.data["mark"] == "2026-11-01T10:00:00Z"
+            # seuraava yö: vain muutokset, päivän päällekkäisyydellä
+            calls.clear()
+            src["cb"] = [b("b1", "834", ts="2026-11-02T08:00:00Z", x=1060),         # muuttunut
+                         b("b4", "834", ts="2026-11-02T09:00:00Z"),                 # uusi
+                         b("b3", "235", purpose="02", ts="2026-11-02T09:30:00Z"),   # ei enää asuinrakennus
+                         b("b9", "091", ts="2026-11-02T11:00:00Z")]                 # muu kunta
+            src["ca"] = [a("a1", "b1", "834", "Tie 1 A", ts="2026-11-02T08:00:00Z")]
+            src["for"] = [a("a4", "b4", "834", "Uusi tie 4")]
+            st = mk(day + dt.timedelta(days=1)); st.update(["834", "235"])
+            assert calls == [("delta", "2026-10-31T10:00:00Z")], calls
+            assert {x["building_key"]: x["_x"] for x in st.buildings()} == {"b1": 1060, "b4": 1050}
+            assert sorted(x["address_fin"] for x in st.addresses()) == ["Tie 1 A", "Uusi tie 4"]
+            assert st.data["mark"] == "2026-11-02T11:00:00Z" and st.stats["removed_b"] == 1
+            src["da"] = [{"address_key": "a4"}]
+            st.changes("2026-11-02T00:00:00Z", {"834"})
+            assert [x["address_fin"] for x in st.addresses()] == ["Tie 1 A"]
+            # kuukauden päästä: täysi haku 1/30 kunnista (vähintään yksi), vanhin ensin; muut muutoshaulla
+            calls.clear()
+            st = mk(day + dt.timedelta(days=31)); st.update(["834", "235"])
+            assert [c[0] for c in calls] == ["full", "delta"], calls
+            # kunta poistettu asetuksista
+            st.update(["834"]); assert all(x["municipality_number"] == "834" for x in st.buildings())
+
+            # palstatulokset kunnittain: tallessa vain [pa, ka, pn]
+            fetched = []
+            pr_path = os.path.join(d, "p.json.gz")
+            bm = {"834": [{"building_key": "b1", "_x": 1050, "_y": 1050, "property_identifier": "83440400030064"},
+                          {"building_key": "bx", "_x": 9000, "_y": 9000}]}
+            fetch = lambda m: fetched.append(m) or [dict(p) for p in parcels]
+            pr = mml.ParcelResults(pr_path, 7, fetch, today=day, log=lambda *x: None)
+            res = pr.get(["834"], bm); pr.save()
+            assert res == {"b1": [9900, 12400, 2]} and fetched == ["834"], res
+            pr = mml.ParcelResults(pr_path, 7, fetch, today=day + dt.timedelta(days=2), log=lambda *x: None)
+            assert pr.get(["834"], bm) == res and fetched == ["834"]          # tallesta
+            boom = lambda m: (_ for _ in ()).throw(RuntimeError("katko"))
+            pr = mml.ParcelResults(pr_path, 7, boom, today=day + dt.timedelta(days=9), log=lambda *x: None)
+            assert pr.get(["834", "235"], bm) == res and pr.missing == ["235"]  # virhe: vanha tulos säilyy
+            # vanhan rajavälimuistin muunnos tuloksiksi
+            old = mml.ParcelCache(os.path.join(d, "parcels-mml.json.gz"), 7, lambda k: [dict(p) for p in parcels],
+                                  today=day, log=lambda *x: None)
+            old.get(["834"]); old.save()
+            pr = mml.ParcelResults(os.path.join(d, "p2.json.gz"), 7, boom, today=day, log=lambda *x: None)
+            build.migrate_parcel_cache(d, pr, bm)
+            assert pr.get(["834"], bm) == res and not os.path.exists(os.path.join(d, "parcels-mml.json.gz"))
+    finally:
+        for k, v in orig.items():
+            setattr(ryhti, k, v)
 
 
 if __name__ == "__main__":

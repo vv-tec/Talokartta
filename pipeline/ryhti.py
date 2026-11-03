@@ -20,9 +20,8 @@ def code(uri):
     return uri.rsplit("/", 1)[-1] if uri else ""
 
 
-def buildings(municipality):
-    """Kaikki kunnan rakennukset, sijainti ETRS-TM35FIN-koordinaatteina (x=itä, y=pohjoinen)."""
-    for f in _paged("open_building", {"filter": f"municipality_number='{municipality}'", "crs": CRS_3067}):
+def _buildings(flt):
+    for f in _paged("open_building", {"filter": flt, "crs": CRS_3067}):
         g = f.get("geometry")
         if not g or g.get("type") != "Point":
             continue
@@ -34,7 +33,38 @@ def buildings(municipality):
         yield p
 
 
+def buildings(municipality):
+    """Kaikki kunnan rakennukset, sijainti ETRS-TM35FIN-koordinaatteina (x=itä, y=pohjoinen)."""
+    return _buildings(f"municipality_number='{municipality}'")
+
+
+def changed_buildings(since):
+    """Koko maan rakennukset, joita on muutettu aikaleiman since (ISO, UTC) jälkeen."""
+    return _buildings(f"modified_timestamp_utc > '{since}'")
+
+
+ADDR_PROPS = "address_key,building_key,address_fin,postal_code,postal_office_fin,municipality_number,modified_timestamp_utc"
+
+
 def addresses(municipality):
-    props = "building_key,address_fin,postal_code,postal_office_fin"
-    for f in _paged("open_address", {"filter": f"municipality_number='{municipality}'", "properties": props}, page=2000):
+    for f in _paged("open_address", {"filter": f"municipality_number='{municipality}'", "properties": ADDR_PROPS}, page=2000):
         yield f["properties"]
+
+
+def changed_addresses(since):
+    for f in _paged("open_address", {"filter": f"modified_timestamp_utc > '{since}'", "properties": ADDR_PROPS}, page=2000):
+        yield f["properties"]
+
+
+def deleted_addresses(since):
+    for f in _paged("open_address_deleted", {"filter": f"modified_timestamp_utc > '{since}'"}, page=2000):
+        yield f["properties"]
+
+
+def addresses_for(building_keys):
+    """Osoitteet tietyille rakennuksille (uudet rakennukset muutoshaussa), 50 kerrallaan."""
+    keys = sorted(building_keys)
+    for i in range(0, len(keys), 50):
+        ids = ",".join(f"'{k}'" for k in keys[i:i + 50])
+        for f in _paged("open_address", {"filter": f"building_key IN ({ids})", "properties": ADDR_PROPS}, page=2000):
+            yield f["properties"]

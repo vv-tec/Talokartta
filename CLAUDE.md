@@ -7,7 +7,13 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
 
 - `pipeline/` – Python 3.12, ainoa riippuvuus `requests`. Ajo: `python -m pipeline.build --out dist`.
   Pikatestit ilman verkkoa: `python -m pipeline.selftest` (pidä ajan tasalla, kun logiikka muuttuu).
-  - `ryhti.py` – SYKE Ryhti OGC API Features: `open_building` (crs EPSG:3067), `open_address`. Suodatus CQL:llä `municipality_number='NNN'`.
+  - `ryhti.py` – SYKE Ryhti OGC API Features: `open_building` (crs EPSG:3067), `open_address`, `open_address_deleted`.
+    Suodatus CQL:llä `municipality_number='NNN'`; muutoshaku `modified_timestamp_utc > '…Z'` toimii (koko maassa ~7 000
+    muuttunutta rakennusta/vrk). `properties`-parametri toimii osoitteille, rakennuksille se ohitetaan.
+  - `ryhti_store.py` – rakennukset ja osoitteet tallessa (`cache/ryhti.json.gz`, vain asuinrakennukset kevennettyinä).
+    Kunta haetaan kokonaan, jos puuttuu tai yli `RYHTI_FULL_DAYS` (30) pv vanha (1/30 kunnista per yö); muuten vain koko maan
+    muutokset edellisen tallessa olevan muutoksen jälkeen (1 pv päällekkäisyys), ja uusille rakennuksille osoitteet erikseen.
+    Rekisteristä kokonaan poistetut rakennukset siivoutuvat kunnan seuraavassa täydessä haussa.
   - `mml.py` – MML INSPIRE WFS `cp:CadastralParcel`, bbox järjestyksessä E,N + `urn:ogc:def:crs:EPSG::3067`. Haku 2 km ruuduissa, täysi ruutu jaetaan neljään. Pinta-ala shoelace, piste-palsta ruutuindeksillä.
     WFS on nykyään vain varatapa (jos `MML_API_KEY` puuttuu).
   - `mml_files.py` – **ensisijainen palstalähde**: MML:n paikkatiedon tiedostopalvelu (OGC API Processes,
@@ -16,14 +22,20 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
     GeoPackagessa taulu `PalstanSijaintitiedot` (geom, kiinteistotunnus 14 num.); kuntatiedostossa myös naapurikuntien rajapalstoja.
     Palstalla ei ole pysyvää tunnistetta → id = kiinteistötunnus + ensimmäinen piste. Geometria luetaan ilman kirjastoja (`gpkg_polys`).
     Kauniaisten tiedosto 3,9 Mt, työ ~40 s. Selvitysajo: työnkulku "Selvitys – MML-tiedostolataus" (`pipeline/mml_explore.py`).
-  - Palstat säilytetään erittäin (kunta tai WFS-ruutu) välimuistissa (`cache/parcels-mml.json.gz`, GitHub Actions cache),
-    jokaisella erällä oma hakupäivä. Puuttuvat erät haetaan heti; yli 7 pv vanhat uudelleen vanhimmasta alkaen, enintään
+  - Palstoista säilytetään vain rakennuskohtaiset tulokset kunnittain (`mml.ParcelResults`, `cache/parcel-results.json.gz`:
+    {kunta: {date, res: {building_key: [pa, ka, pn]}}}), ei rajoja → muisti ja välimuisti pysyvät pieninä koko Suomellekin.
+    Kunnan rekisteriin tullut uusi rakennus saa palstatiedot kunnan seuraavassa haussa (≤ 7 pv). WFS-varatapa säilyttää
+    edelleen rajat ruuduittain (`mml.ParcelCache`, `cache/parcels.json.gz`). Vanha rajavälimuisti `parcels-mml.json.gz`
+    muunnetaan tuloksiksi kerran (`build.migrate_parcel_cache`). Jokaisella erällä oma hakupäivä. Puuttuvat erät haetaan heti; yli 7 pv vanhat uudelleen vanhimmasta alkaen, enintään
     1/7 eristä per ajo (kuorma jakautuu viikon öille). Palstahaku lopetetaan hallitusti 150 min kohdalla
     (`PARCEL_TIME_BUDGET_MIN`) ja yksittäisen erän virhe ohitetaan; jos eriä puuttuu, haetut tallennetaan
     (välimuistin tallennus `if: always()`), ajo päättyy virheeseen eikä julkaise, ja seuraava ajo jatkaa.
   - `build.py` – yhdistää, kirjoittaa GeoJSONSeq:n ja ajaa `tippecanoe` (taso kerrallaan, ilman ominaisuuskohtaisia zoomeja) → `dist/data/b-<maakunta>.pmtiles` (rakennukset, yksi tiedosto per `config.REGIONS`-alue) + `g.pmtiles` (tiheysruudut, tile-join) + `meta.json` (luettelo tiedostoista), kopioi `web/` → `dist/`. Ajo keskeytyy, jos jokin tiedosto > 95 Mt.
 - `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle oman lähteen ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä, taustakartta OpenFreeMap (positron/dark).
 - `.github/workflows/build-deploy.yml` – yöllinen ajo + push + käsin; julkaisu GitHub Pagesiin. Epäonnistunut ajo ei julkaise.
+  Jobi `notify`: epäonnistunut ajo avaa issuen (label `ajo-epäonnistui`, mainitsee omistajan) tai kommentoi avointa;
+  onnistunut ajo sulkee sen. Käsiajon valinta `koe_virhe` pysäyttää ajon tarkoituksella ilmoituksen testaamiseksi.
+  Välimuistin avain `parcels-<aikaleima>` tallennetaan joka ajossa (Ryhti-tila muuttuu joka yö).
 
 ## Tiilien sisältö
 
@@ -62,9 +74,9 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
     välimuistilla ajo ~24 min (Ryhti ~15 min, yhdistäminen ~7 min). Välimuisti ~262 Mt.
     "Cache save failed" ajossa, jossa mitään ei haettu, on odotettu (sama avain on jo tallessa).
 2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
-   - Ryhti: koko maa haetaan kerran, sen jälkeen öisin vain muuttuneet rakennukset ja osoitteet
-     (`modified_timestamp_utc` > edellisen ajon aika). Edellinen tila tallennetaan ajojen välillä
-     (esim. GitHub Releasen liitteenä tai Actions-välimuistissa). Täysi uudelleenhaku harvoin varmistukseksi, esim. kuukausittain.
+   - Ryhti: ✅ muutoshaku ja tallennettu tila (`ryhti_store.py`, 3.11.2026). Koko maan ensimmäinen haku voi kestää
+     tunteja → lisää maakunnat erissä tai lisää Ryhti-haulle aikaraja kuten palstoille.
+   - Palstat: ✅ talteen vain tulokset (3.11.2026).
    - MML: ✅ tiedostopalvelu käytössä kunnittain (API-avain on GitHub-salaisuutena). Koeajo 2.11.2026
      `kiinteistorekisterikartta_vektori_koko_suomi` (GPKG): työ valmis 10 s:ssa (valmiiksi koottu tiedosto), mutta tiedosto
      13,3 Gt ja lataus ~2 h (~1,9 Mt/s). Sisältö: PalstanSijaintitiedot 3 766 278 palstaa, KiinteistotunnuksenSijaintitiedot
@@ -75,6 +87,6 @@ kokonaisuuksia ja kerro aina, miten omistaja voi itse todeta lopputuloksen (mit�
    - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
    - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
-3. Ilmoitus omistajalle, jos yöajo epäonnistuu.
+3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste.

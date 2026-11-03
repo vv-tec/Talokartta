@@ -93,6 +93,7 @@ PARCEL_TILE_M = 2000
 PARCEL_PAGE = 1000          # kuinka monta palstaa yhdellä pyynnöllä enintään (palvelun tuettu koko)
 PARCEL_BBOX_PAD_M = 3000    # haetaan palstoja myös rakennusten alueen ympäriltä
 PARCEL_MAX_AGE_DAYS = 7     # palstat haetaan uudelleen viikon välein (1/7 eristä joka yö); muuten käytetään välimuistia
+RYHTI_FULL_DAYS = 30        # kunta haetaan Ryhtistä kokonaan kuukauden välein (1/30 kunnista per yö); muuten vain muutokset
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
 # Karttatiilet: yksittäiset rakennukset näkyvät tästä zoomitasosta alkaen.

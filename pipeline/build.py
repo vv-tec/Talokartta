@@ -13,7 +13,7 @@ import sys
 import time
 from collections import Counter, defaultdict
 
-from . import config, mml, mml_files, ryhti
+from . import config, mml, mml_files, ryhti, ryhti_store
 from .tm35 import tm35_to_latlon
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,19 +46,13 @@ def known(uri):
 CODE_KEYS = ("m", "fa", "r", "h", "e")  # koodikentät, joiden jakauma kirjataan meta.jsoniin suodattimia varten
 
 
-def make_records(buildings, addresses, parcels):
-    """Yhdistää rakennukset, osoitteet ja palstat. Palauttaa listan (x, y, lat, lon, props)."""
+def make_records(buildings, addresses, presults):
+    """Yhdistää rakennukset, osoitteet ja palstatulokset ({building_key: [pa, ka, pn]}, ks. mml.parcel_results).
+    Palauttaa listan (x, y, lat, lon, props)."""
     addr = defaultdict(list)
     for a in addresses:
         if a.get("address_fin") and a["address_fin"] not in [s for s, _, _ in addr[a["building_key"]]]:
             addr[a["building_key"]].append((a["address_fin"], a.get("postal_code") or "", a.get("postal_office_fin") or ""))
-
-    ref_area, ref_n = defaultdict(float), Counter()
-    for p in parcels:
-        p.setdefault("area", mml.parcel_area(p))
-        ref_area[p["ref"]] += p["area"]
-        ref_n[p["ref"]] += 1
-    index = mml.ParcelIndex(parcels) if parcels else None
 
     per_property = Counter(b.get("property_identifier") for b in buildings)
     out = []
@@ -94,13 +88,8 @@ def make_records(buildings, addresses, parcels):
             "sj": {True: 1, False: 0}.get(b.get("is_protected")),
             "ex": round(x), "ny": round(y),
         }
-        par = index.find(x, y, prefer_ref=kt) if index else None
-        if par:
-            props["pa"] = round(par["area"])
-        ref = kt if kt in ref_area else (par["ref"] if par else None)
-        if ref:
-            props["ka"] = round(ref_area[ref])
-            props["pn"] = ref_n[ref]
+        pa, ka, pn = presults.get(b.get("building_key")) or (None, None, None)
+        props.update(pa=pa, ka=ka, pn=pn)
         out.append((x, y, lat, lon, {k: v for k, v in props.items() if v not in (None, "")}))
     return out
 
@@ -203,6 +192,23 @@ def meta(records, region_files):
     }
 
 
+def migrate_parcel_cache(cache_dir, pres, by_muni):
+    """Kertaluonteinen siirto: vanhasta rajavälimuistista (parcels-mml.json.gz) lasketaan tulokset ilman uutta latausta."""
+    old = os.path.join(cache_dir, "parcels-mml.json.gz")
+    if not os.path.exists(old):
+        return
+    pc = mml.ParcelCache(old, 10 ** 6, None, log=log, label="kunta")
+    for m, ids in pc.data["keys"].items():
+        if m in pres.data["munis"]:
+            continue
+        parcels = [{"id": i, "ref": pc.data["parcels"][i]["ref"],
+                    "polys": [[[tuple(c) for c in r] for r in rs] for rs in pc.data["parcels"][i]["polys"]]} for i in ids]
+        pres.put(m, by_muni.get(m, []), parcels, date=pc.data["dates"][m])
+    log(f"  vanhat palstarajat muunnettu tuloksiksi ({len(pc.data['keys'])} kuntaa); rajavälimuisti poistetaan")
+    del pc
+    os.remove(old)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="dist")
@@ -213,24 +219,23 @@ def main(argv=None):
     os.makedirs(args.work, exist_ok=True)
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
 
-    blds, addrs, tiles = [], [], set()
-    pad = config.PARCEL_BBOX_PAD_M
-    for region, m in [(r, m) for r, ms in config.REGIONS.items() for m in ms]:
-        mb = [b for b in ryhti.buildings(m) if keep(b)]
-        for b in mb:
-            b["_region"] = region
-        if not mb:  # jokaisessa kunnassa on asuinrakennuksia; tyhjä tulos = haku epäonnistui
-            sys.exit(f"Kunta {m}: ei yhtään asuinrakennusta, julkaisua ei tehdä.")
-        keys = {b.get("building_key") for b in mb}
-        ma = [a for a in ryhti.addresses(m) if a.get("building_key") in keys]
-        log(f"Kunta {m}: {len(mb)} asuinrakennusta, {len(ma)} osoitetta")
-        blds += mb
-        addrs += ma
-        xs, ys = [b["_x"] for b in mb], [b["_y"] for b in mb]
-        tiles |= mml.tiles_for_bbox(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
+    region_of = {m: r for r, ms in config.REGIONS.items() for m in ms}
 
+    # 1) Rakennukset ja osoitteet: tallessa olevaan tilaan vain muutokset (täysi haku kunnittain kuukauden välein).
+    store = ryhti_store.RyhtiStore(os.path.join(args.cache, "ryhti.json.gz"), config.RYHTI_FULL_DAYS, keep=keep, log=log)
+    store.update(config.MUNICIPALITIES)
+    by_muni = defaultdict(list)
+    for b in store.buildings():
+        by_muni[b["municipality_number"]].append(b)
+    for m in config.MUNICIPALITIES:
+        if not by_muni.get(m):  # jokaisessa kunnassa on asuinrakennuksia; tyhjä tulos = haku epäonnistui
+            sys.exit(f"Kunta {m}: ei yhtään asuinrakennusta, julkaisua ei tehdä.")
+    blds = [b for m in config.MUNICIPALITIES for b in by_muni[m]]
+    addrs = store.addresses()
+    log(f"Rakennuksia {len(blds)}, osoitteita {len(addrs)} ({len(config.MUNICIPALITIES)} kuntaa)")
+
+    # 2) Kiinteistöpalstat: tallessa vain rakennuskohtaiset tulokset (palstan ala, kiinteistön ala, palstojen määrä).
     if os.environ.get("MML_API_KEY"):
-        # Ensisijainen tapa: kunnan kiinteistörekisterikartta yhtenä tiedostona MML:n tiedostopalvelusta.
         log(f"Kiinteistöpalstat: MML:n tiedostopalvelu, {len(config.MUNICIPALITIES)} kuntaa")
         client = None
 
@@ -238,25 +243,33 @@ def main(argv=None):
             nonlocal client
             client = client or mml_files.MMLFiles(log=log)
             return mml_files.municipality_parcels(client, code, args.work, log)
-        old = os.path.join(args.cache, "parcels.json.gz")
-        if os.path.exists(old):
-            os.remove(old)  # vanha WFS-välimuisti, ei enää tarvita
-        cache = mml.ParcelCache(os.path.join(args.cache, "parcels-mml.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch,
-                                log=log, label="kunta")
-        parcels = cache.get(config.MUNICIPALITIES, deadline)
+        pres = mml.ParcelResults(os.path.join(args.cache, "parcel-results.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch, log=log)
+        migrate_parcel_cache(args.cache, pres, by_muni)
+        presults = pres.get(config.MUNICIPALITIES, by_muni, deadline)
+        missing = pres.missing
     else:
-        # Varatapa ilman API-avainta: INSPIRE WFS ruuduittain.
+        # Varatapa ilman API-avainta: INSPIRE WFS ruuduittain (rajat tallessa ruuduittain).
+        pad, tiles = config.PARCEL_BBOX_PAD_M, set()
+        for ms in by_muni.values():
+            xs, ys = [b["_x"] for b in ms], [b["_y"] for b in ms]
+            tiles |= mml.tiles_for_bbox(min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
         log(f"Kiinteistöpalstat: WFS, {len(tiles)} hakuruutua")
-        cache = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS,
-                                mml.wfs_tile_fetch, log=log, label="ruutu")
-        parcels = cache.get((f"{i},{j}" for i, j in tiles), deadline)
-    cache.save()
-    if cache.missing:
-        # haetut palstat on tallennettu; seuraava ajo jatkaa siitä. Vanha sivu jää näkyviin siihen asti.
-        sys.exit(f"Palstat puuttuvat vielä {len(cache.missing)} erältä ({', '.join(cache.missing[:10])}); "
+        pres = mml.ParcelCache(os.path.join(args.cache, "parcels.json.gz"), config.PARCEL_MAX_AGE_DAYS,
+                               mml.wfs_tile_fetch, log=log, label="ruutu")
+        presults = mml.parcel_results(blds, pres.get((f"{i},{j}" for i, j in tiles), deadline))
+        missing = pres.missing
+    # Tila tallennetaan joka ajossa (myös kun jotain puuttuu), jotta seuraava ajo jatkaa siitä.
+    store.save()
+    pres.save()
+    with open(os.path.join(args.cache, "parcels.stamp"), "w") as f:
+        f.write(dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S"))
+    if missing:
+        # haetut on tallennettu; seuraava ajo jatkaa siitä. Vanha sivu jää näkyviin siihen asti.
+        sys.exit(f"Palstat puuttuvat vielä {len(missing)} erältä ({', '.join(missing[:10])}); "
                  "haetut tallennettiin, seuraava ajo jatkaa. Julkaisua ei tehdä.")
-    log(f"  palstoja käytössä {len(parcels)}")
-    records = make_records(blds, addrs, parcels)
+    for b in blds:
+        b["_region"] = region_of[b["municipality_number"]]
+    records = make_records(blds, addrs, presults)
     log(f"Valmis: {len(records)} rakennusta, joista palsta löytyi {sum(1 for r in records if 'pa' in r[4])}")
 
     if len(records) < 100:
