@@ -126,6 +126,9 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
 2x. Rantatieto – OTETTU KÄYTTÖÖN maakunta kerrallaan omistajan päätöksellä 4.11.2026, ensin Kanta-Häme
     (`config.SHORE_REGIONS`). Seuraavat maakunnat lisätään vain omistajan pyynnöstä. Alla koe- ja suunnitteluhistoria.
+    Kanta-Häme 4.11.2026: käyttöönottoajo 31 min (palstojen uudelleenlataus 11 kuntaa ~25 min, rantalaskenta yht. ~5 min,
+    Hämeenlinna 126 s); omalla rannalla (ra 2–3) 17 324 / 72 949 asuinrakennusta; tiili 16,1 → 17,5 Mt (+9 %).
+    Selftestin rantatestit ajetaan CI:ssä (Shapely asennettu).
     Koe: `pipeline/shore.py` + `shore_explore.py` + työnkulku "Selvitys – rantatesti" (Shapely ~=2.1 asennetaan vain siinä).
     Vesialueet: MTK OGC API Features (`maastotiedot/features/v1`, kokoelmat `jarvi`, `meri`, `virtavesialue`; sama API-avain,
     Basic auth toimii; bbox-crs/crs EPSG:3067). Tammela: 6 335 asuinrakennusta → ranta 2 659, erillinen rantapalsta 121,
