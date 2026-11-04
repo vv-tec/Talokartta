@@ -79,6 +79,7 @@ REGIONS = {
         "177",  # Juupajoki
         "211",  # Kangasala
         "250",  # Kihniö
+        "291",  # Kuhmoinen (Pirkanmaata vuodesta 2021)
         "418",  # Lempäälä
         "508",  # Mänttä-Vilppula
         "536",  # Nokia
@@ -126,6 +127,38 @@ REGIONS = {
         "783",  # Säkylä
         "886",  # Ulvila
     ],
+    "Keski-Suomi": [
+        "077",  # Hankasalmi
+        "172",  # Joutsa
+        "179",  # Jyväskylä
+        "182",  # Jämsä
+        "216",  # Kannonkoski
+        "226",  # Karstula
+        "249",  # Keuruu
+        "256",  # Kinnula
+        "265",  # Kivijärvi
+        "275",  # Konnevesi
+        "312",  # Kyyjärvi
+        "410",  # Laukaa
+        "435",  # Luhanka
+        "495",  # Multia
+        "500",  # Muurame
+        "592",  # Petäjävesi
+        "601",  # Pihtipudas
+        "729",  # Saarijärvi
+        "850",  # Toivakka
+        "892",  # Uurainen
+        "931",  # Viitasaari
+        "992",  # Äänekoski
+    ],
+    "Kymenlaakso": [
+        "075",  # Hamina
+        "285",  # Kotka
+        "286",  # Kouvola
+        "489",  # Miehikkälä
+        "624",  # Pyhtää
+        "935",  # Virolahti
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -153,7 +186,8 @@ RYHTI_TIME_BUDGET_MIN = 60   # Ryhtin täysiä kuntahakuja tehdään enintään 
 DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pudota yli 5 % (ja yli 20 rakennusta) yhdessä ajossa
 # RANTA (irrotettava lisäosa): maakunnat, joille lasketaan "oma ranta" -tieto. Tyhjä lista = pois päältä kokonaan.
 # Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
-SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi"]
+SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
+                 "Kymenlaakso"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 

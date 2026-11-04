@@ -33,8 +33,8 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
-**Mukana nyt (3.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme ja Satakunta –
-112 kuntaa, noin 876 000 asuinrakennusta.
+**Mukana nyt (4.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi ja
+Kymenlaakso – 141 kuntaa, noin 1,06 miljoonaa asuinrakennusta.
 
 ---
 
@@ -107,8 +107,8 @@ Pyydä Claudea, esimerkiksi: *"Lisää Keski-Suomi."*
 - **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
   noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Keski-Suomi ilman rantatietoa."*
 
-Puuttuvat maakunnat (3.11.2026): Etelä-Karjala, Etelä-Pohjanmaa, Etelä-Savo, Kainuu, Keski-Pohjanmaa, Keski-Suomi,
-Kymenlaakso, Lappi, Pohjanmaa, Pohjois-Karjala, Pohjois-Pohjanmaa ja Pohjois-Savo. Ahvenanmaalla on oma
+Puuttuvat maakunnat (4.11.2026): Etelä-Karjala, Etelä-Pohjanmaa, Etelä-Savo, Kainuu, Keski-Pohjanmaa,
+Lappi, Pohjanmaa, Pohjois-Karjala, Pohjois-Pohjanmaa ja Pohjois-Savo. Ahvenanmaalla on oma
 rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
 
 ---
@@ -163,12 +163,18 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 
 ## 10. Rantatieto ("oma ranta")
 
-- Sivulla on suodatin **Ranta** (Oma ranta / Erillinen rantapalsta / Ei omaa rantaa / Ei laskettu) ja talon tietokortissa
-  osio **Ranta**. Tieto lasketaan kiinteistörajoista ja Maanmittauslaitoksen vesialueista.
+- Sivulla on suodatin **Ranta** (Oma ranta / Erillinen rantapalsta / Puron varrella / Ei rantaa eikä puroa / Ei laskettu)
+  ja talon tietokortissa osio **Ranta**. Tieto lasketaan kiinteistörajoista ja Maanmittauslaitoksen vesialueista.
 - **Oma ranta** = tontti ulottuu veteen, tai välissä on vain vesijättöä (ei toisen kiinteistön maata). **Erillinen
   rantapalsta** = kiinteistön toinen palsta on rannassa. **Ei omaa rantaa** = välissä on esim. naapuri, yhteinen ranta-alue,
   rantapuisto tai tie, tai vesi on kaukana.
-- Rajoitukset: purot eivät ole mukana; tieto ei kerro vesialueen omistuksesta eikä rannan laadusta; uusi rakennus saa
+- **Puron varrella** = tontti ei ole rannassa, mutta puro kulkee tontilla tai sen rajalla (vähintään 10 m matkalla).
+  Mukana ovat maastotietokannan 2–5 m leveät virtavedet (puro tai pieni joki). Kapeammat (alle 2 m) ovat aineistossa
+  samassa luokassa metsä- ja peltoojien kanssa (Tammelassa 6 400 km), joten ne eivät ole mukana. Kokeiltu rajaus
+  "vain mutkittelevat kapeat" odottaa pistokoettasi. Purotieto päivittyy nykyisiin kuntiin vähitellen noin kahden viikon
+  aikana (yöajon tavallisissa tonttihauissa, ei lisäkuormaa); sivu kertoo, missä maakunnissa se on vielä kesken.
+- Lammet: myös alle hehtaarin lammet ovat mukana (Tammelassa noin 200 rantataloa).
+- Rajoitukset: tieto ei kerro vesialueen omistuksesta eikä rannan laadusta; uusi rakennus saa
   rantatiedon kahden viikon sisällä.
 - **Käytössä kaikissa nykyisissä maakunnissa** (4.11.2026). Omalla rannalla (oma ranta tai vesijättö):
 
@@ -190,7 +196,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 11. Avoimet asiat ja suunnitelmat (4.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
-- **Rantatieto:** avoimet kysymykset – otetaanko alle 1 ha lammet mukaan ja lisätäänkö "puron varrella".
+- **Rantatieto:** otetaanko alle 2 m leveät mutkittelevat purot mukaan (odottaa pistokoettasi).
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
 - Muut maakunnat, osoitehaku, oma verkko-osoite.
 

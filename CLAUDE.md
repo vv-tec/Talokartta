@@ -46,7 +46,14 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     {building_key: [ra, rl, rd, rw, rwa]}). Käyttöönotto/uusi maakunta: kunnat, joilta tulos puuttuu, haetaan heti
     (`ParcelResults.get(force=…)`); muuten päivittyy 14 pv palstakierroksessa. Vesialueet MTK:sta kunnan rakennusten
     bbox + 2 km (`municipality_water`). Uusi rakennus saa rantatiedon kunnan seuraavassa palstahaussa (≤ 14 pv; fill_new ei laske rantaa).
-    Lisäosan virhe ei kaada palstatietoja (lokiin "lisälaskenta epäonnistui"). Web: `app.js` RANTA-lohkot (SHORE_*,
+    Lisäosan virhe ei kaada palstatietoja (lokiin "lisälaskenta epäonnistui").
+    Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa vesialuehaussa; vain jos palsta ei ole
+    rannassa eikä kiinteistöllä ole erillistä rantapalstaa; puroa ≥ `MIN_STREAM_M` 10 m palstalla tai ≤ `TOL_STREAM` 5 m
+    rajasta. Oletuksena vain kohdeluokka 36312 (2–5 m); 36311 (alle 2 m) sisältää ojat → pois, ehdokkaana mutkaisuus
+    ≥ 1,1 ja ≥ 100 m (`NARROW_MIN_SINUOSITY`, odottaa omistajan pistokoetta). Laskennan versio `shore.VERSION` (2)
+    tallessa kunnittain; vanhemmat kunnat päivitetään `ParcelResults.get(upgrade=…)`: vain yön normaalin kiintiön
+    (ceil(N/14)) vapaisiin paikkoihin puuttuvien ja vanhentuneiden jälkeen → ei lisäkuormaa. meta `stream_regions` =
+    maakunnat, joissa kaikki kunnat ovat versiossa ≥ 2 (sivu kertoo keskeneräiset). Web: `app.js` RANTA-lohkot (SHORE_*,
     shoreCard, buildShore) ja `index.html` `#shoreSec`. Kokonaan poisto: nämä + `shore.py`, `requirements-shore.txt`,
     workflow-asennusrivi ja selftestin `shore_tests`. Koe-työnkulku "Selvitys – rantatesti" (`shore_explore.py`) erikseen.
   - Julkaisu maakunnittain: maakunta julkaistaan, kun sen kaikkien kuntien rakennukset (Ryhti) ja palstatulokset ovat valmiina;
@@ -69,8 +76,8 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
   `p` tyyppi (01 vapaa-ajan, 05 pientalo, 06 kerrostalo), `s` käytössäolo (Ryhti-koodi), `d` valmistumispäivä, `y` vuosi,
   `g` kerrosala, `t` kokonaisala, `f` kerroksia, `n` asuntoja, `c` asuinrakennuksia samalla kiinteistöllä,
   `pa` palstan ala m², `ka` kiinteistön ala m², `pn` palstoja, `ex`/`ny` ETRS-TM35FIN,
-  `ra` ranta (0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta; puuttuu = ei laskettu),
-  `rl` rantaviiva m, `rd` etäisyys vedestä m, `rw` vesilaji (j/m/v), `rwa` lähimmän vesialueen ala ha (vain SHORE_REGIONS),
+  `ra` ranta (0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta,
+  5 puron varrella; puuttuu = ei laskettu), `rl` rantaviiva m (ra 5: puroa palstalla m), `rd` etäisyys vedestä m, `rw` vesilaji (j/m/v), `rwa` lähimmän vesialueen ala ha (vain SHORE_REGIONS),
   `m` runkomateriaali, `fa` julkisivu, `r` rakentamistapa, `h` lämmitystapa, `e` lämmitysenergia (Ryhti-koodit, "00" pois;
   selitteet `web/app.js` CATS, koodistot.suomi.fi), `v` tilavuus, `ha` huoneistoala, `sj` suojeltu 1/0.
   meta.json `by` = koodikenttien jakaumat (suodattimet näyttävät vain aineistossa esiintyvät arvot).
@@ -182,7 +189,12 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Rajoitukset (kerrotaan käyttäjälle): yhteinen ranta-alue/venevalkama tontin ja veden välissä → "ei" (oikein, mutta voi yllättää);
     kiinteistörajojen epätarkkuus maaseudulla; maankohoamisrannikko (vesijättö); purot (viivoja, `virtavesikapea`) eivät mukana;
     tieto ei kerro vesialueen omistuksesta eikä rannan laadusta.
-    Avoimet kysymykset: otetaanko alle 1 ha lammet mukaan, lisätäänkö "puron varrella" puroviivoista, kiinteistötyyppi 0878.
+    Avoimet kysymykset: kapeat mutkittelevat purot (pistokoe), kiinteistötyyppi 0878. (Lammet ja puro ratkaistu 4.11.2026, ks. 2g.)
+2g. Keski-Suomi (22 kuntaa) ja Kymenlaakso (6) + puuttunut Kuhmoinen 291 Pirkanmaalle (siirtyi 2021) 4.11.2026,
+    rantatieto ja purot mukana heti. Uusien maakuntien kuntalistat tarkistettava ajantasaisesta maakuntajaosta.
+    Lisäksi omistajan päätös 4.11.2026: alle 1 ha lammet mukana (olivat jo; MTK `jarvi` sisältää ne) ja "puron varrella" lisätään.
+    Tammela: purot 36311 6 411 km / 36312 367 km; kaikki purot → 806 taloa (ojia), vain 2–5 m → 204,
+    + kapeat mutkaisuus ≥ 1,1 & ≥ 100 m → 538. Laskenta-aika lähes ennallaan (+1–3 s/kunta), purojen haku ~16–20 s/kunta.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
