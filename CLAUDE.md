@@ -128,8 +128,17 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Käyttöliittymässä "ranta" ja "ranta (vesijättö)" kuuluvat suodattimessa samaan "Oma ranta" -valintaan; kortissa maininta vesijätöstä.
     Ennen käyttöönottoa:
     a) ✅ omistajan tarkistus (v1) → vesijättölinjaus; v2:n uudet luokat omistajalle Excelinä mahdolliseen lisätarkistukseen;
-    b) suorituskykytesti Saimaan kunnalle (esim. Puumala 623): isot rikkonaiset järvipolygonit, palstakohtainen leikkaus;
-       tarvittaessa järvet pilkotaan ruutuihin (esim. 1 km) ennen laskentaa.
+    b) ✅ suorituskykytestit 4.11.2026 nykyisille maakunnille:
+       Parainen 445 (saaristo, pahin): 16 237 rak., 16 226 palstaa, meri-vesialueiden haku 42 s, laskenta 267 s
+       (16,5 ms/palsta, ~4× Tammela), muisti 2,1 Gt (valtava merikuvio). Tulos: ranta 9 458, vesijättö 463, erillinen 435,
+       toinen kiinteistö välissä 192, ei 5 689 (vapaa-ajan asunnoista ~86 % rannalla).
+       Espoo 049 (iso kaupunki): 39 626 rak., 24 648 palstaa, vesialueet 4 s, laskenta 119 s (4,8 ms/palsta), muisti 449 Mt.
+       Tulos: ranta 1 518, vesijättö 48, erillinen 69, toinen kiinteistö välissä 262, ei 37 729. Kaupungeissa välissä usein
+       `9903`/`9901` (kaavan yleiset alueet, esim. rantapuisto/katu) → "ei" on oikein.
+       Arvio 112 kunnalle: ~750 000 palstaa × ~7 ms ≈ 1,5 h laskentaa per 14 pv kierros ≈ 6–7 min/yö; MML-vesialuehaut
+       muutamia satoja/kierros. Optimointi tarvittaessa: merikuviot pilkotaan 1 km ruutuihin (muisti ja Parainen-tyyppiset
+       kunnat nopeammiksi); koeajon "indeksit"-aika sisältää vain diagnostiikkaa (ei tuotantoon).
+       Saimaa (Puumala 623) testataan, kun Etelä-Savo lisätään.
     Toteutusmalli (helposti kumottava):
     1. `config.SHORE_ENABLED = False` -kytkin + `SHORE_TOL_SHORE`, `SHORE_TOL_LIKELY`. Shapely tuodaan vain kytkimen ollessa
        päällä (laiska import), versio lukittuna requirements.txt:ssä.
