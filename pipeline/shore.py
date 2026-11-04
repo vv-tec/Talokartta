@@ -13,6 +13,9 @@ Luokitus palstalle (etäisyys lähimpään vesialueeseen):
   "ei (toinen kiinteistö välissä)"  etäisyys <= TOL_GAP m, mutta välissä on toisen kiinteistön maapalsta
                       (naapuri, yhteinen ranta-alue, tie)
   "ei"                muuten
+Jos rakennuksen palsta ei ole rannassa (eikä kiinteistöllä ole erillistä rantapalstaa), tarkistetaan puro:
+  "puron varrella"    puro (maastotietokannan kapea virtavesi, viiva) kulkee palstalla tai sen rajalla (<= TOL_STREAM m)
+                      vähintään MIN_STREAM_M metrin matkalla
 """
 import datetime as dt
 import gzip
@@ -149,25 +152,52 @@ class Water:
                 "vesiala_ha": round(self.items[best][2] / 1e4, 1)}
 
 
+class Streams:
+    """Purot (viivat): kuinka pitkä matka puroa kulkee palstalla tai sen rajalla."""
+
+    def __init__(self, items):
+        self.items = items
+        self.tree = STRtree([g for g, *_ in items])
+
+    def length(self, geom):
+        idx = self.tree.query(geom, predicate="dwithin", distance=TOL_STREAM)
+        if len(idx) == 0:
+            return 0.0
+        zone = geom.buffer(TOL_STREAM)
+        return sum(zone.intersection(self.items[int(i)][0]).length for i in idx)
+
+
 # ---------- tuotantokäyttö (build.py) ----------
 
+VERSION = 2  # laskennan versio (2 = puron varrella mukana); vanhemmat kunnat päivitetään vähitellen
+STREAM_COLLECTION = "virtavesikapea"
+STREAM_CLASSES = None  # maastotietokannan kohdeluokat, jotka lasketaan puroiksi (None = kaikki)
+TOL_STREAM = 5.0
+MIN_STREAM_M = 10.0
 WATER_COLLECTIONS = ("jarvi", "meri", "virtavesialue")
 WATER_CODE = {"jarvi": "j", "meri": "m", "virtavesialue": "v"}
-# tiilien `ra`: 0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta
+# tiilien `ra`: 0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta,
+# 5 puron varrella (rl = puron pituus palstalla m; rd/rw/rwa kertovat silloinkin lähimmän vesialueen)
 CLASS_CODE = {"ei": 0, "ei (toinen kiinteistö välissä)": 1, "ranta": 2, "ranta (vesijättö)": 3}
 SEPARATE = 4
+STREAM = 5
 WATER_PAD_M = 2000
 
 
 def municipality_water(client, buildings, log=print):
-    """Kunnan rakennusten alueen (+2 km) vesialueet maastotietokannasta."""
+    """Kunnan rakennusten alueen (+2 km) vesialueet ja purot maastotietokannasta."""
     xs, ys = [b["_x"] for b in buildings], [b["_y"] for b in buildings]
     bbox = (min(xs) - WATER_PAD_M, min(ys) - WATER_PAD_M, max(xs) + WATER_PAD_M, max(ys) + WATER_PAD_M)
-    return fetch_water(client, WATER_COLLECTIONS, bbox, log=lambda *a: None)
+    return fetch_water(client, WATER_COLLECTIONS + (STREAM_COLLECTION,), bbox, log=lambda *a: None)
+
+
+def is_stream(item):
+    return item[1] == STREAM_COLLECTION and (STREAM_CLASSES is None or item[3].get("kohdeluokka") in STREAM_CLASSES)
 
 
 def compute(buildings, parcels, water_items):
-    """Rakennuksille rantatulos {building_key: [ra, rantaviiva m, etäisyys m, vesilaji, vesialueen ala ha]}."""
+    """Rakennuksille rantatulos {building_key: [ra, rantaviiva m, etäisyys m, vesilaji, vesialueen ala ha]}.
+    water_items voi sisältää myös purot (STREAM_COLLECTION), ne erotellaan tässä."""
     from . import mml  # palstan haku pisteelle (sama logiikka kuin palstatuloksissa)
     if not buildings or not parcels:
         return {}
@@ -175,19 +205,20 @@ def compute(buildings, parcels, water_items):
     by_ref = {}
     for p in parcels:
         by_ref.setdefault(p["ref"], []).append(p)
+    streams = [w for w in water_items if is_stream(w)]
+    water_items = [w for w in water_items if w[1] != STREAM_COLLECTION]
     W = Water(water_items, Land(parcels)) if water_items else None
+    S = Streams(streams) if streams else None
     cache, out = {}, {}
+    none = {"luokka": "ei", "etaisyys": None, "rantaviiva": 0, "laji": "", "vesiala_ha": None}
 
     def cls(p):
         if p["id"] not in cache:
-            cache[p["id"]] = W.classify(parcel_geom(p["polys"]), p["ref"])
+            cache[p["id"]] = W.classify(parcel_geom(p["polys"]), p["ref"]) if W else none
         return cache[p["id"]]
     for b in buildings:
         par = index.find(b["_x"], b["_y"], prefer_ref=b.get("property_identifier") or "")
         if not par:
-            continue
-        if W is None:
-            out[b["building_key"]] = [0, 0, None, "", None]
             continue
         c = cls(par)
         ra, rl = CLASS_CODE[c["luokka"]], c["rantaviiva"]
@@ -196,6 +227,10 @@ def compute(buildings, parcels, water_items):
             shore_others = [o for o in others if o["luokka"].startswith("ranta")]
             if shore_others:
                 ra, rl = SEPARATE, max(o["rantaviiva"] for o in shore_others)
+        if ra < 2 and S:
+            ln = S.length(parcel_geom(par["polys"]))
+            if ln >= MIN_STREAM_M:
+                ra, rl = STREAM, round(ln)
         out[b["building_key"]] = [ra, rl, c["etaisyys"], WATER_CODE.get(c["laji"], ""), c["vesiala_ha"]]
     return out
 
@@ -216,8 +251,14 @@ class ShoreResults:
     def has(self, m):
         return m in self.data["munis"]
 
+    def version(self, m):
+        return self.data["munis"].get(m, {}).get("v", 1)
+
+    def date(self, m):
+        return self.data["munis"].get(m, {}).get("date", "")
+
     def put(self, m, res):
-        self.data["munis"][m] = {"date": self.today.isoformat(), "res": res}
+        self.data["munis"][m] = {"date": self.today.isoformat(), "v": VERSION, "res": res}
 
     def collect(self, munis):
         out = {}

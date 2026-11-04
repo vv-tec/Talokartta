@@ -80,7 +80,8 @@ def main():
         kt = b.get("property_identifier") or ""
         par = index.find(b["_x"], b["_y"], prefer_ref=kt)
         r = {"rakennustunnus": b.get("permanent_building_identifier"), "osoite": " / ".join(addr.get(b["building_key"], [])),
-             "kiinteistotunnus": build.fmt_kt(kt), "tyyppi": ryhti.code(b.get("main_purpose"))}
+             "kiinteistotunnus": build.fmt_kt(kt), "tyyppi": ryhti.code(b.get("main_purpose")),
+             "_key": b["building_key"]}
         if not par:
             r["tulos"] = "ei palstaa"
         else:
@@ -100,6 +101,32 @@ def main():
         rows.append(r)
     T["laskenta"] = time.time() - t
 
+    # PURO: maastotietokannan kapeat virtavedet (viivat) – luokat ja vaikutus
+    t = time.time()
+    streams = shore.fetch_water(client, (shore.STREAM_COLLECTION,), bbox)
+    T["purot_lataus"] = time.time() - t
+    kl = Counter(w[3].get("kohdeluokka") for w in streams)
+    km = defaultdict(float)
+    for w in streams:
+        km[w[3].get("kohdeluokka")] += w[0].length / 1000
+    print(f"\n== Purot: {len(streams)} viivaa; kohdeluokat {dict(kl)}; km {({k: round(v) for k, v in km.items()})}")
+    print("  ominaisuuksia:", [w[3] for w in streams[:3]])
+    t = time.time()
+    prod = shore.compute(blds, parcels, water + streams)
+    T["tuotantolaskenta_puroineen"] = time.time() - t
+    print("  tuotantoluokat (ra):", sorted(Counter(v[0] for v in prod.values()).items()))
+    for k in sorted(kl, key=str):
+        shore.STREAM_CLASSES = {k}
+        n = sum(1 for v in shore.compute(blds, parcels, water + streams).values() if v[0] == shore.STREAM)
+        print(f"  puron varrella, jos vain kohdeluokka {k}: {n}")
+    shore.STREAM_CLASSES = None
+    for r in rows:
+        v = prod.get(r.pop("_key"), None)
+        if v and v[0] == shore.STREAM:
+            r["tulos"], r["puro_m"] = "puron varrella", v[1]
+    by_type5 = Counter(r["tyyppi"] for r in rows if r["tulos"] == "puron varrella")
+    print("  puron varrella tyypeittäin:", dict(by_type5))
+
     cnt = Counter(r["tulos"] for r in rows)
     by_type = Counter((r["tyyppi"], r["tulos"]) for r in rows)
     print("\n== Tulos (asuinrakennukset):", dict(cnt))
@@ -117,7 +144,7 @@ def main():
     print(f"   laskettuja palstoja {len(cache)}, {1000 * T['laskenta'] / max(1, len(cache)):.1f} ms/palsta")
     print(f"   muistin huippukäyttö {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024:.0f} Mt")
 
-    fields = ["tulos", "osoite", "kiinteistotunnus", "tyyppi", "rantaviiva", "etaisyys", "laji", "vesiala_ha",
+    fields = ["tulos", "osoite", "kiinteistotunnus", "tyyppi", "rantaviiva", "puro_m", "etaisyys", "laji", "vesiala_ha",
               "rakennustunnus", "kartta", "karttapaikka"]
     path = os.path.join(out_dir, f"rantatesti_{muni}.csv")
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
