@@ -8,7 +8,7 @@ import os
 import resource
 import sys
 import time
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict  # noqa: F401
 
 from . import build, mml, mml_files, ryhti, shore
 from .tm35 import tm35_to_latlon
@@ -55,7 +55,17 @@ def main():
     by_ref = defaultdict(list)
     for p in parcels:
         by_ref[p["ref"]].append(p)
-    W = shore.Water(water)
+    W = shore.Water(water, shore.Land(parcels))
+    # diagnostiikka: minkä kiinteistöjen palstat ovat lähes kokonaan vettä (tunnuksen 3. osa) -> vesialueiden tunnistus
+    wt = shore.STRtree([g for g, *_ in water])
+    wat = Counter()
+    for p in parcels[:200000]:
+        g = shore.parcel_geom(p["polys"])
+        if g.area > 0:
+            cov = sum(g.intersection(water[int(i)][0]).area for i in wt.query(g, predicate="intersects"))
+            if cov / g.area > 0.8:
+                wat[p["ref"][6:10]] += 1
+    print("Palstat, jotka ovat yli 80 % vettä – tunnuksen 3. osa:", wat.most_common(8))
     T["indeksit"] = time.time() - t
 
     t = time.time()
@@ -63,7 +73,7 @@ def main():
 
     def cls(p):
         if p["id"] not in cache:
-            cache[p["id"]] = W.classify(shore.parcel_geom(p["polys"]))
+            cache[p["id"]] = W.classify(shore.parcel_geom(p["polys"]), p["ref"])
         return cache[p["id"]]
     rows = []
     for b in blds:
@@ -77,12 +87,12 @@ def main():
             c = cls(par)
             r.update(c)
             r["tulos"] = c["luokka"]
-            if c["luokka"] != "ranta":
+            if not c["luokka"].startswith("ranta"):
                 # kiinteistön muu palsta (esim. erillinen rantapalsta tien toisella puolella)
                 others = [cls(q) for q in by_ref.get(par["ref"], []) if q["id"] != par["id"]]
-                if any(o["luokka"] == "ranta" for o in others):
+                if any(o["luokka"].startswith("ranta") for o in others):
                     r["tulos"] = "erillinen rantapalsta"
-                    r["rantaviiva"] = max(o["rantaviiva"] for o in others if o["luokka"] == "ranta")
+                    r["rantaviiva"] = max(o["rantaviiva"] for o in others if o["luokka"].startswith("ranta"))
         lat, lon = tm35_to_latlon(b["_x"], b["_y"])
         r["kartta"] = f"https://www.google.com/maps/search/?api=1&query={lat:.6f},{lon:.6f}"
         r["karttapaikka"] = (f"https://asiointi.maanmittauslaitos.fi/karttapaikka/?lang=fi&share=customMarker"
@@ -94,7 +104,12 @@ def main():
     by_type = Counter((r["tyyppi"], r["tulos"]) for r in rows)
     print("\n== Tulos (asuinrakennukset):", dict(cnt))
     print("  tyypeittäin (01 vapaa-ajan, 05 pientalo, 06 kerrostalo):", sorted(by_type.items()))
-    print("  rannan lähin vesialue:", Counter(r.get("laji") for r in rows if r["tulos"] in ("ranta", "todennäköisesti")))
+    print("  rannan lähin vesialue:", Counter(r.get("laji") for r in rows if r["tulos"].startswith("ranta")))
+    print("  välin kiinteistöt (tunnuksen 3. osa):", W.gap_owners.most_common(10))
+    CHECK = ("Vahaksentie 151", "Härkätie 710", "Himokorventie 81", "Heinisuontie 54", "Hirvikuja 5", "Karkauslammintie 17")
+    for r in rows:
+        if r["osoite"] in CHECK:
+            print(f"  TARKISTUS {r['osoite']}: {r['tulos']}, etäisyys {r.get('etaisyys')} m, rantaviiva {r.get('rantaviiva')} m")
     print("  rantaviiva (m) rantatonteilla, mediaani:",
           sorted(r["rantaviiva"] for r in rows if r["tulos"] == "ranta")[cnt["ranta"] // 2] if cnt["ranta"] else "-")
     print("  pienen vesialueen (< 1 ha) rannat:", sum(1 for r in rows if r["tulos"] == "ranta" and (r.get("vesiala_ha") or 0) < 1))
