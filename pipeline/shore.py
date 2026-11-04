@@ -172,10 +172,13 @@ class Streams:
 VERSION = 2  # laskennan versio (2 = puron varrella mukana); vanhemmat kunnat päivitetään vähitellen
 STREAM_COLLECTION = "virtavesikapea"
 # Maastotietokannan kapeat virtavedet: 36312 = 2–5 m leveä (puro / pieni joki) lasketaan aina. 36311 = alle 2 m sisältää
-# myös metsä- ja peltoojat (Tammelassa 6 400 km), joten siitä mukaan vain mutkittelevat (luonnontilaiset) osuudet.
+# myös metsä- ja peltoojat (Tammelassa 6 400 km, 806 taloa "puron varrella"), joten se on toistaiseksi pois. Ehdolla:
+# vain mutkittelevat osuudet (NARROW_MIN_SINUOSITY 1.1, NARROW_MIN_LEN 100 → Tammelassa +334 taloa), odottaa omistajan
+# pistokoetta. Jos asetusta muutetaan, nosta VERSION → kunnat lasketaan uudelleen yön kiintiössä.
 STREAM_CLASSES = {36312}
 NARROW_CLASS = 36311
-NARROW_MIN_SINUOSITY = 1.1  # pituus / päätepisteiden etäisyys; suora oja ~1,0 (None = kapeat eivät mukana)
+NARROW_MIN_SINUOSITY = None  # pituus / päätepisteiden etäisyys; suora oja ~1,0 (None = kapeat eivät mukana)
+NARROW_CANDIDATE = 1.1  # selvitysajon ehdokasasetus
 NARROW_MIN_LEN = 100.0
 TOL_STREAM = 5.0
 MIN_STREAM_M = 10.0

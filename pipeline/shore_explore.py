@@ -140,14 +140,19 @@ def main():
     allp = shore.compute(blds, parcels, water + streams)
     shore.STREAM_CLASSES = keep[0]
     prod = shore.compute(blds, parcels, water + streams)
+    shore.NARROW_MIN_SINUOSITY = shore.NARROW_CANDIDATE
+    cand = shore.compute(blds, parcels, water + streams)
+    shore.NARROW_MIN_SINUOSITY = keep[1]
     for r in rows:
         k = r.pop("_key")
-        v, va = prod.get(k), allp.get(k)
+        v, vc, va = prod.get(k), cand.get(k), allp.get(k)
         if v and v[0] == shore.STREAM:
-            r["tulos"], r["puro_m"] = "puron varrella", v[1]
+            r["tulos"], r["puro_m"] = "puro 2–5 m", v[1]
+        elif vc and vc[0] == shore.STREAM:
+            r["tulos"], r["puro_m"] = "kapea mutkainen puro (ehdolla)", vc[1]
         elif va and va[0] == shore.STREAM:
-            r["tulos"], r["puro_m"] = "oja? (pudotettu)", va[1]
-    by_type5 = Counter(r["tyyppi"] for r in rows if r["tulos"] == "puron varrella")
+            r["tulos"], r["puro_m"] = "kapea suora – oja? (ei mukana)", va[1]
+    by_type5 = Counter((r["tyyppi"], r["tulos"]) for r in rows if "puro" in r["tulos"] or "oja" in r["tulos"])
     print("  puron varrella tyypeittäin:", dict(by_type5))
 
     cnt = Counter(r["tulos"] for r in rows)

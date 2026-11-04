@@ -299,8 +299,8 @@ function shoreCard(p, source) {
       ${p.rw ? `<dt>${own ? "Vesi" : "Lähin vesi"}</dt><dd>${WATER_NAME[p.rw] ?? esc(p.rw)}${p.rwa != null && p.rw !== "m" ? `, ${fmtHa(p.rwa)}` : ""}</dd>` : ""}
     </dl><p class="fine">Laskettu kiinteistörajoista ja Maanmittauslaitoksen maastotietokannan vesialueista. Vesijättö
     (tontin ja veden välinen kaista, joka ei ole toisen kiinteistön maata) lasketaan omaksi rannaksi. Tieto ei kerro
-    vesialueen omistuksesta eikä rannan laadusta. Purot ovat maastotietokannan kapeita virtavesiä (alle 5 m leveitä);
-    puro lasketaan vain, jos tontti ei ole rannassa.${streamDone ? "" : " Puroja ei ole vielä laskettu kaikille tämän maakunnan kunnille (päivittyy kahden viikon sisällä)."}</p></div>`;
+    vesialueen omistuksesta eikä rannan laadusta. Purot ovat maastotietokannan 2–5 m leveitä virtavesiä (puro tai pieni joki;
+    kapeammat ovat aineistossa samassa luokassa ojien kanssa, joten ne eivät ole mukana). Puro lasketaan vain, jos tontti ei ole rannassa.${streamDone ? "" : " Puroja ei ole vielä laskettu kaikille tämän maakunnan kunnille (päivittyy kahden viikon sisällä)."}</p></div>`;
 }
 
 function select(p, coords, source) {
