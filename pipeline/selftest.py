@@ -147,7 +147,10 @@ def shore_tests():
     from . import shore
     sq = lambda x0, y0, x1, y1: [[[(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]]]
     lake = Polygon([(0, 0), (100, 0), (100, 100), (0, 100)])
-    water = [(lake, "jarvi", lake.area, {})]
+    from shapely.geometry import LineString
+    water = [(lake, "jarvi", lake.area, {}),
+             (LineString([(490, 525), (560, 525)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36311}),  # puro G:n läpi
+             (LineString([(320, 300), (330, 300)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36311})]  # E:n rajalla, lyhyt
     parcels = [
         {"id": "A", "ref": "83400100010001", "polys": sq(100, 0, 150, 50)},     # rajautuu veteen
         {"id": "B", "ref": "83400100020001", "polys": sq(110, 60, 160, 100)},   # 10 m vesijättöä välissä
@@ -162,7 +165,8 @@ def shore_tests():
             b("e", 320, 320, "83400100050001"), b("g", 520, 520, "83400100060001"), b("x", 9000, 9000, "")]
     res = shore.compute(blds, parcels, water)
     got = {k: v[0] for k, v in res.items()}
-    assert got == {"a": 2, "b": 3, "c": 1, "e": 4, "g": 0}, got
+    assert got == {"a": 2, "b": 3, "c": 1, "e": 4, "g": 5}, got
+    assert res["g"][1] == 60 and res["g"][3] == "j", res["g"]  # puroa 50 m palstalla + 2 × 5 m sallittu väli; lähin vesi järvi
     assert 50 <= res["a"][1] <= 60 and res["a"][3] == "j" and 50 <= res["e"][1] <= 60 and res["b"][2] == 10, res
     assert shore.compute(blds, parcels, [])["a"][0] == 0  # ei vesialueita alueella
     import tempfile, os
@@ -170,7 +174,8 @@ def shore_tests():
         st = shore.ShoreResults(os.path.join(d, "s.json.gz"), log=lambda *a: None)
         st.put("834", res); st.save()
         st = shore.ShoreResults(os.path.join(d, "s.json.gz"), log=lambda *a: None)
-        assert st.has("834") and st.collect(["834"])["a"][0] == 2
+        assert st.has("834") and st.collect(["834"])["a"][0] == 2 and st.version("834") == shore.VERSION
+        st.data["munis"]["834"].pop("v"); assert st.version("834") == 1  # vanha tallenne = versio 1
         st.prune([]); assert not st.has("834")
 
 
@@ -254,6 +259,11 @@ def ryhti_store_tests(parcels):
             boom = lambda m: (_ for _ in ()).throw(RuntimeError("katko"))
             pr = mml.ParcelResults(pr_path, 7, boom, today=day + dt.timedelta(days=9), log=lambda *x: None)
             assert pr.get(["834", "235"], bm) == res and pr.missing == ["235"]  # virhe: vanha tulos säilyy
+            # päivitettävät kunnat (esim. rantalaskennan uusi versio) vain yön kiintiön vapaisiin paikkoihin
+            fetched.clear(); bm3 = {**bm, "235": []}
+            pr = mml.ParcelResults(pr_path, 7, fetch, today=day + dt.timedelta(days=3), log=lambda *x: None)
+            pr.get(["834", "235"], bm3, upgrade=["834"]); assert fetched == ["235"], fetched  # kiintiö (1) puuttuvalle
+            pr.get(["834", "235"], bm3, upgrade=["834"]); assert fetched == ["235", "834"], fetched  # nyt tilaa
             # uusi rakennus: palstatieto heti pienellä aluehaulla, ei koko kunnan latausta
             boxes = []
             fb = lambda *bb: boxes.append(bb) or [dict(p) for p in parcels]

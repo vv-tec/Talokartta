@@ -277,18 +277,24 @@ class ParcelResults:
     def put(self, m, buildings, parcels, date=None):
         self.data["munis"][m] = {"date": date or self.today.isoformat(), "res": parcel_results(buildings, parcels)}
 
-    def get(self, munis, buildings_by_muni, deadline=None, force=()):
-        """force: kunnat, joiden palstat haetaan tässä ajossa tuoreudesta riippumatta (esim. rantatiedon käyttöönotto)."""
+    def get(self, munis, buildings_by_muni, deadline=None, force=(), upgrade=()):
+        """force: kunnat, joiden palstat haetaan tässä ajossa tuoreudesta riippumatta (esim. rantatiedon käyttöönotto).
+        upgrade: kunnat (tärkeysjärjestyksessä), jotka haetaan uudelleen, jos yön normaalista kiintiöstä (1/max_age kunnista)
+        jää tilaa puuttuvien ja vanhentuneiden jälkeen (esim. laskennan uusi versio) → kuorma ei kasva."""
         munis = sorted({str(m) for m in munis})
         d = self.data["munis"]
+        quota = math.ceil(len(munis) / self.max_age)
         missing = [m for m in munis if m not in d]
         forced = [m for m in munis if m in d and m in set(force)]
         stale = sorted((m for m in munis if m in d and m not in forced and
                         (self.today - dt.date.fromisoformat(d[m]["date"])).days >= self.max_age), key=lambda m: d[m]["date"])
-        todo = missing + forced + stale[:math.ceil(len(munis) / self.max_age)]
+        stale = stale[:quota]
+        room = max(0, quota - len(missing) - len(stale))
+        upgraded = [m for m in upgrade if m in d and m not in forced and m not in stale][:room]
+        todo = missing + forced + stale + upgraded
         if todo:
-            self.log(f"  palstat: haetaan {len(missing)} puuttuvaa, {len(forced)} pakotettua ja "
-                     f"{len(todo) - len(missing) - len(forced)} vanhentunutta kuntaa (vanhentuneita yhteensä {len(stale)})")
+            self.log(f"  palstat: haetaan {len(missing)} puuttuvaa, {len(forced)} pakotettua, {len(stale)} vanhentunutta "
+                     f"ja {len(upgraded)} päivitettävää kuntaa")
         for n, m in enumerate(todo, 1):
             if deadline and time.time() > deadline:
                 self.log(f"  aikaraja täynnä: {len(todo) - n + 1} kuntaa jää seuraavaan ajoon")

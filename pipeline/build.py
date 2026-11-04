@@ -176,7 +176,7 @@ def make_tiles(records, regions, work, data_dir):
     return out
 
 
-def meta(records, region_files, regions=None, muni_counts=None, shore_regions=None):
+def meta(records, region_files, regions=None, muni_counts=None, shore_regions=None, stream_regions=None):
     lats = [r[2] for r in records]
     lons = [r[3] for r in records]
     years = [r[4]["y"] for r in records if "y" in r[4]]
@@ -195,6 +195,7 @@ def meta(records, region_files, regions=None, muni_counts=None, shore_regions=No
         "by_status": Counter(r[4].get("s", "") for r in records),
         "by": {k: Counter(r[4].get(k, "") for r in records) for k in CODE_KEYS + ("ra",)},
         "shore_regions": shore_regions or [],
+        "stream_regions": stream_regions or [],  # maakunnat, joissa "puron varrella" on laskettu kaikille kunnille
     }
 
 
@@ -303,7 +304,7 @@ def main(argv=None):
             return mml_files.municipality_parcels(get_client(), code, args.work, log)
         pres = mml.ParcelResults(os.path.join(args.cache, "parcel-results.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch, log=log)
         migrate_parcel_cache(args.cache, pres, by_muni)
-        force = []
+        force, upgrade = [], []
         if shore_munis:  # RANTA (irrotettava lisäosa): lasketaan aina, kun kunnan palstat ladataan
             from . import shore  # Shapely tarvitaan vain tällöin
             shore_store = shore.ShoreResults(os.path.join(args.cache, "shore-results.json.gz"), log=log)
@@ -316,11 +317,17 @@ def main(argv=None):
                 res = shore.compute(blds_m, parcels, water)
                 shore_store.put(m, res)
                 n = sum(1 for v in res.values() if v[0] in (2, 3))
-                log(f"    ranta {m}: {len(water)} vesialuetta, {n}/{len(res)} omalla rannalla, {time.time() - t:.0f} s")
+                n5 = sum(1 for v in res.values() if v[0] == shore.STREAM)
+                nw = sum(1 for w in water if w[1] != shore.STREAM_COLLECTION)
+                log(f"    ranta {m}: {nw} vesialuetta, {len(water) - nw} puroa, {n}/{len(res)} omalla rannalla, "
+                    f"{n5} puron varrella, {time.time() - t:.0f} s")
             pres.on_parcels = on_parcels
             # käyttöönotto: kunnat, joilta rantatulos puuttuu, haetaan heti (muuten vasta 14 pv kierrossa)
             force = [m for m in shore_munis if m in ryhti_ready and not shore_store.has(m)]
-        presults = pres.get(ryhti_ready, by_muni, deadline, force=force)
+            # laskennan uusi versio: vanhat kunnat päivitetään yön normaalin kiintiön vapaista paikoista, vanhimmasta alkaen
+            upgrade = sorted((m for m in shore_munis if m in ryhti_ready and shore_store.has(m)
+                              and shore_store.version(m) < shore.VERSION), key=shore_store.date)
+        presults = pres.get(ryhti_ready, by_muni, deadline, force=force, upgrade=upgrade)
         # uusille rakennuksille palstatieto heti pienellä aluehaulla (koko kunta haetaan vain PARCEL_MAX_AGE_DAYS välein)
         if pres.fill_new(ryhti_ready, by_muni, mml._fetch_box, deadline, limit=config.NEW_BUILDINGS_MAX_PER_RUN):
             presults = pres.collect(ryhti_ready)
@@ -385,7 +392,9 @@ def main(argv=None):
     with open(os.path.join(args.out, "data", "meta.json"), "w", encoding="utf-8") as f:
         shore_regions = [r for r in regions_ready if r in config.SHORE_REGIONS
                          and shore_store and all(shore_store.has(m) for m in config.REGIONS[r])]
-        json.dump(meta(records, region_files, regions_ready, muni_counts, shore_regions), f, ensure_ascii=False)
+        stream_regions = [r for r in shore_regions if all(shore_store.version(m) >= 2 for m in config.REGIONS[r])]
+        json.dump(meta(records, region_files, regions_ready, muni_counts, shore_regions, stream_regions), f,
+                  ensure_ascii=False)
     shutil.copytree(os.path.join(ROOT, "web"), args.out, dirs_exist_ok=True)
     # versionumero tiedostonimiin, jotta selaimet hakevat päivitetyn sivun eivätkä käytä vanhaa välimuistista
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")
