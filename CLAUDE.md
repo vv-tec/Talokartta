@@ -117,8 +117,17 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Basic auth toimii; bbox-crs/crs EPSG:3067). Tammela: 6 335 asuinrakennusta → ranta 2 659, erillinen rantapalsta 121,
     todennäköisesti (3–15 m) 201, ei 3 354; vapaa-ajan asunnoista 64 % rannalla. Vesialueet 5 s, laskenta 18 s
     (3 ms/palsta), muisti 285 Mt. Tulos omistajalle Excelinä tarkistettavaksi (Karttapaikka-linkit).
+    Omistajan tarkistus 4.11.2026 (6 kohdetta): 5 "kyllä" olivat 3–11 m päässä vedestä, väli vesijättöä → omistajan linjaus:
+    **vesijättö lasketaan omaksi rannaksi** (käytettävissä ja yleensä lunastettavissa). Luokitus v2 (`shore.py`):
+    ranta ≤ `TOL_SHORE` 3 m; "ranta (vesijättö)" ≤ `TOL_GAP` 20 m, jos välissä ei ole toisen kiinteistön maapalstaa
+    (tarkistus viidestä kohdasta rantaa, enemmistö ratkaisee); muuten "ei (toinen kiinteistö välissä)"; yli 20 m "ei".
+    Vesialuekiinteistö tunnistetaan kiinteistötunnuksen 3. osasta `0876` (yhteinen vesialue; diagnostiikka: palstoista,
+    jotka ovat > 80 % vettä, 188 kpl 0876). Välissä esiintyy myös `0878` (28) – käsitellään toistaiseksi maana, selvitä tyyppi.
+    v2 Tammela: ranta 2 659, ranta (vesijättö) 153, erillinen rantapalsta 120, ei (toinen kiinteistö välissä) 63, ei 3 340;
+    kaikki 6 omistajan tarkistamaa osuivat oikein. Laskenta 24 s (4 ms/palsta, väliaineiston tarkistus mukana), muisti 312 Mt.
+    Käyttöliittymässä "ranta" ja "ranta (vesijättö)" kuuluvat suodattimessa samaan "Oma ranta" -valintaan; kortissa maininta vesijätöstä.
     Ennen käyttöönottoa:
-    a) omistaja tarkistaa Tammelan rajatapauksia → kynnysarvojen säätö (nyt ranta ≤ 3 m, todennäköisesti ≤ 15 m);
+    a) ✅ omistajan tarkistus (v1) → vesijättölinjaus; v2:n uudet luokat omistajalle Excelinä mahdolliseen lisätarkistukseen;
     b) suorituskykytesti Saimaan kunnalle (esim. Puumala 623): isot rikkonaiset järvipolygonit, palstakohtainen leikkaus;
        tarvittaessa järvet pilkotaan ruutuihin (esim. 1 km) ennen laskentaa.
     Toteutusmalli (helposti kumottava):
@@ -129,16 +138,16 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
        etäisyys vedestä m, vesilaji, vesialueen ala ha]; kiinteistötasolla "erillinen rantapalsta" (saman kiinteistön toinen palsta rannassa).
     4. Käyttöönotto leviää viikoittaisen uudelleenhaun mukana (1/7 kunnista per yö) → kaikki kunnat viikossa ilman erillistä
        raskasta ajoa; siihen asti "ei vielä laskettu". Lisäaika koko Suomessa arviolta ~10 min/yö.
-    5. Tiiliin uudet avaimet: `ra` (0 ei, 1 todennäköisesti, 2 ranta, 3 erillinen rantapalsta), `rl` rantaviiva m,
+    5. Tiiliin uudet avaimet: `ra` (0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta), `rl` rantaviiva m,
        `rd` etäisyys vedestä m, `rw` vesilaji (j järvi, m meri, v joki), `rwa` vesialueen ala ha. Arvio tiilikoon kasvusta ~3–5 %.
-    6. Käyttöliittymä: suodatinryhmä "Ranta" (Oma ranta / Erillinen rantapalsta / Todennäköisesti / Ei rantaa / Ei laskettu),
+    6. Käyttöliittymä: suodatinryhmä "Ranta" (Oma ranta [sis. vesijättö] / Erillinen rantapalsta / Ei rantaa / Ei laskettu),
        mahdollisesti liukusäädin "etäisyys vedestä" ja "vesialueen koko" (lammet pois); kortissa osio "Ranta" + selite rajoituksista.
     7. Pikatestit yksinkertaisilla geometrioilla (ohitetaan, jos Shapely puuttuu).
     8. Kumoaminen: `SHORE_ENABLED = False` → build jättää rantakentät pois heti seuraavassa ajossa; riippuvuuden voi poistaa myöhemmin.
     Rajoitukset (kerrotaan käyttäjälle): yhteinen ranta-alue/venevalkama tontin ja veden välissä → "ei" (oikein, mutta voi yllättää);
     kiinteistörajojen epätarkkuus maaseudulla; maankohoamisrannikko (vesijättö); purot (viivoja, `virtavesikapea`) eivät mukana;
     tieto ei kerro vesialueen omistuksesta eikä rannan laadusta.
-    Avoimet kysymykset: kynnysarvot, otetaanko alle 1 ha lammet mukaan, lisätäänkö "puron varrella" puroviivoista.
+    Avoimet kysymykset: otetaanko alle 1 ha lammet mukaan, lisätäänkö "puron varrella" puroviivoista, kiinteistötyyppi 0878.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
