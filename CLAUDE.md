@@ -124,8 +124,17 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
    - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
    - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
-2x. Rantatieto – OTETTU KÄYTTÖÖN maakunta kerrallaan omistajan päätöksellä 4.11.2026, ensin Kanta-Häme
-    (`config.SHORE_REGIONS`). Seuraavat maakunnat lisätään vain omistajan pyynnöstä. Alla koe- ja suunnitteluhistoria.
+2x. ✅ Rantatieto – käytössä kaikissa 6 maakunnassa 4.11.2026 (`config.SHORE_REGIONS`), otettu käyttöön paketeittain
+    omistajan pyynnöstä. Uusi maakunta: lisätään oletuksena myös SHORE_REGIONSiin samassa muutoksessa (palstat ladataan
+    joka tapauksessa; KAYTTOOHJE kohta 6), ellei omistaja toisin pyydä. Alla mittaukset sekä koe- ja suunnitteluhistoria.
+    Paketti 1 Pirkanmaa + Päijät-Häme (32 kuntaa): 77 min, raskain Tampere 58 s; ranta 49 526 / 168 991 ja
+    22 412 / 76 110; tiilet 37 → 40,5 Mt ja 17 → 18,9 Mt.
+    Paketti 2 Satakunta + Uusimaa (42 kuntaa): 1 h 58 min (lähellä 150 min palstarajaa → enintään ~40 kuntaa/ajo
+    pakotettuna), raskaimmat Helsinki 132 s, Espoo 121 s, Pori 98 s; ranta 20 491 / 96 626 ja 38 476 / 288 487;
+    tiilet 21,3 → 23,2 Mt ja 58,2 → 62,5 Mt.
+    Paketti 3 Varsinais-Suomi (27 kuntaa): 1 h 34 min, Parainen 273 s, Turku 114 s; ranta 47 662 / 173 260; tiili 38,7 → 42,0 Mt.
+    Yhteensä omalla rannalla (ra 2–3) 195 891 / 876 423 (22 %); tiilet ~206 Mt. Yhtään "lisälaskenta epäonnistui" ei tullut.
+    Jatkuva kuorma: ~8 kuntaa/yö × ~30 s ≈ 4 min lisää yöajoon; vesialuehaut ~8 kuntaa/yö.
     Kanta-Häme 4.11.2026: käyttöönottoajo 31 min (palstojen uudelleenlataus 11 kuntaa ~25 min, rantalaskenta yht. ~5 min,
     Hämeenlinna 126 s); omalla rannalla (ra 2–3) 17 324 / 72 949 asuinrakennusta; tiili 16,1 → 17,5 Mt (+9 %).
     Selftestin rantatestit ajetaan CI:ssä (Shapely asennettu).

@@ -27,7 +27,7 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
   | Kunnan kaikki rakennukset ja osoitteet (varmistus) | Ryhti | kerran kuukaudessa, muutama kunta joka yö |
   | Kunnan kaikkien tonttien rajat | Maanmittauslaitos | kerran kahdessa viikossa, noin 1/14 kunnista joka yö |
 
-  Yöajo kestää noin 15–20 minuuttia, josta suurin osa on tonttien latausta. Uuden rakennuksen kiinteistön kokonaisala
+  Yöajo kestää noin 20–25 minuuttia, josta suurin osa on tonttien latausta (rantalaskenta samoista tonteista noin 4 min). Uuden rakennuksen kiinteistön kokonaisala
   voi tarkentua vasta kunnan seuraavassa täydessä tonttihaussa (enintään kahden viikon päästä).
 - **Sivu** on pelkkiä tiedostoja, ei omaa palvelinta tai tietokantaa. Siksi palvelu on ilmainen ja kestää paljon käyttäjiä.
 - **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
@@ -104,6 +104,8 @@ Pyydä Claudea, esimerkiksi: *"Lisää Keski-Suomi."*
 - Uusi maakunta tulee sivulle vasta, kun kaikki sen kuntien tiedot ovat valmiina. Jos ajo ei ehdi kerralla, se
   jatkuu seuraavana yönä. Muut maakunnat päivittyvät sillä välin normaalisti.
 - Yhteen ajoon mahtuu noin 20–25 kuntaa (1–2 keskikokoista maakuntaa).
+- **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
+  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Keski-Suomi ilman rantatietoa."*
 
 Puuttuvat maakunnat (3.11.2026): Etelä-Karjala, Etelä-Pohjanmaa, Etelä-Savo, Kainuu, Keski-Pohjanmaa, Keski-Suomi,
 Kymenlaakso, Lappi, Pohjanmaa, Pohjois-Karjala, Pohjois-Pohjanmaa ja Pohjois-Savo. Ahvenanmaalla on oma
@@ -152,8 +154,8 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 190 Mt), yksittäinen tiedosto enintään 100 Mt
-  (suurin, Uusimaa, noin 58 Mt). Koko Suomi mahtuu arviolta hyvin.
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 206 Mt), yksittäinen tiedosto enintään 100 Mt
+  (suurin, Uusimaa, noin 63 Mt). Koko Suomi mahtuu arviolta hyvin.
 - **Ulkoiset palvelut, joista sivu riippuu:** OpenFreeMap (taustakartta) ja unpkg (karttakirjastot). Jos jompikumpi on
   katkolla, sivu ei toimi kunnes palvelu palaa.
 
@@ -168,15 +170,27 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   rantapuisto tai tie, tai vesi on kaukana.
 - Rajoitukset: purot eivät ole mukana; tieto ei kerro vesialueen omistuksesta eikä rannan laadusta; uusi rakennus saa
   rantatiedon kahden viikon sisällä.
-- **Käytössä maakunnissa:** Kanta-Häme (4.11.2026). Uusi maakunta lisätään pyytämällä Claudea, esim. *"Lisää rantatieto Pirkanmaalle."*
-  Ensimmäinen ajo hakee silloin maakunnan tontit uudelleen (noin 15–50 min).
+- **Käytössä kaikissa nykyisissä maakunnissa** (4.11.2026). Omalla rannalla (oma ranta tai vesijättö):
+
+  | Maakunta | Omalla rannalla | Osuus |
+  |---|---|---|
+  | Kanta-Häme | 17 324 / 72 949 | 24 % |
+  | Pirkanmaa | 49 526 / 168 991 | 29 % |
+  | Päijät-Häme | 22 412 / 76 110 | 29 % |
+  | Satakunta | 20 491 / 96 626 | 21 % |
+  | Uusimaa | 38 476 / 288 487 | 13 % |
+  | Varsinais-Suomi | 47 662 / 173 260 | 28 % |
+  | **Yhteensä** | **195 891 / 876 423** | **22 %** |
+
+- Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
+- Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).
 - **Poistaminen käytöstä:** pyydä Claudea *"Poista rantatieto käytöstä"* – se on yksi asetus (`SHORE_REGIONS` tyhjäksi),
   ja tieto katoaa sivulta seuraavassa ajossa. Muu palvelu ei muutu.
 
 ## 11. Avoimet asiat ja suunnitelmat (4.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
-- **Rantatieto** muihin maakuntiin – maakunta kerrallaan pyynnöstäsi.
+- **Rantatieto:** avoimet kysymykset – otetaanko alle 1 ha lammet mukaan ja lisätäänkö "puron varrella".
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
 - Muut maakunnat, osoitehaku, oma verkko-osoite.
 
