@@ -114,16 +114,39 @@ def main():
     t = time.time()
     prod = shore.compute(blds, parcels, water + streams)
     T["tuotantolaskenta_puroineen"] = time.time() - t
-    print("  tuotantoluokat (ra):", sorted(Counter(v[0] for v in prod.values()).items()))
-    for k in sorted(kl, key=str):
-        shore.STREAM_CLASSES = {k}
+    print("  tuotantoluokat (ra) oletusasetuksilla:", sorted(Counter(v[0] for v in prod.values()).items()))
+    # kapeiden (36311) mutkaisuus: suorat ojat vs. luonnontilaiset purot
+    narrow = [w for w in streams if w[3].get("kohdeluokka") == shore.NARROW_CLASS]
+    for lo in (0, 100, 300):
+        sub = [w for w in narrow if w[0].length >= lo]
+        sins = sorted(shore.sinuosity(w[0]) for w in sub)
+        if sins:
+            q = lambda f: round(sins[int(f * (len(sins) - 1))], 3)
+            print(f"  36311 pituus >= {lo} m: {len(sub)} kpl, mutkaisuus p10 {q(.1)} p25 {q(.25)} mediaani {q(.5)} "
+                  f"p75 {q(.75)} p90 {q(.9)}; osuus >= 1.05: {sum(s >= 1.05 for s in sins) / len(sins):.0%}, "
+                  f">= 1.1: {sum(s >= 1.1 for s in sins) / len(sins):.0%}, >= 1.2: {sum(s >= 1.2 for s in sins) / len(sins):.0%}")
+    keep = (shore.STREAM_CLASSES, shore.NARROW_MIN_SINUOSITY, shore.NARROW_MIN_LEN)
+    variants = [("kaikki", None, None, 0), ("vain 2–5 m", {36312}, None, 0)] + [
+        (f"2–5 m + alle 2 m mutkaisuus >= {s}, >= {ln} m", {36312}, s, ln)
+        for s in (1.05, 1.1, 1.2) for ln in (50, 100, 200)]
+    for name, cl, s_, ln in variants:
+        shore.STREAM_CLASSES, shore.NARROW_MIN_SINUOSITY, shore.NARROW_MIN_LEN = cl, s_, ln
+        km_ = sum(w[0].length for w in streams if shore.is_stream(w)) / 1000
         n = sum(1 for v in shore.compute(blds, parcels, water + streams).values() if v[0] == shore.STREAM)
-        print(f"  puron varrella, jos vain kohdeluokka {k}: {n}")
+        print(f"  VAIHTOEHTO {name}: puroa {km_:.0f} km, puron varrella {n}")
+    shore.STREAM_CLASSES, shore.NARROW_MIN_SINUOSITY, shore.NARROW_MIN_LEN = keep
+    # tarkistettavaksi: oletusasetuksilla puron varrella olevat ja ne, jotka pudotettiin (kaikki purot -> oletus)
     shore.STREAM_CLASSES = None
+    allp = shore.compute(blds, parcels, water + streams)
+    shore.STREAM_CLASSES = keep[0]
+    prod = shore.compute(blds, parcels, water + streams)
     for r in rows:
-        v = prod.get(r.pop("_key"), None)
+        k = r.pop("_key")
+        v, va = prod.get(k), allp.get(k)
         if v and v[0] == shore.STREAM:
             r["tulos"], r["puro_m"] = "puron varrella", v[1]
+        elif va and va[0] == shore.STREAM:
+            r["tulos"], r["puro_m"] = "oja? (pudotettu)", va[1]
     by_type5 = Counter(r["tyyppi"] for r in rows if r["tulos"] == "puron varrella")
     print("  puron varrella tyypeittäin:", dict(by_type5))
 

@@ -149,8 +149,9 @@ def shore_tests():
     lake = Polygon([(0, 0), (100, 0), (100, 100), (0, 100)])
     from shapely.geometry import LineString
     water = [(lake, "jarvi", lake.area, {}),
-             (LineString([(490, 525), (560, 525)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36311}),  # puro G:n läpi
-             (LineString([(320, 300), (330, 300)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36311})]  # E:n rajalla, lyhyt
+             (LineString([(490, 525), (560, 525)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36312}),  # puro G:n läpi
+             (LineString([(320, 300), (330, 300)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36312}),  # E:n rajalla
+             (LineString([(10, -40), (90, -40)]), shore.STREAM_COLLECTION, 0, {"kohdeluokka": 36311})]  # suora oja C:n läpi
     parcels = [
         {"id": "A", "ref": "83400100010001", "polys": sq(100, 0, 150, 50)},     # rajautuu veteen
         {"id": "B", "ref": "83400100020001", "polys": sq(110, 60, 160, 100)},   # 10 m vesijättöä välissä
@@ -166,6 +167,7 @@ def shore_tests():
     res = shore.compute(blds, parcels, water)
     got = {k: v[0] for k, v in res.items()}
     assert got == {"a": 2, "b": 3, "c": 1, "e": 4, "g": 5}, got
+    assert shore.sinuosity(LineString([(0, 0), (30, 40), (60, 0)])) == 2.0 and not shore.is_stream(water[3])
     assert res["g"][1] == 60 and res["g"][3] == "j", res["g"]  # puroa 50 m palstalla + 2 × 5 m sallittu väli; lähin vesi järvi
     assert 50 <= res["a"][1] <= 60 and res["a"][3] == "j" and 50 <= res["e"][1] <= 60 and res["b"][2] == 10, res
     assert shore.compute(blds, parcels, [])["a"][0] == 0  # ei vesialueita alueella

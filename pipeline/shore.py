@@ -171,7 +171,12 @@ class Streams:
 
 VERSION = 2  # laskennan versio (2 = puron varrella mukana); vanhemmat kunnat päivitetään vähitellen
 STREAM_COLLECTION = "virtavesikapea"
-STREAM_CLASSES = None  # maastotietokannan kohdeluokat, jotka lasketaan puroiksi (None = kaikki)
+# Maastotietokannan kapeat virtavedet: 36312 = 2–5 m leveä (puro / pieni joki) lasketaan aina. 36311 = alle 2 m sisältää
+# myös metsä- ja peltoojat (Tammelassa 6 400 km), joten siitä mukaan vain mutkittelevat (luonnontilaiset) osuudet.
+STREAM_CLASSES = {36312}
+NARROW_CLASS = 36311
+NARROW_MIN_SINUOSITY = 1.1  # pituus / päätepisteiden etäisyys; suora oja ~1,0 (None = kapeat eivät mukana)
+NARROW_MIN_LEN = 100.0
 TOL_STREAM = 5.0
 MIN_STREAM_M = 10.0
 WATER_COLLECTIONS = ("jarvi", "meri", "virtavesialue")
@@ -191,8 +196,26 @@ def municipality_water(client, buildings, log=print):
     return fetch_water(client, WATER_COLLECTIONS + (STREAM_COLLECTION,), bbox, log=lambda *a: None)
 
 
+def sinuosity(g):
+    """Viivan mutkaisuus: pituus jaettuna päätepisteiden etäisyydellä (osat yhteenlaskettuina)."""
+    length = chord = 0.0
+    for part in get_parts(g):
+        if part.geom_type == "LineString" and len(part.coords) > 1:
+            length += part.length
+            (x0, y0), (x1, y1) = part.coords[0], part.coords[-1]
+            chord += ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+    return length / chord if chord > 0 else 1.0
+
+
 def is_stream(item):
-    return item[1] == STREAM_COLLECTION and (STREAM_CLASSES is None or item[3].get("kohdeluokka") in STREAM_CLASSES)
+    g, col, _, props = item
+    if col != STREAM_COLLECTION:
+        return False
+    k = props.get("kohdeluokka")
+    if STREAM_CLASSES is None or k in STREAM_CLASSES:
+        return True
+    return (k == NARROW_CLASS and NARROW_MIN_SINUOSITY is not None and g.length >= NARROW_MIN_LEN
+            and sinuosity(g) >= NARROW_MIN_SINUOSITY)
 
 
 def compute(buildings, parcels, water_items):
