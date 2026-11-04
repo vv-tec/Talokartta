@@ -34,7 +34,7 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
 **Mukana nyt (4.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi ja
-Kymenlaakso – 141 kuntaa, noin 1,06 miljoonaa asuinrakennusta.
+Kymenlaakso – 141 kuntaa, 1 057 553 asuinrakennusta.
 
 ---
 
@@ -97,15 +97,15 @@ Muut ajot Actions-välilehdellä (**Selvitys – …**) ovat Clauden koeajoja. N
 
 ## 6. Uuden maakunnan lisääminen
 
-Pyydä Claudea, esimerkiksi: *"Lisää Keski-Suomi."*
+Pyydä Claudea, esimerkiksi: *"Lisää Etelä-Savo."*
 
 - Claude lisää maakunnan kunnat asetuksiin, ja ensimmäinen ajo alkaa heti.
-- Ensimmäinen ajo kestää noin 30–60 minuuttia (tontit ladataan Maanmittauslaitokselta kunta kerrallaan).
+- Ensimmäinen ajo kestää noin 30–110 minuuttia (tontit ladataan Maanmittauslaitokselta kunta kerrallaan).
 - Uusi maakunta tulee sivulle vasta, kun kaikki sen kuntien tiedot ovat valmiina. Jos ajo ei ehdi kerralla, se
   jatkuu seuraavana yönä. Muut maakunnat päivittyvät sillä välin normaalisti.
-- Yhteen ajoon mahtuu noin 20–25 kuntaa (1–2 keskikokoista maakuntaa).
+- Yhteen ajoon mahtuu noin 25–30 kuntaa (1–2 keskikokoista maakuntaa; Keski-Suomi + Kymenlaakso, 29 kuntaa, vei 1 h 45 min).
 - **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
-  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Keski-Suomi ilman rantatietoa."*
+  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Etelä-Savo ilman rantatietoa."*
 
 Puuttuvat maakunnat (4.11.2026): Etelä-Karjala, Etelä-Pohjanmaa, Etelä-Savo, Kainuu, Keski-Pohjanmaa,
 Lappi, Pohjanmaa, Pohjois-Karjala, Pohjois-Pohjanmaa ja Pohjois-Savo. Ahvenanmaalla on oma
@@ -154,7 +154,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 206 Mt), yksittäinen tiedosto enintään 100 Mt
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 253 Mt), yksittäinen tiedosto enintään 100 Mt
   (suurin, Uusimaa, noin 63 Mt). Koko Suomi mahtuu arviolta hyvin.
 - **Ulkoiset palvelut, joista sivu riippuu:** OpenFreeMap (taustakartta) ja unpkg (karttakirjastot). Jos jompikumpi on
   katkolla, sivu ei toimi kunnes palvelu palaa.
@@ -181,12 +181,16 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Maakunta | Omalla rannalla | Osuus |
   |---|---|---|
   | Kanta-Häme | 17 324 / 72 949 | 24 % |
-  | Pirkanmaa | 49 526 / 168 991 | 29 % |
+  | Pirkanmaa | 52 947 / 173 791 | 30 % |
   | Päijät-Häme | 22 412 / 76 110 | 29 % |
   | Satakunta | 20 491 / 96 626 | 21 % |
   | Uusimaa | 38 476 / 288 487 | 13 % |
   | Varsinais-Suomi | 47 662 / 173 260 | 28 % |
-  | **Yhteensä** | **195 891 / 876 423** | **22 %** |
+  | Keski-Suomi | 41 199 / 110 542 | 37 % |
+  | Kymenlaakso | 16 204 / 65 788 | 25 % |
+  | **Yhteensä** | **256 715 / 1 057 553** | **24 %** |
+
+  Puron varrella (uusissa kunnissa heti): Keski-Suomi 1 460, Kymenlaakso 1 701, Kuhmoinen 78.
 
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).

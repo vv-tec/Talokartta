@@ -190,8 +190,14 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     kiinteistörajojen epätarkkuus maaseudulla; maankohoamisrannikko (vesijättö); purot (viivoja, `virtavesikapea`) eivät mukana;
     tieto ei kerro vesialueen omistuksesta eikä rannan laadusta.
     Avoimet kysymykset: kapeat mutkittelevat purot (pistokoe), kiinteistötyyppi 0878. (Lammet ja puro ratkaistu 4.11.2026, ks. 2g.)
-2g. Keski-Suomi (22 kuntaa) ja Kymenlaakso (6) + puuttunut Kuhmoinen 291 Pirkanmaalle (siirtyi 2021) 4.11.2026,
+2g. ✅ Keski-Suomi (22 kuntaa) ja Kymenlaakso (6) + puuttunut Kuhmoinen 291 Pirkanmaalle (siirtyi 2021) 4.11.2026,
     rantatieto ja purot mukana heti. Uusien maakuntien kuntalistat tarkistettava ajantasaisesta maakuntajaosta.
+    Ensiajo 1 h 45 min (Ryhti 29 kuntaa ~5 min, palstat + ranta ~1 h 36 min; raskain Kouvola 286: 275 s rantaa,
+    ~13 min yht.). 1 057 553 rakennusta (141 kuntaa, 8 maakuntaa), palsta kaikille. Keski-Suomi 110 542 (oma ranta
+    41 199 = 37 %, puron varrella 1 460), Kymenlaakso 65 788 (16 204 = 25 %, puro 1 701), Kuhmoinen 4 800 (3 421, puro 78).
+    Puroviivoja (virtavesikapea) haetaan kunnan bboxista 10 000–276 000 kpl (eniten Keuruu 249 ja Kouvola 286).
+    Tiilet: Keski-Suomi 30,4 Mt, Kymenlaakso 15,4, Pirkanmaa 41,9; yhteensä ~253 Mt. Ei "lisälaskenta epäonnistui".
+    Vanhat 112 kuntaa saavat purotiedon (VERSION 2) vähitellen ~14 pv aikana (upgrade-kiintiö).
     Lisäksi omistajan päätös 4.11.2026: alle 1 ha lammet mukana (olivat jo; MTK `jarvi` sisältää ne) ja "puron varrella" lisätään.
     Tammela: purot 36311 6 411 km / 36312 367 km; kaikki purot → 806 taloa (ojia), vain 2–5 m → 204,
     + kapeat mutkaisuus ≥ 1,1 & ≥ 100 m → 538. Laskenta-aika lähes ennallaan (+1–3 s/kunta), purojen haku ~16–20 s/kunta.
