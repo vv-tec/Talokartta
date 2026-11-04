@@ -272,20 +272,23 @@ class ParcelResults:
             dates = sorted(v["date"] for v in self.data["munis"].values()) or ["-"]
             log(f"  palstatulokset tallessa: {len(self.data['munis'])} kuntaa, haettu {dates[0]} … {dates[-1]}")
         self.missing = []
+        self.on_parcels = None  # valinnainen koukku (m, rakennukset, palstat): esim. rantatieto lasketaan samoista palstoista
 
     def put(self, m, buildings, parcels, date=None):
         self.data["munis"][m] = {"date": date or self.today.isoformat(), "res": parcel_results(buildings, parcels)}
 
-    def get(self, munis, buildings_by_muni, deadline=None):
+    def get(self, munis, buildings_by_muni, deadline=None, force=()):
+        """force: kunnat, joiden palstat haetaan tässä ajossa tuoreudesta riippumatta (esim. rantatiedon käyttöönotto)."""
         munis = sorted({str(m) for m in munis})
         d = self.data["munis"]
         missing = [m for m in munis if m not in d]
-        stale = sorted((m for m in munis if m in d and
+        forced = [m for m in munis if m in d and m in set(force)]
+        stale = sorted((m for m in munis if m in d and m not in forced and
                         (self.today - dt.date.fromisoformat(d[m]["date"])).days >= self.max_age), key=lambda m: d[m]["date"])
-        todo = missing + stale[:math.ceil(len(munis) / self.max_age)]
+        todo = missing + forced + stale[:math.ceil(len(munis) / self.max_age)]
         if todo:
-            self.log(f"  palstat: haetaan {len(missing)} puuttuvaa ja {len(todo) - len(missing)} vanhentunutta kuntaa "
-                     f"(vanhentuneita yhteensä {len(stale)})")
+            self.log(f"  palstat: haetaan {len(missing)} puuttuvaa, {len(forced)} pakotettua ja "
+                     f"{len(todo) - len(missing) - len(forced)} vanhentunutta kuntaa (vanhentuneita yhteensä {len(stale)})")
         for n, m in enumerate(todo, 1):
             if deadline and time.time() > deadline:
                 self.log(f"  aikaraja täynnä: {len(todo) - n + 1} kuntaa jää seuraavaan ajoon")
@@ -297,6 +300,11 @@ class ParcelResults:
                 continue
             self.put(m, buildings_by_muni.get(m, []), parcels)
             self.log(f"  kunta {n}/{len(todo)} ({m}): {len(parcels)} palstaa, tulos {len(d[m]['res'])} rakennukselle")
+            if self.on_parcels:
+                try:
+                    self.on_parcels(m, buildings_by_muni.get(m, []), parcels)
+                except Exception as e:  # noqa: BLE001 – lisäosan virhe ei kaada palstatietoja
+                    self.log(f"  kunta {m}: lisälaskenta epäonnistui: {e}")
         self.missing = [m for m in munis if m not in d]
         return self.collect(munis)
 

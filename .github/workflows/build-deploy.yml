@@ -40,7 +40,7 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q tippecanoe
-          pip install -r pipeline/requirements.txt
+          pip install -r pipeline/requirements.txt -r pipeline/requirements-shore.txt   # jälkimmäinen: rantatieto (irrotettava)
 
       - name: Pikatestit
         run: python -m pipeline.selftest

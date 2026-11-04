@@ -46,7 +46,7 @@ def known(uri):
 CODE_KEYS = ("m", "fa", "r", "h", "e")  # koodikentät, joiden jakauma kirjataan meta.jsoniin suodattimia varten
 
 
-def make_records(buildings, addresses, presults):
+def make_records(buildings, addresses, presults, shore_res=None):
     """Yhdistää rakennukset, osoitteet ja palstatulokset ({building_key: [pa, ka, pn]}, ks. mml.parcel_results).
     Palauttaa listan (x, y, lat, lon, props)."""
     addr = defaultdict(list)
@@ -90,6 +90,10 @@ def make_records(buildings, addresses, presults):
         }
         pa, ka, pn = presults.get(b.get("building_key")) or (None, None, None)
         props.update(pa=pa, ka=ka, pn=pn)
+        sr = (shore_res or {}).get(b.get("building_key"))
+        if sr:  # RANTA: ra luokka, rl rantaviiva m, rd etäisyys vedestä m, rw vesilaji, rwa vesialueen ala ha
+            ra, rl, rd, rw, rwa = sr
+            props.update(ra=ra, rl=rl or None, rd=rd, rw=rw, rwa=rwa)
         out.append((x, y, lat, lon, {k: v for k, v in props.items() if v not in (None, "")}))
     return out
 
@@ -172,7 +176,7 @@ def make_tiles(records, regions, work, data_dir):
     return out
 
 
-def meta(records, region_files, regions=None, muni_counts=None):
+def meta(records, region_files, regions=None, muni_counts=None, shore_regions=None):
     lats = [r[2] for r in records]
     lons = [r[3] for r in records]
     years = [r[4]["y"] for r in records if "y" in r[4]]
@@ -189,7 +193,8 @@ def meta(records, region_files, regions=None, muni_counts=None):
         "building_minzoom": config.BUILDING_MINZOOM,
         "by_type": Counter(r[4].get("p", "") for r in records),
         "by_status": Counter(r[4].get("s", "") for r in records),
-        "by": {k: Counter(r[4].get(k, "") for r in records) for k in CODE_KEYS},
+        "by": {k: Counter(r[4].get(k, "") for r in records) for k in CODE_KEYS + ("ra",)},
+        "shore_regions": shore_regions or [],
     }
 
 
@@ -267,6 +272,9 @@ def main(argv=None):
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
 
     region_of = {m: r for r, ms in config.REGIONS.items() for m in ms}
+    # RANTA: maakunnat, joille rantatieto lasketaan (tyhjä = pois päältä; ks. pipeline/shore.py)
+    shore_munis = [m for r in config.SHORE_REGIONS if r in config.REGIONS for m in config.REGIONS[r]]
+    shore_store = None
 
     # 1) Rakennukset ja osoitteet: tallessa olevaan tilaan vain muutokset (täysi haku kunnittain kuukauden välein).
     store = ryhti_store.RyhtiStore(os.path.join(args.cache, "ryhti.json.gz"), config.RYHTI_FULL_DAYS, keep=keep, log=log)
@@ -286,13 +294,33 @@ def main(argv=None):
         log(f"Kiinteistöpalstat: MML:n tiedostopalvelu, {len(ryhti_ready)} kuntaa")
         client = None
 
-        def fetch(code):
+        def get_client():
             nonlocal client
             client = client or mml_files.MMLFiles(log=log)
-            return mml_files.municipality_parcels(client, code, args.work, log)
+            return client
+
+        def fetch(code):
+            return mml_files.municipality_parcels(get_client(), code, args.work, log)
         pres = mml.ParcelResults(os.path.join(args.cache, "parcel-results.json.gz"), config.PARCEL_MAX_AGE_DAYS, fetch, log=log)
         migrate_parcel_cache(args.cache, pres, by_muni)
-        presults = pres.get(ryhti_ready, by_muni, deadline)
+        force = []
+        if shore_munis:  # RANTA (irrotettava lisäosa): lasketaan aina, kun kunnan palstat ladataan
+            from . import shore  # Shapely tarvitaan vain tällöin
+            shore_store = shore.ShoreResults(os.path.join(args.cache, "shore-results.json.gz"), log=log)
+
+            def on_parcels(m, blds_m, parcels):
+                if m not in shore_munis:
+                    return
+                t = time.time()
+                water = shore.municipality_water(get_client(), blds_m, log)
+                res = shore.compute(blds_m, parcels, water)
+                shore_store.put(m, res)
+                n = sum(1 for v in res.values() if v[0] in (2, 3))
+                log(f"    ranta {m}: {len(water)} vesialuetta, {n}/{len(res)} omalla rannalla, {time.time() - t:.0f} s")
+            pres.on_parcels = on_parcels
+            # käyttöönotto: kunnat, joilta rantatulos puuttuu, haetaan heti (muuten vasta 14 pv kierrossa)
+            force = [m for m in shore_munis if m in ryhti_ready and not shore_store.has(m)]
+        presults = pres.get(ryhti_ready, by_muni, deadline, force=force)
         # uusille rakennuksille palstatieto heti pienellä aluehaulla (koko kunta haetaan vain PARCEL_MAX_AGE_DAYS välein)
         if pres.fill_new(ryhti_ready, by_muni, mml._fetch_box, deadline, limit=config.NEW_BUILDINGS_MAX_PER_RUN):
             presults = pres.collect(ryhti_ready)
@@ -314,6 +342,11 @@ def main(argv=None):
     # Tila tallennetaan joka ajossa (myös kun jotain puuttuu), jotta seuraava ajo jatkaa siitä.
     store.save()
     pres.save()
+    shore_res = {}
+    if shore_store:
+        shore_store.prune(shore_munis)
+        shore_store.save()
+        shore_res = shore_store.collect(shore_munis)
     with open(os.path.join(args.cache, "parcels.stamp"), "w") as f:
         f.write(dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S"))
 
@@ -342,7 +375,7 @@ def main(argv=None):
 
     for b in blds:
         b["_region"] = region_of[b["municipality_number"]]
-    records = make_records(blds, addrs, presults)
+    records = make_records(blds, addrs, presults, shore_res)
     log(f"Valmis: {len(records)} rakennusta, joista palsta löytyi {sum(1 for r in records if 'pa' in r[4])}")
 
     if len(records) < 100:
@@ -350,7 +383,9 @@ def main(argv=None):
 
     region_files = make_tiles(records, [b["_region"] for b in blds], args.work, os.path.join(args.out, "data"))
     with open(os.path.join(args.out, "data", "meta.json"), "w", encoding="utf-8") as f:
-        json.dump(meta(records, region_files, regions_ready, muni_counts), f, ensure_ascii=False)
+        shore_regions = [r for r in regions_ready if r in config.SHORE_REGIONS
+                         and shore_store and all(shore_store.has(m) for m in config.REGIONS[r])]
+        json.dump(meta(records, region_files, regions_ready, muni_counts, shore_regions), f, ensure_ascii=False)
     shutil.copytree(os.path.join(ROOT, "web"), args.out, dirs_exist_ok=True)
     # versionumero tiedostonimiin, jotta selaimet hakevat päivitetyn sivun eivätkä käytä vanhaa välimuistista
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")

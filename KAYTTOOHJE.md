@@ -6,7 +6,7 @@ Kehittäjän (Clauden) tekninen muistio on tiedostossa [CLAUDE.md](CLAUDE.md).
 
 - **Sivu:** https://vv-tec.github.io/Talokartta/
 - **Koodi ja asetukset:** https://github.com/vv-tec/Talokartta
-- **Päivitetty viimeksi:** 3.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
+- **Päivitetty viimeksi:** 4.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
 
 ---
 
@@ -159,16 +159,30 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 
 ---
 
-## 10. Avoimet asiat ja suunnitelmat (3.11.2026)
+## 10. Rantatieto ("oma ranta")
+
+- Sivulla on suodatin **Ranta** (Oma ranta / Erillinen rantapalsta / Ei omaa rantaa / Ei laskettu) ja talon tietokortissa
+  osio **Ranta**. Tieto lasketaan kiinteistörajoista ja Maanmittauslaitoksen vesialueista.
+- **Oma ranta** = tontti ulottuu veteen, tai välissä on vain vesijättöä (ei toisen kiinteistön maata). **Erillinen
+  rantapalsta** = kiinteistön toinen palsta on rannassa. **Ei omaa rantaa** = välissä on esim. naapuri, yhteinen ranta-alue,
+  rantapuisto tai tie, tai vesi on kaukana.
+- Rajoitukset: purot eivät ole mukana; tieto ei kerro vesialueen omistuksesta eikä rannan laadusta; uusi rakennus saa
+  rantatiedon kahden viikon sisällä.
+- **Käytössä maakunnissa:** Kanta-Häme (4.11.2026). Uusi maakunta lisätään pyytämällä Claudea, esim. *"Lisää rantatieto Pirkanmaalle."*
+  Ensimmäinen ajo hakee silloin maakunnan tontit uudelleen (noin 15–50 min).
+- **Poistaminen käytöstä:** pyydä Claudea *"Poista rantatieto käytöstä"* – se on yksi asetus (`SHORE_REGIONS` tyhjäksi),
+  ja tieto katoaa sivulta seuraavassa ajossa. Muu palvelu ei muutu.
+
+## 11. Avoimet asiat ja suunnitelmat (4.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
-- **Rantatieto** ("oma ranta" -suodatin) – koe tehty Tammelassa, odottaa päätöstäsi.
+- **Rantatieto** muihin maakuntiin – maakunta kerrallaan pyynnöstäsi.
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
 - Muut maakunnat, osoitehaku, oma verkko-osoite.
 
 ## Lähteet ja lisenssit
 
 - Rakennukset ja osoitteet: Suomen ympäristökeskus (SYKE), Ryhti, CC BY 4.0
-- Kiinteistöpalstat: Maanmittauslaitos, kiinteistörekisterikartta, CC BY 4.0
+- Kiinteistöpalstat ja vesialueet: Maanmittauslaitos, kiinteistörekisterikartta ja maastotietokanta, CC BY 4.0
 - Taustakartta: OpenFreeMap, © OpenStreetMapin tekijät (ODbL)
 - Kartassa ei ole omistajatietoja.

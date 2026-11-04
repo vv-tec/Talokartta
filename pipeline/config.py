@@ -151,6 +151,9 @@ NEW_BUILDINGS_MAX_PER_RUN = 500  # uusien rakennusten palstatieto heti pienillä
 RYHTI_FULL_DAYS = 30        # kunta haetaan Ryhtistä kokonaan kuukauden välein (1/30 kunnista per yö); muuten vain muutokset
 RYHTI_TIME_BUDGET_MIN = 60   # Ryhtin täysiä kuntahakuja tehdään enintään näin kauan ajon alusta; loput seuraavalla ajolla
 DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pudota yli 5 % (ja yli 20 rakennusta) yhdessä ajossa
+# RANTA (irrotettava lisäosa): maakunnat, joille lasketaan "oma ranta" -tieto. Tyhjä lista = pois päältä kokonaan.
+# Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
+SHORE_REGIONS = ["Kanta-Häme"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 

@@ -1,4 +1,7 @@
-"""Rantalaskenta (KOE): rajautuuko kiinteistön palsta vesialueeseen.
+"""Rantatieto: rajautuuko asuinrakennuksen tontti vesialueeseen.
+
+IRROTETTAVA LISÄOSA: käytössä vain `config.SHORE_REGIONS`-maakunnissa. Tyhjä lista = pois päältä (build ei silloin
+edes tuo tätä moduulia eikä Shapelya). Kokonaan poisto: tämä tiedosto, requirements-shore.txt ja web/app.js:n RANTA-osat.
 
 Vaatii Shapely-kirjaston (vain tämä moduuli; muu ajo ei tarvitse sitä). Vesialueet Maanmittauslaitoksen
 maastotietokannasta (OGC API Features), palstat kiinteistörekisterikartasta (mml_files).
@@ -11,8 +14,11 @@ Luokitus palstalle (etäisyys lähimpään vesialueeseen):
                       (naapuri, yhteinen ranta-alue, tie)
   "ei"                muuten
 """
+import datetime as dt
+import gzip
+import json
+import os
 import time
-
 from collections import Counter
 
 from shapely import get_parts, make_valid, shortest_line
@@ -141,3 +147,91 @@ class Water:
             luokka, shore = "ei (toinen kiinteistö välissä)", 0.0
         return {"luokka": luokka, "etaisyys": round(bd, 1), "rantaviiva": round(shore), "laji": self.items[best][1],
                 "vesiala_ha": round(self.items[best][2] / 1e4, 1)}
+
+
+# ---------- tuotantokäyttö (build.py) ----------
+
+WATER_COLLECTIONS = ("jarvi", "meri", "virtavesialue")
+WATER_CODE = {"jarvi": "j", "meri": "m", "virtavesialue": "v"}
+# tiilien `ra`: 0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta
+CLASS_CODE = {"ei": 0, "ei (toinen kiinteistö välissä)": 1, "ranta": 2, "ranta (vesijättö)": 3}
+SEPARATE = 4
+WATER_PAD_M = 2000
+
+
+def municipality_water(client, buildings, log=print):
+    """Kunnan rakennusten alueen (+2 km) vesialueet maastotietokannasta."""
+    xs, ys = [b["_x"] for b in buildings], [b["_y"] for b in buildings]
+    bbox = (min(xs) - WATER_PAD_M, min(ys) - WATER_PAD_M, max(xs) + WATER_PAD_M, max(ys) + WATER_PAD_M)
+    return fetch_water(client, WATER_COLLECTIONS, bbox, log=lambda *a: None)
+
+
+def compute(buildings, parcels, water_items):
+    """Rakennuksille rantatulos {building_key: [ra, rantaviiva m, etäisyys m, vesilaji, vesialueen ala ha]}."""
+    from . import mml  # palstan haku pisteelle (sama logiikka kuin palstatuloksissa)
+    if not buildings or not parcels:
+        return {}
+    index = mml.ParcelIndex(parcels)
+    by_ref = {}
+    for p in parcels:
+        by_ref.setdefault(p["ref"], []).append(p)
+    W = Water(water_items, Land(parcels)) if water_items else None
+    cache, out = {}, {}
+
+    def cls(p):
+        if p["id"] not in cache:
+            cache[p["id"]] = W.classify(parcel_geom(p["polys"]), p["ref"])
+        return cache[p["id"]]
+    for b in buildings:
+        par = index.find(b["_x"], b["_y"], prefer_ref=b.get("property_identifier") or "")
+        if not par:
+            continue
+        if W is None:
+            out[b["building_key"]] = [0, 0, None, "", None]
+            continue
+        c = cls(par)
+        ra, rl = CLASS_CODE[c["luokka"]], c["rantaviiva"]
+        if ra < 2:  # kiinteistön toinen palsta rannassa (esim. tien toisella puolella)?
+            others = [cls(q) for q in by_ref.get(par["ref"], []) if q["id"] != par["id"]]
+            shore_others = [o for o in others if o["luokka"].startswith("ranta")]
+            if shore_others:
+                ra, rl = SEPARATE, max(o["rantaviiva"] for o in shore_others)
+        out[b["building_key"]] = [ra, rl, c["etaisyys"], WATER_CODE.get(c["laji"], ""), c["vesiala_ha"]]
+    return out
+
+
+class ShoreResults:
+    """Rantatulokset kunnittain: {"munis": {kunta: {"date", "res": {building_key: [...]}}}}. Lasketaan aina, kun kunnan
+    palstat ladataan (ParcelResults.on_parcels); uusi rakennus saa tuloksen kunnan seuraavassa palstahaussa."""
+
+    def __init__(self, path, today=None, log=print):
+        self.path, self.log = path, log
+        self.today = today or dt.date.today()
+        self.data = {"munis": {}}
+        if os.path.exists(path):
+            with gzip.open(path, "rt", encoding="utf-8") as f:
+                self.data = json.load(f)
+            log(f"  rantatulokset tallessa: {len(self.data['munis'])} kuntaa")
+
+    def has(self, m):
+        return m in self.data["munis"]
+
+    def put(self, m, res):
+        self.data["munis"][m] = {"date": self.today.isoformat(), "res": res}
+
+    def collect(self, munis):
+        out = {}
+        for m in munis:
+            out.update(self.data["munis"].get(m, {}).get("res", {}))
+        return out
+
+    def prune(self, munis):
+        for m in set(self.data["munis"]) - set(munis):
+            del self.data["munis"][m]
+
+    def save(self):
+        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+        tmp = self.path + ".tmp"
+        with gzip.open(tmp, "wt", encoding="utf-8") as f:
+            json.dump(self.data, f, separators=(",", ":"))
+        os.replace(tmp, self.path)

@@ -1,0 +1,2 @@
+# Rantatieto (config.SHORE_REGIONS). Irrotettaessa tämän tiedoston voi poistaa.
+shapely~=2.1.0

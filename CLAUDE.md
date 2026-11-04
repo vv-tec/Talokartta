@@ -38,6 +38,17 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     (kuorma jakautuu tasaisesti öille; WFS-varatavalla edelleen 1/7 per ajo). Palstahaku lopetetaan hallitusti 150 min kohdalla
     (`PARCEL_TIME_BUDGET_MIN`) ja yksittäisen erän virhe ohitetaan; jos eriä puuttuu, haetut tallennetaan
     (välimuistin tallennus `if: always()`), ajo päättyy virheeseen eikä julkaise, ja seuraava ajo jatkaa.
+  - **Rantatieto (irrotettava lisäosa)** – `pipeline/shore.py`, `pipeline/requirements-shore.txt` (Shapely ~=2.1),
+    `config.SHORE_REGIONS` (maakunnat; **tyhjä lista = pois päältä**: build ei tuo shore-moduulia eikä Shapelya, tiiliin ei
+    tule ra-kenttiä, `meta.shore_regions` on tyhjä ja sivu piilottaa Ranta-osiot). Kytkentä vain kahdessa kohdassa:
+    `ParcelResults.on_parcels`-koukku (lasketaan aina, kun kunnan palstat ladataan, samoista palstoista) ja
+    `make_records(..., shore_res)`. Tulokset `cache/shore-results.json.gz` (`shore.ShoreResults`, kunnittain
+    {building_key: [ra, rl, rd, rw, rwa]}). Käyttöönotto/uusi maakunta: kunnat, joilta tulos puuttuu, haetaan heti
+    (`ParcelResults.get(force=…)`); muuten päivittyy 14 pv palstakierroksessa. Vesialueet MTK:sta kunnan rakennusten
+    bbox + 2 km (`municipality_water`). Uusi rakennus saa rantatiedon kunnan seuraavassa palstahaussa (≤ 14 pv; fill_new ei laske rantaa).
+    Lisäosan virhe ei kaada palstatietoja (lokiin "lisälaskenta epäonnistui"). Web: `app.js` RANTA-lohkot (SHORE_*,
+    shoreCard, buildShore) ja `index.html` `#shoreSec`. Kokonaan poisto: nämä + `shore.py`, `requirements-shore.txt`,
+    workflow-asennusrivi ja selftestin `shore_tests`. Koe-työnkulku "Selvitys – rantatesti" (`shore_explore.py`) erikseen.
   - Julkaisu maakunnittain: maakunta julkaistaan, kun sen kaikkien kuntien rakennukset (Ryhti) ja palstatulokset ovat valmiina;
     keskeneräinen (esim. uusi) maakunta odottaa, muut päivittyvät normaalisti. Palstat haetaan vain Ryhti-valmiille kunnille.
   - Turvatarkistus (`build.publish_problems`) vertaa julkaistun sivun meta.jsoniin (`config.SITE_URL`): julkaisu estetään,
@@ -58,6 +69,8 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
   `p` tyyppi (01 vapaa-ajan, 05 pientalo, 06 kerrostalo), `s` käytössäolo (Ryhti-koodi), `d` valmistumispäivä, `y` vuosi,
   `g` kerrosala, `t` kokonaisala, `f` kerroksia, `n` asuntoja, `c` asuinrakennuksia samalla kiinteistöllä,
   `pa` palstan ala m², `ka` kiinteistön ala m², `pn` palstoja, `ex`/`ny` ETRS-TM35FIN,
+  `ra` ranta (0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta; puuttuu = ei laskettu),
+  `rl` rantaviiva m, `rd` etäisyys vedestä m, `rw` vesilaji (j/m/v), `rwa` lähimmän vesialueen ala ha (vain SHORE_REGIONS),
   `m` runkomateriaali, `fa` julkisivu, `r` rakentamistapa, `h` lämmitystapa, `e` lämmitysenergia (Ryhti-koodit, "00" pois;
   selitteet `web/app.js` CATS, koodistot.suomi.fi), `v` tilavuus, `ha` huoneistoala, `sj` suojeltu 1/0.
   meta.json `by` = koodikenttien jakaumat (suodattimet näyttävät vain aineistossa esiintyvät arvot).
@@ -111,7 +124,8 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
    - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
    - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
-2x. Rantatieto – KOE TEHTY, TOTEUTUS ODOTTAA OMISTAJAN PÄÄTÖSTÄ (3.11.2026). Älä ota käyttöön ilman omistajan lupaa.
+2x. Rantatieto – OTETTU KÄYTTÖÖN maakunta kerrallaan omistajan päätöksellä 4.11.2026, ensin Kanta-Häme
+    (`config.SHORE_REGIONS`). Seuraavat maakunnat lisätään vain omistajan pyynnöstä. Alla koe- ja suunnitteluhistoria.
     Koe: `pipeline/shore.py` + `shore_explore.py` + työnkulku "Selvitys – rantatesti" (Shapely ~=2.1 asennetaan vain siinä).
     Vesialueet: MTK OGC API Features (`maastotiedot/features/v1`, kokoelmat `jarvi`, `meri`, `virtavesialue`; sama API-avain,
     Basic auth toimii; bbox-crs/crs EPSG:3067). Tammela: 6 335 asuinrakennusta → ranta 2 659, erillinen rantapalsta 121,

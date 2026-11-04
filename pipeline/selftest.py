@@ -133,7 +133,45 @@ def run():
         ps = mml_files.read_parcels(gp)
         assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
     ryhti_store_tests(parcels)
+    shore_tests()
     print("selftest OK")
+
+
+def shore_tests():
+    """RANTA: luokitus yksinkertaisilla geometrioilla (ohitetaan, jos Shapely ei ole asennettu)."""
+    try:
+        from shapely.geometry import Polygon
+    except ImportError:
+        print("  (rantatestit ohitettu: Shapely puuttuu)")
+        return
+    from . import shore
+    sq = lambda x0, y0, x1, y1: [[[(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]]]
+    lake = Polygon([(0, 0), (100, 0), (100, 100), (0, 100)])
+    water = [(lake, "jarvi", lake.area, {})]
+    parcels = [
+        {"id": "A", "ref": "83400100010001", "polys": sq(100, 0, 150, 50)},     # rajautuu veteen
+        {"id": "B", "ref": "83400100020001", "polys": sq(110, 60, 160, 100)},   # 10 m vesijättöä välissä
+        {"id": "C", "ref": "83400100030001", "polys": sq(20, -60, 80, -10)},    # välissä naapurin kaistale D
+        {"id": "D", "ref": "83400100040001", "polys": sq(0, -10, 100, 0)},
+        {"id": "E", "ref": "83400100050001", "polys": sq(300, 300, 350, 350)},  # kaukana, mutta saman kiinteistön F rannassa
+        {"id": "F", "ref": "83400100050001", "polys": sq(-50, 0, 0, 50)},
+        {"id": "G", "ref": "83400100060001", "polys": sq(500, 500, 550, 550)},  # kaukana
+    ]
+    b = lambda k, x, y, ref: {"building_key": k, "_x": x, "_y": y, "property_identifier": ref}
+    blds = [b("a", 120, 20, "83400100010001"), b("b", 130, 80, "83400100020001"), b("c", 50, -30, "83400100030001"),
+            b("e", 320, 320, "83400100050001"), b("g", 520, 520, "83400100060001"), b("x", 9000, 9000, "")]
+    res = shore.compute(blds, parcels, water)
+    got = {k: v[0] for k, v in res.items()}
+    assert got == {"a": 2, "b": 3, "c": 1, "e": 4, "g": 0}, got
+    assert 50 <= res["a"][1] <= 60 and res["a"][3] == "j" and 50 <= res["e"][1] <= 60 and res["b"][2] == 10, res
+    assert shore.compute(blds, parcels, [])["a"][0] == 0  # ei vesialueita alueella
+    import tempfile, os
+    with tempfile.TemporaryDirectory() as d:
+        st = shore.ShoreResults(os.path.join(d, "s.json.gz"), log=lambda *a: None)
+        st.put("834", res); st.save()
+        st = shore.ShoreResults(os.path.join(d, "s.json.gz"), log=lambda *a: None)
+        assert st.has("834") and st.collect(["834"])["a"][0] == 2
+        st.prune([]); assert not st.has("834")
 
 
 def ryhti_store_tests(parcels):

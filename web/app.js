@@ -47,8 +47,20 @@ const darkMq = window.matchMedia("(prefers-color-scheme: dark)");
 const fmtArea = (m2) => m2 == null ? "–" : m2 >= 10000 ? `${nf.format(Math.round(m2 / 100) / 100)} ha` : `${nf.format(m2)} m²`;
 const fmtDate = (d) => { const [y, m, dd] = d.split("-"); return `${+dd}.${+m}.${y}`; };
 
+/* ---------- RANTA (irrotettava lisäosa: näkyy vain, kun meta.json:n shore_regions ei ole tyhjä) ----------
+ * Tiilien ra: 0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta;
+ * rl rantaviiva m, rd etäisyys vedestä m, rw vesilaji (j/m/v), rwa vesialueen ala ha. */
+const SHORE_OPTS = { own: "Oma ranta", sep: "Erillinen rantapalsta", no: "Ei omaa rantaa", na: "Ei laskettu" };
+const SHORE_VALS = { own: [2, 3], sep: [4], no: [0, 1], na: [-1] };
+const SHORE_ORDER = ["own", "sep", "no", "na"];
+const SHORE_TEXT = { 2: "Oma ranta", 3: "Oma ranta – välissä vesijättöä", 4: "Erillinen rantapalsta (kiinteistön toinen palsta rannassa)",
+  1: "Ei omaa rantaa – välissä toinen kiinteistö (esim. yhteinen ranta-alue, puisto tai tie)", 0: "Ei omaa rantaa" };
+const WATER_NAME = { j: "järvi", m: "meri", v: "joki" };
+const shoreOn = () => (META?.shore_regions?.length ?? 0) > 0;
+const fmtHa = (v) => v >= 1000 ? `${nf.format(Math.round(v / 100))} km²` : v >= 10 ? `${nf.format(Math.round(v))} ha` : `${nf.format(v)} ha`;
+
 const allCats = () => Object.fromEntries(CATS.map((c) => [c.key, new Set(c.order)]));
-const state = { types: new Set(Object.keys(TYPES)), status: new Set(Object.keys(STATUS)), cats: allCats(), colorMode: "type", selected: null };
+const state = { types: new Set(Object.keys(TYPES)), status: new Set(Object.keys(STATUS)), cats: allCats(), shore: new Set(SHORE_ORDER), colorMode: "type", selected: null };
 let META = null;
 let ranges = {};
 
@@ -110,12 +122,15 @@ function filterExpr() {
     const set = state.cats[c.key];
     if (set.size < c.order.length) parts.push(["in", ["coalesce", ["get", c.key], ""], ["literal", [...set]]]);
   }
+  if (shoreOn() && state.shore.size < SHORE_ORDER.length)
+    parts.push(["in", ["coalesce", ["get", "ra"], -1], ["literal", [...state.shore].flatMap((k) => SHORE_VALS[k])]]);
   return parts.length ? ["all", ...parts] : null;
 }
 function activeFilterCount() {
   return [ranges.year, ranges.plot, ranges.gfa].filter((r) => !r.full).length
     + (state.types.size < Object.keys(TYPES).length) + (state.status.size < Object.keys(STATUS).length)
-    + CATS.filter((c) => state.cats[c.key].size < c.order.length).length;
+    + CATS.filter((c) => state.cats[c.key].size < c.order.length).length
+    + (shoreOn() && state.shore.size < SHORE_ORDER.length);
 }
 const typeColor = (k) => `--t-${k}`;
 const statusColor = (k) => STATUS_COLOR[k] || "--s-other";
@@ -261,7 +276,7 @@ map.on("click", (e) => {
     return;
   }
   const f = pick(e.point);
-  f ? select(f.properties, f.geometry.coordinates) : closeCard();
+  f ? select(f.properties, f.geometry.coordinates, f.source) : closeCard();
 });
 map.on("mousemove", (e) => {
   const layers = map.getZoom() < minZoomB() ? ["g"] : B_LAYERS;
@@ -269,7 +284,21 @@ map.on("mousemove", (e) => {
   map.getCanvas().style.cursor = hit ? "pointer" : "";
 });
 
-function select(p, coords) {
+function shoreCard(p, source) {
+  const region = META?.regions?.find((r) => r.file.replace(/\.pmtiles$/, "") === source)?.name;
+  if (!shoreOn() || !META.shore_regions.includes(region)) return "";
+  const own = p.ra >= 2;
+  return `<div class="sect"><h4>Ranta</h4><dl class="kv txt">
+      <dt>Tulos</dt><dd>${p.ra != null ? SHORE_TEXT[p.ra] : "Ei vielä laskettu (uusi rakennus, lasketaan kahden viikon sisällä)"}</dd>
+      ${own && p.rl ? `<dt>Rantaviivaa</dt><dd>noin ${nf.format(p.rl)} m</dd>` : ""}
+      ${p.ra != null && !own && p.rd != null ? `<dt>Etäisyys vedestä</dt><dd>${nf.format(Math.round(p.rd))} m</dd>` : ""}
+      ${p.rw ? `<dt>${own ? "Vesi" : "Lähin vesi"}</dt><dd>${WATER_NAME[p.rw] ?? esc(p.rw)}${p.rwa != null && p.rw !== "m" ? `, ${fmtHa(p.rwa)}` : ""}</dd>` : ""}
+    </dl><p class="fine">Laskettu kiinteistörajoista ja Maanmittauslaitoksen maastotietokannan vesialueista. Vesijättö
+    (tontin ja veden välinen kaista, joka ei ole toisen kiinteistön maata) lasketaan omaksi rannaksi. Tieto ei kerro
+    vesialueen omistuksesta eikä rannan laadusta; purot eivät ole mukana.</p></div>`;
+}
+
+function select(p, coords, source) {
   state.selected = p.id;
   markSelected(p.id);
   const [lon, lat] = coords;
@@ -316,6 +345,7 @@ function select(p, coords) {
         <dt>Koko kiinteistö</dt><dd>${fmtArea(p.ka)}${p.pn > 1 ? ` · ${p.pn} palstaa` : ""}</dd>
         <dt>Kiinteistötunnus</dt><dd>${p.k ? `${esc(p.k)}<button type="button" class="copy" id="copyKt">Kopioi</button>` : "–"}</dd>
       </dl></div>
+      ${shoreCard(p, source)}
       ${notes.length ? `<div class="sect"><h4>Huomioita</h4><ul class="notes">${notes.map((n) => `<li>${n}</li>`).join("")}</ul></div>` : ""}
       <div class="sect"><h4>Avaa muualla</h4><div class="links">
         <a href="${sv}" target="_blank" rel="noopener">Google Street View <small>katunäkymä lähimmästä kuvauspisteestä ↗</small></a>
@@ -355,6 +385,16 @@ function counts(box, by, hideEmpty) {
     if (hideEmpty && by) l.hidden = !n;
   });
 }
+function buildShore() {
+  $("shoreSec").hidden = !shoreOn();
+  if (!shoreOn()) return;
+  const box = $("shoreChecks");
+  buildChecks(box, SHORE_OPTS, state.shore, null, SHORE_ORDER);
+  const by = META?.by?.ra || {};
+  const n = (ks) => ks.reduce((a, k) => a + (by[k] || 0), 0);
+  counts(box, { own: n(["2", "3"]), sep: n(["4"]), no: n(["0", "1"]), na: n([""]) });
+  $("shoreNote").textContent = `Laskettu: ${META.shore_regions.join(", ")}. Muualla rakennukset ovat "Ei laskettu" -ryhmässä, joten rajaus piilottaa ne.`;
+}
 function buildCats() {
   const root = $("catFilters");
   const open = new Set([...root.querySelectorAll("details[open]")].map((d) => d.id));
@@ -387,6 +427,7 @@ function initControls() {
   buildChecks($("statusChecks"), STATUS, state.status, statusColor, ORDER.status);
   counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status, true);
   buildCats();
+  buildShore();
 
   document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
     state.colorMode = b.dataset.mode;
@@ -395,11 +436,12 @@ function initControls() {
   }));
   $("reset").addEventListener("click", () => {
     Object.values(ranges).forEach((r) => r.reset());
-    state.types = new Set(Object.keys(TYPES)); state.status = new Set(Object.keys(STATUS)); state.cats = allCats();
+    state.types = new Set(Object.keys(TYPES)); state.status = new Set(Object.keys(STATUS)); state.cats = allCats(); state.shore = new Set(SHORE_ORDER);
     buildChecks($("typeChecks"), TYPES, state.types, typeColor, ORDER.types);
     buildChecks($("statusChecks"), STATUS, state.status, statusColor, ORDER.status);
     counts($("typeChecks"), META?.by_type); counts($("statusChecks"), META?.by_status, true);
     buildCats();
+    buildShore();
     applyFilters();
   });
 }

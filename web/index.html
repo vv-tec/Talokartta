@@ -61,6 +61,12 @@
       <h3>Käytössäolo</h3>
       <div id="statusChecks" class="checks"></div>
     </section>
+    <!-- RANTA (irrotettava lisäosa): näkyy vain, kun meta.json:n shore_regions ei ole tyhjä -->
+    <section id="shoreSec" hidden>
+      <h3>Ranta</h3>
+      <div id="shoreChecks" class="checks"></div>
+      <p class="fine" id="shoreNote"></p>
+    </section>
     <section>
       <h3>Rakenteet ja lämmitys</h3>
       <div id="catFilters" class="cats"></div>
@@ -75,8 +81,8 @@
     <button type="button" id="reset" class="btn wide">Tyhjennä suodattimet</button>
     <p class="src" id="src">
       Rakennukset ja osoitteet: <a href="https://ryhti.syke.fi/" target="_blank" rel="noopener">SYKE, Ryhti</a> (CC BY 4.0).
-      Kiinteistöt: <a href="https://www.maanmittauslaitos.fi/" target="_blank" rel="noopener">Maanmittauslaitos</a> (CC BY 4.0),
-      palstojen alat laskettu rajoista. Taustakartta: <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>,
+      Kiinteistöt ja vesialueet: <a href="https://www.maanmittauslaitos.fi/" target="_blank" rel="noopener">Maanmittauslaitos</a> (CC BY 4.0),
+      palstojen alat ja rantatieto laskettu rajoista. Taustakartta: <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>,
       © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMapin tekijät</a>.
       <span id="updated"></span>
     </p>
