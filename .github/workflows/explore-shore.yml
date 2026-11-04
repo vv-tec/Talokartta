@@ -30,4 +30,4 @@ jobs:
           path: rantatesti/*.csv
       - name: CSV lokiin (pakattuna, Clauden luettavaksi)
         run: |
-          echo "CSVBEGIN"; gzip -c rantatesti/*.csv | base64 -w0; echo; echo "CSVEND"
+          echo "CSVBEGIN"; gzip -c rantatesti/*.csv | base64 -w 4000; echo "CSVEND"
