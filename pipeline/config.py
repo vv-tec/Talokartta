@@ -199,6 +199,26 @@ REGIONS = {
         "707",  # Rääkkylä
         "848",  # Tohmajärvi
     ],
+    "Pohjois-Savo": [  # Joroinen siirtyi Etelä-Savosta 2021; Maaninka (2015) ja Juankoski (2017) liitetty Kuopioon
+        "140",  # Iisalmi
+        "171",  # Joroinen
+        "204",  # Kaavi
+        "239",  # Keitele
+        "263",  # Kiuruvesi
+        "297",  # Kuopio
+        "402",  # Lapinlahti
+        "420",  # Leppävirta
+        "595",  # Pielavesi
+        "686",  # Rautavaara
+        "749",  # Siilinjärvi
+        "762",  # Sonkajärvi
+        "778",  # Suonenjoki
+        "844",  # Tervo
+        "857",  # Tuusniemi
+        "915",  # Varkaus
+        "921",  # Vesanto
+        "925",  # Vieremä
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -228,7 +248,8 @@ DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pud
 # Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
                  "Kymenlaakso", "Etelä-Karjala",
-                 "Etelä-Savo", "Pohjois-Karjala"]
+                 "Etelä-Savo", "Pohjois-Karjala",
+                 "Pohjois-Savo"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
