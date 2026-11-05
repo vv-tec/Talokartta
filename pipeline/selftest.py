@@ -53,6 +53,11 @@ def run():
          "main_purpose": ".../code/01", "usage_status": ".../code/03"},
     ]
     assert build.keep(blds[0]) and build.keep(blds[1])
+    # Pertunmaa: Ryhtissä kuntanumerolla 507 → oikea kunta kiinteistötunnuksesta; Mäntyharjun oma rakennus ennallaan
+    pb = {"municipality_number": "507", "property_identifier": "58840100010001"}
+    assert build.fix_municipality(pb)["municipality_number"] == "588" and pb["municipality_number"] == "507"
+    assert build.fix_municipality({"municipality_number": "507", "property_identifier": "50740100010001"})["municipality_number"] == "507"
+    assert build.fix_municipality({"municipality_number": "834", "property_identifier": "58840100010001"})["municipality_number"] == "834"
     assert not build.keep({**blds[0], "usage_status": ".../code/07"})
     assert not build.keep({**blds[0], "main_purpose": ".../code/04"})
     addrs = [{"building_key": "k1", "address_fin": "Testitie 1", "postal_code": "31300", "postal_office_fin": "TAMMELA"},

@@ -30,6 +30,15 @@ def fmt_kt(k):
     return f"{int(k[0:3])}-{int(k[3:6])}-{int(k[6:10])}-{int(k[10:14])}"
 
 
+def fix_municipality(b):
+    """Ryhti kirjaa osan rakennuksista toisen kunnan numerolle (config.RYHTI_MUNI_BY_PROPERTY); oikea kunta
+    kiinteistötunnuksen alusta. Palauttaa kopion (tallessa oleva Ryhti-tila pysyy ennallaan)."""
+    m, pm = b.get("municipality_number"), (b.get("property_identifier") or "")[:3]
+    if pm != m and pm in config.RYHTI_MUNI_BY_PROPERTY.get(m, ()):
+        return {**b, "municipality_number": pm}
+    return b
+
+
 def keep(p):
     return (
         ryhti.code(p.get("main_purpose")) in config.RESIDENTIAL
@@ -285,6 +294,7 @@ def main(argv=None):
     store.update(config.MUNICIPALITIES, ryhti_deadline)
     by_muni = defaultdict(list)
     for b in store.buildings():
+        b = fix_municipality(b)
         by_muni[b["municipality_number"]].append(b)
     for m in config.MUNICIPALITIES:
         if store.ready(m) and not by_muni.get(m):  # jokaisessa kunnassa on asuinrakennuksia; tyhjä = haku epäonnistui
