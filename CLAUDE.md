@@ -241,6 +241,11 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Muistin huippu 6,0 Gt. Ensimmäinen julkaisu jumittui GitHub Pagesissa (`updating_pages` > 10 min, deploy-pages
     aikaraja) → aikaraja 30 min; peruutetun julkaisun uudelleenajo ("Deployment cancelled") ei toimi samalla versiolla,
     vaan tarvitaan uusi ajo (uusi commit tai käsiajo).
+2m. ✅ Etelä-Pohjanmaa (18 kuntaa: 005, 010, 052, 145, 151, 152, 218, 232, 233, 300, 301, 403, 408, 743, 759, 846, 934, 989)
+    5.11.2026 rantatiedon kanssa; ei kuntaliitoksia. Build 55 min (Ryhti ~2,5 min, palstat + ranta ~46 min; Seinäjoki 83 s
+    rantaa). 89 445 rakennusta, omalla rannalla 15 563 (17 %). Yhteensä 1 574 467 rakennusta (224 kuntaa, 14 maakuntaa),
+    palsta 1 574 466:lle. Tiili 23,7 Mt; tiilet yhteensä ~395 Mt. Muistin huippu 6,4 Gt. Pages-julkaisu kesti 3,7 min
+    (aiemmin ~20 s) → seuraa; aikaraja nyt 30 min.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
