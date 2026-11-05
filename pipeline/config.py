@@ -255,6 +255,16 @@ REGIONS = {
         "934",  # Vimpeli
         "989",  # Ähtäri
     ],
+    "Keski-Pohjanmaa": [  # Kruunupyy siirtyi Pohjanmaalle 2021
+        "069",  # Halsua
+        "074",  # Kaustinen
+        "236",  # Kannus
+        "272",  # Kokkola
+        "421",  # Lestijärvi
+        "584",  # Perho
+        "849",  # Toholampi
+        "924",  # Veteli
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -285,7 +295,8 @@ DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pud
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
                  "Kymenlaakso", "Etelä-Karjala",
                  "Etelä-Savo", "Pohjois-Karjala",
-                 "Pohjois-Savo", "Pohjanmaa", "Etelä-Pohjanmaa"]
+                 "Pohjois-Savo", "Pohjanmaa", "Etelä-Pohjanmaa",
+                 "Keski-Pohjanmaa"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
