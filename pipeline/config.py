@@ -159,6 +159,17 @@ REGIONS = {
         "624",  # Pyhtää
         "935",  # Virolahti
     ],
+    "Etelä-Karjala": [
+        "153",  # Imatra
+        "405",  # Lappeenranta
+        "416",  # Lemi
+        "441",  # Luumäki
+        "580",  # Parikkala
+        "689",  # Rautjärvi
+        "700",  # Ruokolahti
+        "739",  # Savitaipale
+        "831",  # Taipalsaari
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -187,7 +198,7 @@ DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pud
 # RANTA (irrotettava lisäosa): maakunnat, joille lasketaan "oma ranta" -tieto. Tyhjä lista = pois päältä kokonaan.
 # Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
-                 "Kymenlaakso"]
+                 "Kymenlaakso", "Etelä-Karjala"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
