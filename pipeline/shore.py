@@ -169,7 +169,12 @@ class Streams:
 
 # ---------- tuotantokäyttö (build.py) ----------
 
-VERSION = 2  # laskennan versio (2 = puron varrella mukana); vanhemmat kunnat päivitetään vähitellen
+# PURO POIS KÄYTÖSTÄ 5.11.2026: omistajan pistokoe Tammelassa (18 kohdetta) – myös 2–5 m uomat olivat "suuria ojia"
+# tai ojia, yksikään ei puro. Maastotietokanta ei erota puroa ojasta → luokkaa ei näytetä eikä uomia haeta.
+# Koodi jätetty mahdollista myöhempää selvitystä varten (shore_explore.py käyttää sitä). Jos palautetaan (True),
+# nosta myös VERSION 3:een, jotta kunnat lasketaan uudelleen yön kiintiössä.
+STREAMS_ENABLED = False
+VERSION = 2  # laskennan versio (2 = puron varrella mukana); vanhemmat kunnat päivitetään vähitellen (vain jos STREAMS_ENABLED)
 STREAM_COLLECTION = "virtavesikapea"
 # Maastotietokannan kapeat virtavedet: 36312 = 2–5 m leveä (puro / pieni joki) lasketaan aina. 36311 = alle 2 m sisältää
 # myös metsä- ja peltoojat (Tammelassa 6 400 km, 806 taloa "puron varrella"), joten se on toistaiseksi pois. Ehdolla:
@@ -196,7 +201,8 @@ def municipality_water(client, buildings, log=print):
     """Kunnan rakennusten alueen (+2 km) vesialueet ja purot maastotietokannasta."""
     xs, ys = [b["_x"] for b in buildings], [b["_y"] for b in buildings]
     bbox = (min(xs) - WATER_PAD_M, min(ys) - WATER_PAD_M, max(xs) + WATER_PAD_M, max(ys) + WATER_PAD_M)
-    return fetch_water(client, WATER_COLLECTIONS + (STREAM_COLLECTION,), bbox, log=lambda *a: None)
+    cols = WATER_COLLECTIONS + ((STREAM_COLLECTION,) if STREAMS_ENABLED else ())
+    return fetch_water(client, cols, bbox, log=lambda *a: None)
 
 
 def sinuosity(g):
@@ -234,7 +240,7 @@ def compute(buildings, parcels, water_items):
     streams = [w for w in water_items if is_stream(w)]
     water_items = [w for w in water_items if w[1] != STREAM_COLLECTION]
     W = Water(water_items, Land(parcels)) if water_items else None
-    S = Streams(streams) if streams else None
+    S = Streams(streams) if streams and STREAMS_ENABLED else None
     cache, out = {}, {}
     none = {"luokka": "ei", "etaisyys": None, "rantaviiva": 0, "laji": "", "vesiala_ha": None}
 

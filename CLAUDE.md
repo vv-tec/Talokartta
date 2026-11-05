@@ -47,6 +47,10 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     (`ParcelResults.get(force=…)`); muuten päivittyy 14 pv palstakierroksessa. Vesialueet MTK:sta kunnan rakennusten
     bbox + 2 km (`municipality_water`). Uusi rakennus saa rantatiedon kunnan seuraavassa palstahaussa (≤ 14 pv; fill_new ei laske rantaa).
     Lisäosan virhe ei kaada palstatietoja (lokiin "lisälaskenta epäonnistui").
+    **Puron varrella POIS KÄYTÖSTÄ 5.11.2026** (`shore.STREAMS_ENABLED = False`): omistajan pistokoe Tammelassa 18 kohdetta
+    (6 × 36312, 6 × mutkainen 36311, 6 × suora 36311) → kaikki ojia, myös 2–5 m ("suuri oja" 5/6). MTK ei erota puroa ojasta.
+    Pois päältä: uomia ei haeta, ei upgradea, `make_records` muuntaa vanhat ra 5 → 0 (rl pois; päivittyvät 14 pv kierroksessa),
+    meta `streams` false → sivu piilottaa luokan. Palautus: True + VERSION 3. Alla alkuperäinen toteutus:
     Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa vesialuehaussa; vain jos palsta ei ole
     rannassa eikä kiinteistöllä ole erillistä rantapalstaa; puroa ≥ `MIN_STREAM_M` 10 m palstalla tai ≤ `TOL_STREAM` 5 m
     rajasta. Oletuksena vain kohdeluokka 36312 (2–5 m); 36311 (alle 2 m) sisältää ojat → pois, ehdokkaana mutkaisuus
@@ -77,7 +81,7 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
   `g` kerrosala, `t` kokonaisala, `f` kerroksia, `n` asuntoja, `c` asuinrakennuksia samalla kiinteistöllä,
   `pa` palstan ala m², `ka` kiinteistön ala m², `pn` palstoja, `ex`/`ny` ETRS-TM35FIN,
   `ra` ranta (0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta,
-  5 puron varrella; puuttuu = ei laskettu), `rl` rantaviiva m (ra 5: puroa palstalla m), `rd` etäisyys vedestä m, `rw` vesilaji (j/m/v), `rwa` lähimmän vesialueen ala ha (vain SHORE_REGIONS),
+  5 puron varrella – pois käytöstä 5.11.2026; puuttuu = ei laskettu), `rl` rantaviiva m (ra 5: puroa palstalla m), `rd` etäisyys vedestä m, `rw` vesilaji (j/m/v), `rwa` lähimmän vesialueen ala ha (vain SHORE_REGIONS),
   `m` runkomateriaali, `fa` julkisivu, `r` rakentamistapa, `h` lämmitystapa, `e` lämmitysenergia (Ryhti-koodit, "00" pois;
   selitteet `web/app.js` CATS, koodistot.suomi.fi), `v` tilavuus, `ha` huoneistoala, `sj` suojeltu 1/0.
   meta.json `by` = koodikenttien jakaumat (suodattimet näyttävät vain aineistossa esiintyvät arvot).
@@ -189,7 +193,7 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Rajoitukset (kerrotaan käyttäjälle): yhteinen ranta-alue/venevalkama tontin ja veden välissä → "ei" (oikein, mutta voi yllättää);
     kiinteistörajojen epätarkkuus maaseudulla; maankohoamisrannikko (vesijättö); purot (viivoja, `virtavesikapea`) eivät mukana;
     tieto ei kerro vesialueen omistuksesta eikä rannan laadusta.
-    Avoimet kysymykset: kapeat mutkittelevat purot (pistokoe), kiinteistötyyppi 0878. (Lammet ja puro ratkaistu 4.11.2026, ks. 2g.)
+    Avoimet kysymykset: kiinteistötyyppi 0878. (Lammet ratkaistu 4.11.2026; puro hylätty pistokokeessa 5.11.2026, ks. 2g.)
 2g. ✅ Keski-Suomi (22 kuntaa) ja Kymenlaakso (6) + puuttunut Kuhmoinen 291 Pirkanmaalle (siirtyi 2021) 4.11.2026,
     rantatieto ja purot mukana heti. Uusien maakuntien kuntalistat tarkistettava ajantasaisesta maakuntajaosta.
     Ensiajo 1 h 45 min (Ryhti 29 kuntaa ~5 min, palstat + ranta ~1 h 36 min; raskain Kouvola 286: 275 s rantaa,
@@ -197,7 +201,7 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     41 199 = 37 %, puron varrella 1 460), Kymenlaakso 65 788 (16 204 = 25 %, puro 1 701), Kuhmoinen 4 800 (3 421, puro 78).
     Puroviivoja (virtavesikapea) haetaan kunnan bboxista 10 000–276 000 kpl (eniten Keuruu 249 ja Kouvola 286).
     Tiilet: Keski-Suomi 30,4 Mt, Kymenlaakso 15,4, Pirkanmaa 41,9; yhteensä ~253 Mt. Ei "lisälaskenta epäonnistui".
-    Vanhat 112 kuntaa saavat purotiedon (VERSION 2) vähitellen ~14 pv aikana (upgrade-kiintiö).
+    Puroluokka poistettiin 5.11.2026 omistajan pistokokeen perusteella (kaikki 18 ojia) → STREAMS_ENABLED False.
     Lisäksi omistajan päätös 4.11.2026: alle 1 ha lammet mukana (olivat jo; MTK `jarvi` sisältää ne) ja "puron varrella" lisätään.
     Tammela: purot 36311 6 411 km / 36312 367 km; kaikki purot → 806 taloa (ojia), vain 2–5 m → 204,
     + kapeat mutkaisuus ≥ 1,1 & ≥ 100 m → 538. Laskenta-aika lähes ennallaan (+1–3 s/kunta), purojen haku ~16–20 s/kunta.

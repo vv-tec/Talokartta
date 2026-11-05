@@ -50,7 +50,8 @@ const fmtDate = (d) => { const [y, m, dd] = d.split("-"); return `${+dd}.${+m}.$
 /* ---------- RANTA (irrotettava lisäosa: näkyy vain, kun meta.json:n shore_regions ei ole tyhjä) ----------
  * Tiilien ra: 0 ei, 1 ei – toinen kiinteistö välissä, 2 ranta, 3 ranta (vesijättö), 4 erillinen rantapalsta,
  * 5 puron varrella; rl rantaviiva m (ra 5: puroa palstalla m), rd etäisyys vedestä m, rw vesilaji (j/m/v),
- * rwa vesialueen ala ha (rd/rw/rwa kertovat aina lähimmän vesialueen, myös puron varrella). */
+ * rwa vesialueen ala ha (rd/rw/rwa kertovat aina lähimmän vesialueen, myös puron varrella).
+ * Puroluokka näkyy vain, kun meta.json:n streams on true (pois käytöstä 5.11.2026: aineisto ei erota puroa ojasta). */
 const SHORE_OPTS = { own: "Oma ranta", sep: "Erillinen rantapalsta", stream: "Puron varrella", no: "Ei rantaa eikä puroa", na: "Ei laskettu" };
 const SHORE_VALS = { own: [2, 3], sep: [4], stream: [5], no: [0, 1], na: [-1] };
 const SHORE_ORDER = ["own", "sep", "stream", "no", "na"];
@@ -299,8 +300,8 @@ function shoreCard(p, source) {
       ${p.rw ? `<dt>${own ? "Vesi" : "Lähin vesi"}</dt><dd>${WATER_NAME[p.rw] ?? esc(p.rw)}${p.rwa != null && p.rw !== "m" ? `, ${fmtHa(p.rwa)}` : ""}</dd>` : ""}
     </dl><p class="fine">Laskettu kiinteistörajoista ja Maanmittauslaitoksen maastotietokannan vesialueista. Vesijättö
     (tontin ja veden välinen kaista, joka ei ole toisen kiinteistön maata) lasketaan omaksi rannaksi. Tieto ei kerro
-    vesialueen omistuksesta eikä rannan laadusta. Purot ovat maastotietokannan 2–5 m leveitä virtavesiä (puro tai pieni joki;
-    kapeammat ovat aineistossa samassa luokassa ojien kanssa, joten ne eivät ole mukana). Puro lasketaan vain, jos tontti ei ole rannassa.${streamDone ? "" : " Puroja ei ole vielä laskettu kaikille tämän maakunnan kunnille (päivittyy kahden viikon sisällä)."}</p></div>`;
+    vesialueen omistuksesta eikä rannan laadusta.${META.streams ? ` Purot ovat maastotietokannan 2–5 m leveitä virtavesiä (puro tai pieni joki;
+    kapeammat ovat aineistossa samassa luokassa ojien kanssa, joten ne eivät ole mukana). Puro lasketaan vain, jos tontti ei ole rannassa.${streamDone ? "" : " Puroja ei ole vielä laskettu kaikille tämän maakunnan kunnille (päivittyy kahden viikon sisällä)."}` : ""}</p></div>`;
 }
 
 function select(p, coords, source) {
@@ -394,11 +395,12 @@ function buildShore() {
   $("shoreSec").hidden = !shoreOn();
   if (!shoreOn()) return;
   const box = $("shoreChecks");
-  buildChecks(box, SHORE_OPTS, state.shore, null, SHORE_ORDER);
+  const opts = META.streams ? SHORE_OPTS : { ...SHORE_OPTS, no: "Ei rantaa" };
+  buildChecks(box, opts, state.shore, null, SHORE_ORDER.filter((k) => META.streams || k !== "stream"));
   const by = META?.by?.ra || {};
   const n = (ks) => ks.reduce((a, k) => a + (by[k] || 0), 0);
   counts(box, { own: n(["2", "3"]), sep: n(["4"]), stream: n(["5"]), no: n(["0", "1"]), na: n([""]) });
-  const sr = META.stream_regions || [], todo = META.shore_regions.filter((r) => !sr.includes(r));
+  const sr = META.stream_regions || [], todo = META.streams ? META.shore_regions.filter((r) => !sr.includes(r)) : [];
   $("shoreNote").textContent = `Laskettu: ${META.shore_regions.join(", ")}. Muualla rakennukset ovat "Ei laskettu" -ryhmässä, joten rajaus piilottaa ne.`
     + (todo.length ? ` Puron varrella -tieto päivittyy vielä kunta kerrallaan (kesken: ${todo.join(", ")}).` : "");
 }

@@ -46,7 +46,7 @@ def known(uri):
 CODE_KEYS = ("m", "fa", "r", "h", "e")  # koodikentät, joiden jakauma kirjataan meta.jsoniin suodattimia varten
 
 
-def make_records(buildings, addresses, presults, shore_res=None):
+def make_records(buildings, addresses, presults, shore_res=None, streams=False):
     """Yhdistää rakennukset, osoitteet ja palstatulokset ({building_key: [pa, ka, pn]}, ks. mml.parcel_results).
     Palauttaa listan (x, y, lat, lon, props)."""
     addr = defaultdict(list)
@@ -93,6 +93,8 @@ def make_records(buildings, addresses, presults, shore_res=None):
         sr = (shore_res or {}).get(b.get("building_key"))
         if sr:  # RANTA: ra luokka, rl rantaviiva m, rd etäisyys vedestä m, rw vesilaji, rwa vesialueen ala ha
             ra, rl, rd, rw, rwa = sr
+            if ra == 5 and not streams:  # puroluokka pois käytöstä; vanhat tallenteet päivittyvät 14 pv kierroksessa
+                ra, rl = 0, None
             props.update(ra=ra, rl=rl or None, rd=rd, rw=rw, rwa=rwa)
         out.append((x, y, lat, lon, {k: v for k, v in props.items() if v not in (None, "")}))
     return out
@@ -176,7 +178,7 @@ def make_tiles(records, regions, work, data_dir):
     return out
 
 
-def meta(records, region_files, regions=None, muni_counts=None, shore_regions=None, stream_regions=None):
+def meta(records, region_files, regions=None, muni_counts=None, shore_regions=None, stream_regions=None, streams=False):
     lats = [r[2] for r in records]
     lons = [r[3] for r in records]
     years = [r[4]["y"] for r in records if "y" in r[4]]
@@ -195,6 +197,7 @@ def meta(records, region_files, regions=None, muni_counts=None, shore_regions=No
         "by_status": Counter(r[4].get("s", "") for r in records),
         "by": {k: Counter(r[4].get(k, "") for r in records) for k in CODE_KEYS + ("ra",)},
         "shore_regions": shore_regions or [],
+        "streams": streams,  # "puron varrella" käytössä (shore.STREAMS_ENABLED)
         "stream_regions": stream_regions or [],  # maakunnat, joissa "puron varrella" on laskettu kaikille kunnille
     }
 
@@ -326,7 +329,7 @@ def main(argv=None):
             force = [m for m in shore_munis if m in ryhti_ready and not shore_store.has(m)]
             # laskennan uusi versio: vanhat kunnat päivitetään yön normaalin kiintiön vapaista paikoista, vanhimmasta alkaen
             upgrade = sorted((m for m in shore_munis if m in ryhti_ready and shore_store.has(m)
-                              and shore_store.version(m) < shore.VERSION), key=shore_store.date)
+                              and shore_store.version(m) < shore.VERSION), key=shore_store.date) if shore.STREAMS_ENABLED else []
         presults = pres.get(ryhti_ready, by_muni, deadline, force=force, upgrade=upgrade)
         # uusille rakennuksille palstatieto heti pienellä aluehaulla (koko kunta haetaan vain PARCEL_MAX_AGE_DAYS välein)
         if pres.fill_new(ryhti_ready, by_muni, mml._fetch_box, deadline, limit=config.NEW_BUILDINGS_MAX_PER_RUN):
@@ -382,7 +385,7 @@ def main(argv=None):
 
     for b in blds:
         b["_region"] = region_of[b["municipality_number"]]
-    records = make_records(blds, addrs, presults, shore_res)
+    records = make_records(blds, addrs, presults, shore_res, streams=shore_store is not None and shore.STREAMS_ENABLED)
     log(f"Valmis: {len(records)} rakennusta, joista palsta löytyi {sum(1 for r in records if 'pa' in r[4])}")
 
     if len(records) < 100:
@@ -393,7 +396,8 @@ def main(argv=None):
         shore_regions = [r for r in regions_ready if r in config.SHORE_REGIONS
                          and shore_store and all(shore_store.has(m) for m in config.REGIONS[r])]
         stream_regions = [r for r in shore_regions if all(shore_store.version(m) >= 2 for m in config.REGIONS[r])]
-        json.dump(meta(records, region_files, regions_ready, muni_counts, shore_regions, stream_regions), f,
+        streams = shore_store is not None and shore.STREAMS_ENABLED
+        json.dump(meta(records, region_files, regions_ready, muni_counts, shore_regions, stream_regions, streams), f,
                   ensure_ascii=False)
     shutil.copytree(os.path.join(ROOT, "web"), args.out, dirs_exist_ok=True)
     # versionumero tiedostonimiin, jotta selaimet hakevat päivitetyn sivun eivätkä käytä vanhaa välimuistista

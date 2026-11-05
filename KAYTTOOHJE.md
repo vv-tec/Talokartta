@@ -6,7 +6,7 @@ Kehittäjän (Clauden) tekninen muistio on tiedostossa [CLAUDE.md](CLAUDE.md).
 
 - **Sivu:** https://vv-tec.github.io/Talokartta/
 - **Koodi ja asetukset:** https://github.com/vv-tec/Talokartta
-- **Päivitetty viimeksi:** 4.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
+- **Päivitetty viimeksi:** 5.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
 
 ---
 
@@ -163,16 +163,15 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 
 ## 10. Rantatieto ("oma ranta")
 
-- Sivulla on suodatin **Ranta** (Oma ranta / Erillinen rantapalsta / Puron varrella / Ei rantaa eikä puroa / Ei laskettu)
+- Sivulla on suodatin **Ranta** (Oma ranta / Erillinen rantapalsta / Ei rantaa / Ei laskettu)
   ja talon tietokortissa osio **Ranta**. Tieto lasketaan kiinteistörajoista ja Maanmittauslaitoksen vesialueista.
 - **Oma ranta** = tontti ulottuu veteen, tai välissä on vain vesijättöä (ei toisen kiinteistön maata). **Erillinen
   rantapalsta** = kiinteistön toinen palsta on rannassa. **Ei omaa rantaa** = välissä on esim. naapuri, yhteinen ranta-alue,
   rantapuisto tai tie, tai vesi on kaukana.
-- **Puron varrella** = tontti ei ole rannassa, mutta puro kulkee tontilla tai sen rajalla (vähintään 10 m matkalla).
-  Mukana ovat maastotietokannan 2–5 m leveät virtavedet (puro tai pieni joki). Kapeammat (alle 2 m) ovat aineistossa
-  samassa luokassa metsä- ja peltoojien kanssa (Tammelassa 6 400 km), joten ne eivät ole mukana. Kokeiltu rajaus
-  "vain mutkittelevat kapeat" odottaa pistokoettasi. Purotieto päivittyy nykyisiin kuntiin vähitellen noin kahden viikon
-  aikana (yöajon tavallisissa tonttihauissa, ei lisäkuormaa); sivu kertoo, missä maakunnissa se on vielä kesken.
+- **Puron varrella -luokka poistettiin 5.11.2026.** Pistokokeessasi (Tammela, 18 kohdetta) yksikään uoma ei ollut puro:
+  myös 2–5 m leveät olivat "suuria ojia". Maanmittauslaitoksen aineisto ei erota puroa ojasta, joten luokkaa ei näytetä
+  eikä uomia enää haeta. Toiminto on vain kytketty pois (asetus `STREAMS_ENABLED`), joten sen voi palauttaa, jos
+  löytyy aineisto, joka erottaa oikeat purot.
 - Lammet: myös alle hehtaarin lammet ovat mukana (Tammelassa noin 200 rantataloa).
 - Rajoitukset: tieto ei kerro vesialueen omistuksesta eikä rannan laadusta; uusi rakennus saa
   rantatiedon kahden viikon sisällä.
@@ -190,17 +189,14 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Kymenlaakso | 16 204 / 65 788 | 25 % |
   | **Yhteensä** | **256 715 / 1 057 553** | **24 %** |
 
-  Puron varrella (uusissa kunnissa heti): Keski-Suomi 1 460, Kymenlaakso 1 701, Kuhmoinen 78.
-
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).
 - **Poistaminen käytöstä:** pyydä Claudea *"Poista rantatieto käytöstä"* – se on yksi asetus (`SHORE_REGIONS` tyhjäksi),
   ja tieto katoaa sivulta seuraavassa ajossa. Muu palvelu ei muutu.
 
-## 11. Avoimet asiat ja suunnitelmat (4.11.2026)
+## 11. Avoimet asiat ja suunnitelmat (5.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
-- **Rantatieto:** otetaanko alle 2 m leveät mutkittelevat purot mukaan (odottaa pistokoettasi).
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
 - Muut maakunnat, osoitehaku, oma verkko-osoite.
 

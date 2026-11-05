@@ -65,7 +65,13 @@ def run():
     assert "y" not in p1 and "pa" not in p1 and "k" not in p1, p1
     assert p0["m"] == "04" and "fa" not in p0 and p0["e"] == "1101" and p0["r"] == "02" and "h" not in p0, p0
     assert p0["v"] == 450 and "ha" not in p0 and p0["sj"] == 0 and "sj" not in p1, p0
+    sres = {"k1": [5, 40, 120.0, "j", 3.2]}  # vanha tallenne "puron varrella" → ei rantaa, kun puroluokka pois käytöstä
+    q = build.make_records(blds, addrs, {}, sres)[0][4]
+    assert q["ra"] == 0 and "rl" not in q and q["rd"] == 120.0, q
+    q = build.make_records(blds, addrs, {}, sres, streams=True)[0][4]
+    assert q["ra"] == 5 and q["rl"] == 40, q
     mt = build.meta(recs, [])
+    assert mt["streams"] is False
     assert mt["by"]["m"] == {"04": 1, "": 1} and mt["by"]["e"]["1101"] == 1, mt["by"]
 
     g = build.density([(1050, 1050, 0, 0, {}), (1060, 1060, 0, 0, {}), (9000, 9000, 0, 0, {})], 1000)
@@ -164,7 +170,10 @@ def shore_tests():
     b = lambda k, x, y, ref: {"building_key": k, "_x": x, "_y": y, "property_identifier": ref}
     blds = [b("a", 120, 20, "83400100010001"), b("b", 130, 80, "83400100020001"), b("c", 50, -30, "83400100030001"),
             b("e", 320, 320, "83400100050001"), b("g", 520, 520, "83400100060001"), b("x", 9000, 9000, "")]
+    assert {k: v[0] for k, v in shore.compute(blds, parcels, water).items()}["g"] == 0  # puroluokka pois käytöstä (oletus)
+    old_on, shore.STREAMS_ENABLED = shore.STREAMS_ENABLED, True
     res = shore.compute(blds, parcels, water)
+    shore.STREAMS_ENABLED = old_on
     got = {k: v[0] for k, v in res.items()}
     assert got == {"a": 2, "b": 3, "c": 1, "e": 4, "g": 5}, got
     assert abs(shore.sinuosity(LineString([(0, 0), (30, 40), (60, 0)])) - 100 / 60) < 1e-9 and not shore.is_stream(water[3])
