@@ -234,6 +234,13 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     palstat + ranta ~66 min; Kuopio 297: 279 s rantaa). 105 795 rakennusta, omalla rannalla 42 750 (40 %).
     Yhteensä 1 406 336 rakennusta (192 kuntaa, 12 maakuntaa), palsta 1 406 335:lle. Tiili 30,0 Mt; tiilet yhteensä ~350 Mt.
     Muistin huippu 5,7 Gt.
+2l. ✅ Pohjanmaa (14 kuntaa: 231, 280, 287, 288, 399, 440, 475, 499, 545, 598, 599, 893, 905, 946) 5.11.2026 rantatiedon
+    kanssa; Kruunupyy siirtyi Keski-Pohjanmaalta ja Isokyrö 152 Etelä-Pohjanmaalle 2021. Build 56 min (Ryhti ~4 min, palstat +
+    ranta ~49 min; Mustasaari 106 s rantaa, saaristo ei ongelma). 78 685 rakennusta, omalla rannalla 21 526 (27 %).
+    Yhteensä 1 485 021 rakennusta (206 kuntaa, 13 maakuntaa), palsta 1 485 020:lle. Tiili 19,6 Mt; tiilet yhteensä ~370 Mt.
+    Muistin huippu 6,0 Gt. Ensimmäinen julkaisu jumittui GitHub Pagesissa (`updating_pages` > 10 min, deploy-pages
+    aikaraja) → aikaraja 30 min; peruutetun julkaisun uudelleenajo ("Deployment cancelled") ei toimi samalla versiolla,
+    vaan tarvitaan uusi ajo (uusi commit tai käsiajo).
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei

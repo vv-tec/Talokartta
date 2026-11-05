@@ -34,7 +34,7 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
 **Mukana nyt (5.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi,
-Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala ja Pohjois-Savo – 192 kuntaa, 1 406 336 asuinrakennusta.
+Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo ja Pohjanmaa – 206 kuntaa, 1 485 021 asuinrakennusta.
 
 ---
 
@@ -74,6 +74,7 @@ Ilmoituksessa (GitHubin Issues ja sähköposti) lukee **Kohta** (mikä vaihe ep�
 | **"Turvatarkistus esti julkaisun"** | Jonkin kunnan rakennusmäärä putosi yhdessä yössä yli 5 % tai maakunta olisi pudonnut sivulta. Yleensä kyse on rekisterin häiriöstä, joka korjaantuu itsestään. Jos sama toistuu, pyydä Claudea katsomaan. Ohita tarkistus (kohta 5) vain, jos tiedät pudotuksen olevan todellinen. |
 | Syy mainitsee **401** tai **403** ja Maanmittauslaitoksen | API-avain ei kelpaa. Katso kohta 7, "Maanmittauslaitoksen API-avain". |
 | "on X Mt, yli GitHub Pagesin rajan" | Jokin karttatiedosto kasvoi liian suureksi. Pyydä Claudea jakamaan alue pienempiin osiin. |
+| Kohta on **deploy** (julkaisu), syy esim. "Timeout reached" | GitHub Pages jumittui sivua päivittäessään (sattui kerran 5.11.2026). Ei mitään: seuraava yöajo julkaisee. Jos haluat heti, käynnistä ajo käsin (kohta 5). |
 | "Koe-epäonnistuminen" | Testiajo, joka pysäytettiin tarkoituksella. Ei toimenpiteitä. |
 
 ---
@@ -111,7 +112,7 @@ Pyydä Claudea, esimerkiksi: *"Lisää Pohjois-Pohjanmaa."*
   noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Pohjois-Pohjanmaa ilman rantatietoa."*
 
 Puuttuvat maakunnat (5.11.2026): Etelä-Pohjanmaa, Kainuu, Keski-Pohjanmaa,
-Lappi, Pohjanmaa ja Pohjois-Pohjanmaa. Ahvenanmaalla on oma
+Lappi ja Pohjois-Pohjanmaa. Ahvenanmaalla on oma
 rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
 
 ---
@@ -157,7 +158,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 350 Mt), yksittäinen tiedosto enintään 100 Mt
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 370 Mt), yksittäinen tiedosto enintään 100 Mt
   (suurin, Uusimaa, noin 63 Mt). Koko Suomi (arviolta 1,9 miljoonaa rakennusta) vie noin 450–500 Mt, joten mahtuu.
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
@@ -196,7 +197,8 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Etelä-Savo | 53 808 / 95 723 | 56 % |
   | Pohjois-Karjala | 30 700 / 85 789 | 36 % |
   | Pohjois-Savo | 42 750 / 105 795 | 40 % |
-  | **Yhteensä** | **noin 405 450 / 1 406 336** | **29 %** |
+  | Pohjanmaa | 21 526 / 78 685 | 27 % |
+  | **Yhteensä** | **noin 427 000 / 1 485 021** | **29 %** |
 
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).
