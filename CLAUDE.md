@@ -139,7 +139,7 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
      (Tilastokeskus: kesämökkejä 495 145 v. 2024, eniten Kuopio ja Mikkeli). Tiilet ~240 t/rak → ~450–480 Mt / 1 Gt;
      suurin tiedosto Uusimaa 62,5 Mt (muut ≤ ~45 Mt). Yöajo nyt 11 kuntaa/yö ~36 min → koko maa ceil(308/14) = 22
      kuntaa/yö ~60–75 min (raja 150 min; tarvittaessa PARCEL_MAX_AGE_DAYS 21). Välimuisti 176 Mt → ~330 Mt / 10 Gt.
-     Muisti mittaamatta → build lokittaa "Muistin huippu" (ajokone 16 Gt). Todellinen raja on Pagesin kaistan
+     Muisti mitattu 5.11.2026: 4,9 Gt / 1,21 milj. rak. → koko Suomi ~7,5–8 Gt (ajokone 16 Gt); build lokittaa "Muistin huippu". Todellinen raja on Pagesin kaistan
      pehmeä raja 100 Gt/kk (käyttäjämäärä) → R2, jos liikenne kasvaa. Ahvenanmaa ei ole Ryhtissä.
 2x. ✅ Rantatieto – käytössä kaikissa 6 maakunnassa 4.11.2026 (`config.SHORE_REGIONS`), otettu käyttöön paketeittain
     omistajan pyynnöstä. Uusi maakunta: lisätään oletuksena myös SHORE_REGIONSiin samassa muutoksessa (palstat ladataan
@@ -215,6 +215,16 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Ensiajo 31 min (Ryhti ~2 min, palstat + ranta ~26 min; Lappeenranta 104 s rantaa, Saimaa ei ongelma).
     61 466 rakennusta, omalla rannalla 21 769 (35 %; Imatra vain 277 / 8 186). Yhteensä 1 119 029 rakennusta
     (150 kuntaa, 9 maakuntaa), palsta 1 119 028:lle. Tiili 15,3 Mt; tiilet yhteensä ~268 Mt.
+2i. ✅ Etelä-Savo (11 kuntaa: 046, 097, 178, 213, 491, 507, 593, 623, 681, 740, 768) 5.11.2026 rantatiedon kanssa.
+    **Pertunmaa 588 liitettiin Mäntyharjuun 507 1.1.2025**: Ryhti 0 rakennusta numerolla 588 (4 917 rakennuksen
+    property_identifier alkaa yhä 588, municipality_number 507) ja MML-tiedostopalvelu hylkää 588 (HTTP 400
+    municipalityInput). Tarkista kuntaliitokset ennen lisäystä! Selvitys: "Selvitys – Ryhti-kentät", kunta "puuttuu:NNN".
+    Uusi sääntö `build.grown`: jos kunnan rakennusmäärä > 1,1 × palstojen hakuhetken määrä (`ParcelResults` tallentaa `n`;
+    vanhoissa tallenteissa kattavuus < 90 %), kunta pakotetaan uudelleenhakuun heti (lokissa "tulokset kattavat alle 90 %").
+    Ajot: ensiajo 55 min (Mikkeli 190 s rantaa, Savonlinna 111 s, Puumala 52 s – Saimaa ei ongelma) + Mäntyharjun
+    uudelleenhaku 11 min. 95 723 rakennusta, omalla rannalla 53 808 (56 %; Puumala 84 %). Yhteensä 1 214 752 rakennusta
+    (161 kuntaa, 10 maakuntaa), palsta 1 214 751:lle. Tiili 26,6 Mt; tiilet yhteensä ~295 Mt.
+    Muistin huippu 4,9 Gt (1,21 milj. rak.) → koko Suomi ~7,5–8 Gt / 16 Gt; levyä vapaana 91 Gt.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
