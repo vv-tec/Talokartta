@@ -184,6 +184,21 @@ REGIONS = {
         "740",  # Savonlinna
         "768",  # Sulkava
     ],
+    "Pohjois-Karjala": [  # Heinävesi siirtyi Etelä-Savosta 2021
+        "090",  # Heinävesi
+        "146",  # Ilomantsi
+        "167",  # Joensuu
+        "176",  # Juuka
+        "260",  # Kitee
+        "276",  # Kontiolahti
+        "309",  # Outokumpu
+        "422",  # Lieksa
+        "426",  # Liperi
+        "541",  # Nurmes
+        "607",  # Polvijärvi
+        "707",  # Rääkkylä
+        "848",  # Tohmajärvi
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -213,7 +228,7 @@ DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pud
 # Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
                  "Kymenlaakso", "Etelä-Karjala",
-                 "Etelä-Savo"]
+                 "Etelä-Savo", "Pohjois-Karjala"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
