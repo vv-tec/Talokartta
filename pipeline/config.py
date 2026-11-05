@@ -235,6 +235,26 @@ REGIONS = {
         "905",  # Vaasa
         "946",  # Vöyri
     ],
+    "Etelä-Pohjanmaa": [  # Isokyrö siirtyi Pohjanmaalta 2021; Jalasjärvi (2016) liitetty Kurikkaan
+        "005",  # Alajärvi
+        "010",  # Alavus
+        "052",  # Evijärvi
+        "145",  # Ilmajoki
+        "151",  # Isojoki
+        "152",  # Isokyrö
+        "218",  # Karijoki
+        "232",  # Kauhajoki
+        "233",  # Kauhava
+        "300",  # Kuortane
+        "301",  # Kurikka
+        "403",  # Lappajärvi
+        "408",  # Lapua
+        "743",  # Seinäjoki
+        "759",  # Soini
+        "846",  # Teuva
+        "934",  # Vimpeli
+        "989",  # Ähtäri
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -265,7 +285,7 @@ DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pud
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
                  "Kymenlaakso", "Etelä-Karjala",
                  "Etelä-Savo", "Pohjois-Karjala",
-                 "Pohjois-Savo", "Pohjanmaa"]
+                 "Pohjois-Savo", "Pohjanmaa", "Etelä-Pohjanmaa"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
