@@ -39,10 +39,35 @@ def delta():
     print("properties-parametri:", [f["properties"] for f in j["features"]])
 
 
+def missing(muni):
+    """Kunta, jolta open_building palauttaa 0 rakennusta: onko tiedot toisella kuntanumerolla tai toisessa kokoelmassa?"""
+    tests = [
+        ("open_building", f"municipality_number='{muni}'"),
+        ("open_building", f"property_identifier LIKE '{muni}%'"),
+        ("open_address", f"municipality_number='{muni}'"),
+        ("avoimet_rakennukset", f"kuntanumero='{muni}'"),
+        ("avoimet_rakennukset", f"sijaintikiinteisto LIKE '{muni}%'"),
+    ]
+    for col, flt in tests:
+        try:
+            j = get(f"{RYHTI_BASE}/{col}/items", {"f": "application/json", "limit": "1000", "filter-lang": "cql-text",
+                                                   "filter": flt}, tries=2).json()
+            fs = j.get("features", [])
+            munis = Counter(f["properties"].get("municipality_number") or f["properties"].get("kuntanumero") for f in fs)
+            purp = Counter(f["properties"].get("main_purpose") or f["properties"].get("paaasiallinen_kayttotarkoitus")
+                           for f in fs)
+            print(f"{col} | {flt}\n  numberMatched={j.get('numberMatched')} sivulla={len(fs)} kunnat {munis.most_common(5)} "
+                  f"käyttötarkoitus {purp.most_common(4)}")
+        except Exception as e:  # noqa: BLE001
+            print(f"{col} | {flt}\n  VIRHE {str(e)[:300]}")
+
+
 def main():
     muni = sys.argv[1] if len(sys.argv) > 1 else "834"
     if muni == "delta":
         return delta()
+    if muni.startswith("puuttuu:"):
+        return missing(muni.split(":", 1)[1])
     cols = get(RYHTI_BASE, {"f": "application/json"}).json()
     names = [c["id"] for c in cols.get("collections", [])]
     print("Kokoelmat:", names)
