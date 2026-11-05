@@ -135,6 +135,12 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
    - Haut peräkkäin, ei rinnakkain; uudelleenyritykset viiveellä; User-Agent tunnistaa projektin.
    - Varasuunnitelma, jos muutoshaku ei toimi luotettavasti: haetaan öisin vain osa kunnista kiertävästi.
    - GitHub Pagesin tiedostoraja 100 Mt → tiilet Cloudflare R2:een, jos kasvavat yli.
+   - Mitoitusarvio 5.11.2026 (9 maakuntaa, 150 kuntaa, 1,12 milj. rak., ~70 % väestöstä): koko Suomi ~1,85–1,95 milj.
+     (Tilastokeskus: kesämökkejä 495 145 v. 2024, eniten Kuopio ja Mikkeli). Tiilet ~240 t/rak → ~450–480 Mt / 1 Gt;
+     suurin tiedosto Uusimaa 62,5 Mt (muut ≤ ~45 Mt). Yöajo nyt 11 kuntaa/yö ~36 min → koko maa ceil(308/14) = 22
+     kuntaa/yö ~60–75 min (raja 150 min; tarvittaessa PARCEL_MAX_AGE_DAYS 21). Välimuisti 176 Mt → ~330 Mt / 10 Gt.
+     Muisti mittaamatta → build lokittaa "Muistin huippu" (ajokone 16 Gt). Todellinen raja on Pagesin kaistan
+     pehmeä raja 100 Gt/kk (käyttäjämäärä) → R2, jos liikenne kasvaa. Ahvenanmaa ei ole Ryhtissä.
 2x. ✅ Rantatieto – käytössä kaikissa 6 maakunnassa 4.11.2026 (`config.SHORE_REGIONS`), otettu käyttöön paketeittain
     omistajan pyynnöstä. Uusi maakunta: lisätään oletuksena myös SHORE_REGIONSiin samassa muutoksessa (palstat ladataan
     joka tapauksessa; KAYTTOOHJE kohta 6), ellei omistaja toisin pyydä. Alla mittaukset sekä koe- ja suunnitteluhistoria.

@@ -407,6 +407,11 @@ def main(argv=None):
     html = html.replace('src="app.js"', f'src="app.js?v={stamp}"').replace('href="style.css"', f'href="style.css?v={stamp}"')
     open(idx, "w", encoding="utf-8").write(html)
     log("Sivusto valmis:", args.out)
+    import resource  # muistin huippukäyttö (Linux: kt) – koko Suomen mitoituksen seurantaan
+    own = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    child = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024
+    log(f"Muistin huippu: ohjelma {own:.0f} Mt, aliprosessit (tippecanoe) {child:.0f} Mt; "
+        f"levy: {shutil.disk_usage(args.work).free / 1e9:.0f} Gt vapaana")
 
 
 if __name__ == "__main__":

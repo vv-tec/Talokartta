@@ -155,7 +155,9 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
 - **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 268 Mt), yksittäinen tiedosto enintään 100 Mt
-  (suurin, Uusimaa, noin 63 Mt). Koko Suomi mahtuu arviolta hyvin.
+  (suurin, Uusimaa, noin 63 Mt). Koko Suomi (arviolta 1,9 miljoonaa rakennusta) vie noin 450–500 Mt, joten mahtuu.
+- **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
+  Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
 - **Ulkoiset palvelut, joista sivu riippuu:** OpenFreeMap (taustakartta) ja unpkg (karttakirjastot). Jos jompikumpi on
   katkolla, sivu ei toimi kunnes palvelu palaa.
 
