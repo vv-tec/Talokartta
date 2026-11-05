@@ -209,7 +209,8 @@ REGIONS = {
         "402",  # Lapinlahti
         "420",  # Leppävirta
         "595",  # Pielavesi
-        "686",  # Rautavaara
+        "686",  # Rautalampi
+        "687",  # Rautavaara
         "749",  # Siilinjärvi
         "762",  # Sonkajärvi
         "778",  # Suonenjoki
@@ -256,14 +257,46 @@ REGIONS = {
         "989",  # Ähtäri
     ],
     "Keski-Pohjanmaa": [  # Kruunupyy siirtyi Pohjanmaalle 2021
-        "069",  # Halsua
-        "074",  # Kaustinen
-        "236",  # Kannus
+        "074",  # Halsua
+        "217",  # Kannus
+        "236",  # Kaustinen
         "272",  # Kokkola
         "421",  # Lestijärvi
         "584",  # Perho
         "849",  # Toholampi
         "924",  # Veteli
+    ],
+    "Pohjois-Pohjanmaa": [  # tarkistettu Tilastokeskuksen luokituksesta 2026 (selvitysajo "maakunnat")
+        "009",  # Alavieska
+        "069",  # Haapajärvi
+        "071",  # Haapavesi
+        "072",  # Hailuoto
+        "139",  # Ii
+        "208",  # Kalajoki
+        "244",  # Kempele
+        "305",  # Kuusamo
+        "317",  # Kärsämäki
+        "425",  # Liminka
+        "436",  # Lumijoki
+        "483",  # Merijärvi
+        "494",  # Muhos
+        "535",  # Nivala
+        "563",  # Oulainen
+        "564",  # Oulu
+        "615",  # Pudasjärvi
+        "625",  # Pyhäjoki
+        "626",  # Pyhäjärvi
+        "630",  # Pyhäntä
+        "678",  # Raahe
+        "691",  # Reisjärvi
+        "746",  # Sievi
+        "748",  # Siikajoki
+        "785",  # Vaala
+        "791",  # Siikalatva
+        "832",  # Taivalkoski
+        "859",  # Tyrnävä
+        "889",  # Utajärvi
+        "977",  # Ylivieska
     ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
@@ -296,7 +329,7 @@ SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uus
                  "Kymenlaakso", "Etelä-Karjala",
                  "Etelä-Savo", "Pohjois-Karjala",
                  "Pohjois-Savo", "Pohjanmaa", "Etelä-Pohjanmaa",
-                 "Keski-Pohjanmaa"]
+                 "Keski-Pohjanmaa", "Pohjois-Pohjanmaa"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
