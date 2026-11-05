@@ -170,14 +170,14 @@ REGIONS = {
         "739",  # Savitaipale
         "831",  # Taipalsaari
     ],
-    "Etelä-Savo": [  # Joroinen siirtyi Pohjois-Savoon ja Heinävesi Pohjois-Karjalaan 2021
+    "Etelä-Savo": [  # Joroinen siirtyi Pohjois-Savoon ja Heinävesi Pohjois-Karjalaan 2021; Pertunmaa (588) liitettiin
+                     # Mäntyharjuun 1.1.2025 (Ryhti ja MML käyttävät 507; kiinteistötunnukset alkavat yhä 588)
         "046",  # Enonkoski
         "097",  # Hirvensalmi
         "178",  # Juva
         "213",  # Kangasniemi
         "491",  # Mikkeli
         "507",  # Mäntyharju
-        "588",  # Pertunmaa
         "593",  # Pieksämäki
         "623",  # Puumala
         "681",  # Rantasalmi

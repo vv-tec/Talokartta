@@ -275,7 +275,8 @@ class ParcelResults:
         self.on_parcels = None  # valinnainen koukku (m, rakennukset, palstat): esim. rantatieto lasketaan samoista palstoista
 
     def put(self, m, buildings, parcels, date=None):
-        self.data["munis"][m] = {"date": date or self.today.isoformat(), "res": parcel_results(buildings, parcels)}
+        self.data["munis"][m] = {"date": date or self.today.isoformat(), "n": len(buildings),  # n: rakennuksia haettaessa
+                                 "res": parcel_results(buildings, parcels)}
 
     def get(self, munis, buildings_by_muni, deadline=None, force=(), upgrade=()):
         """force: kunnat, joiden palstat haetaan tässä ajossa tuoreudesta riippumatta (esim. rantatiedon käyttöönotto).

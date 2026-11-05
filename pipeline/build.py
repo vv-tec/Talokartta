@@ -30,6 +30,18 @@ def fmt_kt(k):
     return f"{int(k[0:3])}-{int(k[3:6])}-{int(k[6:10])}-{int(k[10:14])}"
 
 
+def parcel_coverage(res, buildings):
+    """Osuus kunnan rakennuksista, joilla on tallessa palstatulos."""
+    return sum(1 for b in buildings if b.get("building_key") in res) / len(buildings) if buildings else 1.0
+
+
+def grown(entry, buildings):
+    """Onko kunnan rakennusmäärä kasvanut yli 10 % palstojen hakuhetkestä (tallenteen n tai tulosten kattavuus)."""
+    if "n" in entry:
+        return len(buildings) > 1.1 * entry["n"]
+    return parcel_coverage(entry["res"], buildings) < 0.9
+
+
 def keep(p):
     return (
         ryhti.code(p.get("main_purpose")) in config.RESIDENTIAL
@@ -330,6 +342,14 @@ def main(argv=None):
             # laskennan uusi versio: vanhat kunnat päivitetään yön normaalin kiintiön vapaista paikoista, vanhimmasta alkaen
             upgrade = sorted((m for m in shore_munis if m in ryhti_ready and shore_store.has(m)
                               and shore_store.version(m) < shore.VERSION), key=shore_store.date) if shore.STREAMS_ENABLED else []
+        # Kunnan rakennuksia on yli 10 % enemmän kuin palstojen hakuhetkellä (esim. kuntaliitos toi naapurikunnan
+        # rakennukset) → kunta haetaan heti uudelleen eikä vasta 14 pv kierroksessa. Vanhoissa tallenteissa ei ole
+        # hakuhetken määrää (n) → verrataan, kuinka monella rakennuksella on tulos.
+        low = [m for m in ryhti_ready if m not in force and len(by_muni[m]) >= 100 and m in pres.data["munis"]
+               and grown(pres.data["munis"][m], by_muni[m])]
+        if low:
+            log(f"  palstat: tulokset kattavat alle 90 % rakennuksista, haetaan uudelleen: {', '.join(low)}")
+        force = list(force) + low
         presults = pres.get(ryhti_ready, by_muni, deadline, force=force, upgrade=upgrade)
         # uusille rakennuksille palstatieto heti pienellä aluehaulla (koko kunta haetaan vain PARCEL_MAX_AGE_DAYS välein)
         if pres.fill_new(ryhti_ready, by_muni, mml._fetch_box, deadline, limit=config.NEW_BUILDINGS_MAX_PER_RUN):

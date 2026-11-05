@@ -53,6 +53,9 @@ def run():
          "main_purpose": ".../code/01", "usage_status": ".../code/03"},
     ]
     assert build.keep(blds[0]) and build.keep(blds[1])
+    assert build.parcel_coverage({"k1": [1, 1, 1]}, blds) == 0.5 and build.parcel_coverage({}, []) == 1.0
+    assert build.grown({"res": {"k1": 1}}, blds) and not build.grown({"n": 2, "res": {}}, blds)  # n: ei uudelleenhakua
+    assert build.grown({"n": 1, "res": {}}, blds)
     assert not build.keep({**blds[0], "usage_status": ".../code/07"})
     assert not build.keep({**blds[0], "main_purpose": ".../code/04"})
     addrs = [{"building_key": "k1", "address_fin": "Testitie 1", "postal_code": "31300", "postal_office_fin": "TAMMELA"},
