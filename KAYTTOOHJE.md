@@ -6,7 +6,7 @@ Kehittäjän (Clauden) tekninen muistio on tiedostossa [CLAUDE.md](CLAUDE.md).
 
 - **Sivu:** https://vv-tec.github.io/Talokartta/
 - **Koodi ja asetukset:** https://github.com/vv-tec/Talokartta
-- **Päivitetty viimeksi:** 5.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
+- **Päivitetty viimeksi:** 6.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
 
 ---
 
@@ -33,9 +33,9 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
-**Mukana nyt (5.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi,
-Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo, Pohjanmaa, Etelä-Pohjanmaa ja Keski-Pohjanmaa –
-232 kuntaa, 1 602 654 asuinrakennusta.
+**Mukana nyt (6.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi,
+Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo, Pohjanmaa, Etelä-Pohjanmaa, Keski-Pohjanmaa ja
+Pohjois-Pohjanmaa – 263 kuntaa, 1 756 994 asuinrakennusta.
 
 ---
 
@@ -99,21 +99,23 @@ Muut ajot Actions-välilehdellä (**Selvitys – …**) ovat Clauden koeajoja. N
 
 ## 6. Uuden maakunnan lisääminen
 
-Pyydä Claudea, esimerkiksi: *"Lisää Pohjois-Pohjanmaa."*
+Pyydä Claudea, esimerkiksi: *"Lisää Kainuu."*
 
 - Claude lisää maakunnan kunnat asetuksiin, ja ensimmäinen ajo alkaa heti.
 - Ensimmäinen ajo kestää noin 30–110 minuuttia (tontit ladataan Maanmittauslaitokselta kunta kerrallaan).
 - Uusi maakunta tulee sivulle vasta, kun kaikki sen kuntien tiedot ovat valmiina. Jos ajo ei ehdi kerralla, se
   jatkuu seuraavana yönä. Muut maakunnat päivittyvät sillä välin normaalisti.
+- Kuntalista: Claude tarkistaa sen automaattisesti Tilastokeskuksen virallisesta kunta–maakuntaluokituksesta
+  (selvitysajo "Selvitys – Ryhti-kentät", kunta `maakunnat`). Tarkistus löysi 5.11.2026 kaksi Clauden virhettä
+  (Rautavaara puuttui Pohjois-Savosta, Keski-Pohjanmaalla oli Haapajärvi Kannuksen tilalla); korjattu 6.11.2026.
 - Kuntaliitokset: Claude tarkistaa kuntalistan ajantasaisesta maakuntajaosta. Esimerkiksi Pertunmaa liitettiin
   Mäntyharjuun 1.1.2025, joten sen talot ovat Mäntyharjun mukana. Jos kunnan talomäärä kasvaa liitoksen takia, tontit
   haetaan sille automaattisesti uudelleen.
-- Yhteen ajoon mahtuu noin 25–30 kuntaa (1–2 keskikokoista maakuntaa; Keski-Suomi + Kymenlaakso, 29 kuntaa, vei 1 h 45 min).
+- Yhteen ajoon mahtuu noin 30 kuntaa (1–2 keskikokoista maakuntaa; Pohjois-Pohjanmaa, 31 kuntaa Oulu mukaan lukien, vei 1 h 29 min).
 - **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
-  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Pohjois-Pohjanmaa ilman rantatietoa."*
+  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Kainuu ilman rantatietoa."*
 
-Puuttuvat maakunnat (5.11.2026): Kainuu,
-Lappi ja Pohjois-Pohjanmaa. Ahvenanmaalla on oma
+Puuttuvat maakunnat (6.11.2026): Kainuu ja Lappi. Ahvenanmaalla on oma
 rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
 
 ---
@@ -159,7 +161,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 400 Mt), yksittäinen tiedosto enintään 100 Mt
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 440 Mt), yksittäinen tiedosto enintään 100 Mt
   (suurin, Uusimaa, noin 63 Mt). Koko Suomi (arviolta 1,9 miljoonaa rakennusta) vie noin 450–500 Mt, joten mahtuu.
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
@@ -197,22 +199,23 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Etelä-Karjala | 21 769 / 61 466 | 35 % |
   | Etelä-Savo | 53 808 / 95 723 | 56 % |
   | Pohjois-Karjala | 30 700 / 85 789 | 36 % |
-  | Pohjois-Savo | 42 750 / 105 795 | 40 % |
+  | Pohjois-Savo | 43 371 / 107 513 | 40 % |
   | Pohjanmaa | 21 526 / 78 685 | 27 % |
   | Etelä-Pohjanmaa | 15 563 / 89 445 | 17 % |
-  | Keski-Pohjanmaa | 5 923 / 28 187 | 21 % |
-  | **Yhteensä** | **noin 448 500 / 1 602 654** | **28 %** |
+  | Keski-Pohjanmaa | 5 810 / 27 586 | 21 % |
+  | Pohjois-Pohjanmaa | 36 759 / 153 223 | 24 % |
+  | **Yhteensä** | **noin 485 800 / 1 756 994** | **28 %** |
 
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).
 - **Poistaminen käytöstä:** pyydä Claudea *"Poista rantatieto käytöstä"* – se on yksi asetus (`SHORE_REGIONS` tyhjäksi),
   ja tieto katoaa sivulta seuraavassa ajossa. Muu palvelu ei muutu.
 
-## 11. Avoimet asiat ja suunnitelmat (5.11.2026)
+## 11. Avoimet asiat ja suunnitelmat (6.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
-- Muut maakunnat, osoitehaku, oma verkko-osoite.
+- Kainuu ja Lappi, osoitehaku, oma verkko-osoite.
 
 ## Lähteet ja lisenssit
 

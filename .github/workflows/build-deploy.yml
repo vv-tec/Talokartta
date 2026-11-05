@@ -97,7 +97,7 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
         with:
-          timeout: 1800000   # 30 min (oletus 10 min): GitHub Pagesin päivitys jumittui kerran 5.11.2026 yli 10 minuutiksi
+          timeout: 600000   # 10 min = deploy-pagesin enimmäisarvo (suurempi ohitetaan varoituksella); jumittunut julkaisu → uusi ajo
 
   # Ilmoitus omistajalle: epäonnistunut ajo avaa GitHub-ilmoituksen (issue), josta tulee sähköposti.
   # Seuraava onnistunut ajo sulkee sen. Sivulla näkyy epäonnistumisen ajan edellinen onnistunut versio.

@@ -229,27 +229,39 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     kanssa. Ensiajo 55 min (Ryhti ~3 min, palstat + ranta ~50 min; Lieksa 125 s, Joensuu 101 s rantaa). 85 789 rakennusta,
     omalla rannalla 30 700 (36 %). Yhteensä 1 300 541 rakennusta (174 kuntaa, 11 maakuntaa), palsta 1 300 540:lle.
     Tiili 24,5 Mt; tiilet yhteensä ~320 Mt. Muistin huippu 5,2 Gt.
-2k. ✅ Pohjois-Savo (18 kuntaa: 140, 171, 204, 239, 263, 297, 402, 420, 595, 686, 749, 762, 778, 844, 857, 915, 921, 925)
+2k. ✅ Pohjois-Savo (19 kuntaa: 140, 171, 204, 239, 263, 297, 402, 420, 595, 686, 687, 749, 762, 778, 844, 857, 915, 921, 925)
     5.11.2026 rantatiedon kanssa; ei kuntaliitoksia (Joroinen 171 siirtyi Etelä-Savosta 2021). Ensiajo 1 h 14 min (Ryhti ~5 min,
     palstat + ranta ~66 min; Kuopio 297: 279 s rantaa). 105 795 rakennusta, omalla rannalla 42 750 (40 %).
     Yhteensä 1 406 336 rakennusta (192 kuntaa, 12 maakuntaa), palsta 1 406 335:lle. Tiili 30,0 Mt; tiilet yhteensä ~350 Mt.
-    Muistin huippu 5,7 Gt.
+    Muistin huippu 5,7 Gt. Rautavaara 687 puuttui alun perin (lisätty 6.11.2026 ajossa 2o; 1 718 rak., ranta 621).
 2l. ✅ Pohjanmaa (14 kuntaa: 231, 280, 287, 288, 399, 440, 475, 499, 545, 598, 599, 893, 905, 946) 5.11.2026 rantatiedon
     kanssa; Kruunupyy siirtyi Keski-Pohjanmaalta ja Isokyrö 152 Etelä-Pohjanmaalle 2021. Build 56 min (Ryhti ~4 min, palstat +
     ranta ~49 min; Mustasaari 106 s rantaa, saaristo ei ongelma). 78 685 rakennusta, omalla rannalla 21 526 (27 %).
     Yhteensä 1 485 021 rakennusta (206 kuntaa, 13 maakuntaa), palsta 1 485 020:lle. Tiili 19,6 Mt; tiilet yhteensä ~370 Mt.
     Muistin huippu 6,0 Gt. Ensimmäinen julkaisu jumittui GitHub Pagesissa (`updating_pages` > 10 min, deploy-pages
-    aikaraja) → aikaraja 30 min; peruutetun julkaisun uudelleenajo ("Deployment cancelled") ei toimi samalla versiolla,
+    aikaraja) → yritettiin 30 min, mutta deploy-pages sallii enintään 600000 ms (10 min) → arvo 600000; peruutetun julkaisun uudelleenajo ("Deployment cancelled") ei toimi samalla versiolla,
     vaan tarvitaan uusi ajo (uusi commit tai käsiajo).
 2m. ✅ Etelä-Pohjanmaa (18 kuntaa: 005, 010, 052, 145, 151, 152, 218, 232, 233, 300, 301, 403, 408, 743, 759, 846, 934, 989)
     5.11.2026 rantatiedon kanssa; ei kuntaliitoksia. Build 55 min (Ryhti ~2,5 min, palstat + ranta ~46 min; Seinäjoki 83 s
     rantaa). 89 445 rakennusta, omalla rannalla 15 563 (17 %). Yhteensä 1 574 467 rakennusta (224 kuntaa, 14 maakuntaa),
     palsta 1 574 466:lle. Tiili 23,7 Mt; tiilet yhteensä ~395 Mt. Muistin huippu 6,4 Gt. Pages-julkaisu kesti 3,7 min
-    (aiemmin ~20 s) → seuraa; aikaraja nyt 30 min.
-2n. ✅ Keski-Pohjanmaa (8 kuntaa: 069, 074, 236, 272, 421, 584, 849, 924) 5.11.2026 rantatiedon kanssa; Kruunupyy siirtyi
-    Pohjanmaalle 2021. Build 21 min (Ryhti ~1 min, palstat + ranta ~17 min; Kokkola 56 s rantaa). 28 187 rakennusta, omalla
+    (aiemmin ~20 s) → seuraa; deploy-pagesin aikaraja on enintään 10 min.
+2n. ✅ Keski-Pohjanmaa (8 kuntaa: 074, 217, 236, 272, 421, 584, 849, 924) 5.11.2026 rantatiedon kanssa; Kruunupyy siirtyi
+    Pohjanmaalle 2021. **Korjattu 6.11.2026:** listassa oli virheellisesti Haapajärvi 069 (kuuluu Pohjois-Pohjanmaahan)
+    Kannuksen 217 sijaan; alla olevat luvut ovat ennen korjausta (korjattuna 27 586 rak., ranta 5 810). Build 21 min (Ryhti ~1 min, palstat + ranta ~17 min; Kokkola 56 s rantaa). 28 187 rakennusta, omalla
     rannalla 5 923 (21 %). Yhteensä 1 602 654 rakennusta (232 kuntaa, 15 maakuntaa), palsta 1 602 653:lle. Tiili 7,2 Mt;
     tiilet yhteensä ~400 Mt. Muistin huippu 6,5 Gt. Pages-julkaisu 48 s.
+2o. ✅ Pohjois-Pohjanmaa (30 kuntaa: 009, 069, 071, 072, 139, 208, 244, 305, 317, 425, 436, 483, 494, 535, 563, 564, 615,
+    625, 626, 630, 678, 691, 746, 748, 785, 791, 832, 859, 889, 977) 5.–6.11.2026 rantatiedon kanssa, samalla korjaukset
+    Rautavaara 687 (Pohjois-Savo) ja Kannus 217 (Keski-Pohjanmaa). **Kuntalistat tarkistetaan nyt aina**
+    Tilastokeskuksen luokitusta vasten: työnkulku "Selvitys – Ryhti-kentät", kunta `maakunnat`
+    (`ryhti_explore.regions_check`, luokitus kunta_1_YYYY0101#maakunta_1_YYYY0101). Aja ennen ja jälkeen maakunnan
+    lisäyksen; kaikki 16 lisättyä vastaavat luokitusta (308 kuntaa, 19 maakuntaa v. 2026).
+    Build 1 h 29 min (Ryhti 31 kuntaa ~6 min, palstat + ranta 31 kuntaa ~79 min; Oulu 564: 168 s rantaa, Kuusamo 305: 138 s,
+    Pudasjärvi 615: 55 s). Haapajärvi siirtyi välimuistista toiseen maakuntaan ilman uudelleenhakua.
+    153 223 rakennusta, omalla rannalla 36 759 (24 %; Kuusamo 58 %). Yhteensä 1 756 994 rakennusta (263 kuntaa,
+    16 maakuntaa), palsta 1 756 993:lle. Tiili 40,5 Mt; tiilet yhteensä ~440 Mt. **Muistin huippu 7,1 Gt** (1,76 milj. rak.)
+    → Kainuu + Lappi arviolta ~7,7 Gt / 16 Gt. Pages-julkaisu 30 s. Jäljellä Kainuu (8 kuntaa) ja Lappi (21).
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
