@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       kunta:
-        description: "Kuntanumero (esim. 834 = Tammela), delta = muutoshaun testi tai puuttuu:NNN = miksi kunnalta ei löydy rakennuksia"
+        description: "Kuntanumero (esim. 834 = Tammela), delta = muutoshaun testi, puuttuu:NNN = miksi kunnalta ei löydy rakennuksia tai maakunnat = kuntalistojen tarkistus"
         default: "834"
 
 jobs:
@@ -19,5 +19,5 @@ jobs:
           python-version: "3.12"
       - run: pip install -r pipeline/requirements.txt
       - run: |
-          case "${{ inputs.kunta }}" in delta|puuttuu:*) ;; *) python -m pipeline.codes_explore ;; esac
+          case "${{ inputs.kunta }}" in delta|maakunnat|puuttuu:*) ;; *) python -m pipeline.codes_explore ;; esac
           python -m pipeline.ryhti_explore "${{ inputs.kunta }}"
