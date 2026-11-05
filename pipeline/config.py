@@ -219,6 +219,22 @@ REGIONS = {
         "921",  # Vesanto
         "925",  # Vieremä
     ],
+    "Pohjanmaa": [  # Kruunupyy siirtyi Keski-Pohjanmaalta ja Isokyrö Etelä-Pohjanmaalle 2021
+        "231",  # Kaskinen
+        "280",  # Korsnäs
+        "287",  # Kristiinankaupunki
+        "288",  # Kruunupyy
+        "399",  # Laihia
+        "440",  # Luoto
+        "475",  # Maalahti
+        "499",  # Mustasaari
+        "545",  # Närpiö
+        "598",  # Pietarsaari
+        "599",  # Pedersören kunta
+        "893",  # Uusikaarlepyy
+        "905",  # Vaasa
+        "946",  # Vöyri
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -249,7 +265,7 @@ DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pud
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
                  "Kymenlaakso", "Etelä-Karjala",
                  "Etelä-Savo", "Pohjois-Karjala",
-                 "Pohjois-Savo"]
+                 "Pohjois-Savo", "Pohjanmaa"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
