@@ -205,6 +205,10 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Lisäksi omistajan päätös 4.11.2026: alle 1 ha lammet mukana (olivat jo; MTK `jarvi` sisältää ne) ja "puron varrella" lisätään.
     Tammela: purot 36311 6 411 km / 36312 367 km; kaikki purot → 806 taloa (ojia), vain 2–5 m → 204,
     + kapeat mutkaisuus ≥ 1,1 & ≥ 100 m → 538. Laskenta-aika lähes ennallaan (+1–3 s/kunta), purojen haku ~16–20 s/kunta.
+2h. ✅ Etelä-Karjala (9 kuntaa: 153, 405, 416, 441, 580, 689, 700, 739, 831) 5.11.2026 rantatiedon kanssa (ei puroja).
+    Ensiajo 31 min (Ryhti ~2 min, palstat + ranta ~26 min; Lappeenranta 104 s rantaa, Saimaa ei ongelma).
+    61 466 rakennusta, omalla rannalla 21 769 (35 %; Imatra vain 277 / 8 186). Yhteensä 1 119 029 rakennusta
+    (150 kuntaa, 9 maakuntaa), palsta 1 119 028:lle. Tiili 15,3 Mt; tiilet yhteensä ~268 Mt.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
