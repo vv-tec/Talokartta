@@ -225,6 +225,10 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     uudelleenhaku 11 min. 95 723 rakennusta, omalla rannalla 53 808 (56 %; Puumala 84 %). Yhteensä 1 214 752 rakennusta
     (161 kuntaa, 10 maakuntaa), palsta 1 214 751:lle. Tiili 26,6 Mt; tiilet yhteensä ~295 Mt.
     Muistin huippu 4,9 Gt (1,21 milj. rak.) → koko Suomi ~7,5–8 Gt / 16 Gt; levyä vapaana 91 Gt.
+2j. ✅ Pohjois-Karjala (13 kuntaa: 090, 146, 167, 176, 260, 276, 309, 422, 426, 541, 607, 707, 848) 5.11.2026 rantatiedon
+    kanssa. Ensiajo 55 min (Ryhti ~3 min, palstat + ranta ~50 min; Lieksa 125 s, Joensuu 101 s rantaa). 85 789 rakennusta,
+    omalla rannalla 30 700 (36 %). Yhteensä 1 300 541 rakennusta (174 kuntaa, 11 maakuntaa), palsta 1 300 540:lle.
+    Tiili 24,5 Mt; tiilet yhteensä ~320 Mt. Muistin huippu 5,2 Gt.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
