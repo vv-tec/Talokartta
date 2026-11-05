@@ -177,7 +177,7 @@ REGIONS = {
         "213",  # Kangasniemi
         "491",  # Mikkeli
         "507",  # Mäntyharju
-        "588",  # Pertunmaa (Ryhtissä kuntanumerolla 507, ks. RYHTI_MUNI_BY_PROPERTY)
+        "588",  # Pertunmaa
         "593",  # Pieksämäki
         "623",  # Puumala
         "681",  # Rantasalmi
@@ -185,12 +185,6 @@ REGIONS = {
         "768",  # Sulkava
     ],
 }
-# Ryhti kirjaa joidenkin kuntien rakennukset toisen kunnan numerolle (yhteinen rakennusvalvonta). Näille oikea kunta
-# päätellään kiinteistötunnuksen alusta: {Ryhtin kuntanumero: {oikeat kuntanumerot}}.
-# Pertunmaa 588: open_building municipality_number='588' → 0 rakennusta, property_identifier LIKE '588%' → 4 917, kaikki
-# municipality_number 507 (Mäntyharju). Selvitys 5.11.2026: työnkulku "Selvitys – Ryhti-kentät", kunta "puuttuu:588".
-RYHTI_MUNI_BY_PROPERTY = {"507": {"588"}}
-
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
 
