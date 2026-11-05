@@ -34,7 +34,7 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
 **Mukana nyt (5.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi,
-Kymenlaakso, Etelä-Karjala, Etelä-Savo ja Pohjois-Karjala – 174 kuntaa, 1 300 541 asuinrakennusta.
+Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala ja Pohjois-Savo – 192 kuntaa, 1 406 336 asuinrakennusta.
 
 ---
 
@@ -97,7 +97,7 @@ Muut ajot Actions-välilehdellä (**Selvitys – …**) ovat Clauden koeajoja. N
 
 ## 6. Uuden maakunnan lisääminen
 
-Pyydä Claudea, esimerkiksi: *"Lisää Pohjois-Savo."*
+Pyydä Claudea, esimerkiksi: *"Lisää Pohjois-Pohjanmaa."*
 
 - Claude lisää maakunnan kunnat asetuksiin, ja ensimmäinen ajo alkaa heti.
 - Ensimmäinen ajo kestää noin 30–110 minuuttia (tontit ladataan Maanmittauslaitokselta kunta kerrallaan).
@@ -108,10 +108,10 @@ Pyydä Claudea, esimerkiksi: *"Lisää Pohjois-Savo."*
   haetaan sille automaattisesti uudelleen.
 - Yhteen ajoon mahtuu noin 25–30 kuntaa (1–2 keskikokoista maakuntaa; Keski-Suomi + Kymenlaakso, 29 kuntaa, vei 1 h 45 min).
 - **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
-  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Pohjois-Savo ilman rantatietoa."*
+  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Pohjois-Pohjanmaa ilman rantatietoa."*
 
 Puuttuvat maakunnat (5.11.2026): Etelä-Pohjanmaa, Kainuu, Keski-Pohjanmaa,
-Lappi, Pohjanmaa, Pohjois-Pohjanmaa ja Pohjois-Savo. Ahvenanmaalla on oma
+Lappi, Pohjanmaa ja Pohjois-Pohjanmaa. Ahvenanmaalla on oma
 rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
 
 ---
@@ -157,7 +157,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 320 Mt), yksittäinen tiedosto enintään 100 Mt
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 350 Mt), yksittäinen tiedosto enintään 100 Mt
   (suurin, Uusimaa, noin 63 Mt). Koko Suomi (arviolta 1,9 miljoonaa rakennusta) vie noin 450–500 Mt, joten mahtuu.
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
@@ -195,7 +195,8 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Etelä-Karjala | 21 769 / 61 466 | 35 % |
   | Etelä-Savo | 53 808 / 95 723 | 56 % |
   | Pohjois-Karjala | 30 700 / 85 789 | 36 % |
-  | **Yhteensä** | **noin 362 700 / 1 300 541** | **28 %** |
+  | Pohjois-Savo | 42 750 / 105 795 | 40 % |
+  | **Yhteensä** | **noin 405 450 / 1 406 336** | **29 %** |
 
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).
