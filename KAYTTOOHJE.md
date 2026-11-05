@@ -34,8 +34,8 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
 **Mukana nyt (5.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi,
-Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo, Pohjanmaa ja Etelä-Pohjanmaa – 224 kuntaa,
-1 574 467 asuinrakennusta.
+Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo, Pohjanmaa, Etelä-Pohjanmaa ja Keski-Pohjanmaa –
+232 kuntaa, 1 602 654 asuinrakennusta.
 
 ---
 
@@ -112,7 +112,7 @@ Pyydä Claudea, esimerkiksi: *"Lisää Pohjois-Pohjanmaa."*
 - **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
   noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Pohjois-Pohjanmaa ilman rantatietoa."*
 
-Puuttuvat maakunnat (5.11.2026): Kainuu, Keski-Pohjanmaa,
+Puuttuvat maakunnat (5.11.2026): Kainuu,
 Lappi ja Pohjois-Pohjanmaa. Ahvenanmaalla on oma
 rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
 
@@ -159,7 +159,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 395 Mt), yksittäinen tiedosto enintään 100 Mt
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 400 Mt), yksittäinen tiedosto enintään 100 Mt
   (suurin, Uusimaa, noin 63 Mt). Koko Suomi (arviolta 1,9 miljoonaa rakennusta) vie noin 450–500 Mt, joten mahtuu.
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
@@ -200,7 +200,8 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Pohjois-Savo | 42 750 / 105 795 | 40 % |
   | Pohjanmaa | 21 526 / 78 685 | 27 % |
   | Etelä-Pohjanmaa | 15 563 / 89 445 | 17 % |
-  | **Yhteensä** | **noin 442 500 / 1 574 467** | **28 %** |
+  | Keski-Pohjanmaa | 5 923 / 28 187 | 21 % |
+  | **Yhteensä** | **noin 448 500 / 1 602 654** | **28 %** |
 
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).

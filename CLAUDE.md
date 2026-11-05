@@ -246,6 +246,10 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     rantaa). 89 445 rakennusta, omalla rannalla 15 563 (17 %). Yhteensä 1 574 467 rakennusta (224 kuntaa, 14 maakuntaa),
     palsta 1 574 466:lle. Tiili 23,7 Mt; tiilet yhteensä ~395 Mt. Muistin huippu 6,4 Gt. Pages-julkaisu kesti 3,7 min
     (aiemmin ~20 s) → seuraa; aikaraja nyt 30 min.
+2n. ✅ Keski-Pohjanmaa (8 kuntaa: 069, 074, 236, 272, 421, 584, 849, 924) 5.11.2026 rantatiedon kanssa; Kruunupyy siirtyi
+    Pohjanmaalle 2021. Build 21 min (Ryhti ~1 min, palstat + ranta ~17 min; Kokkola 56 s rantaa). 28 187 rakennusta, omalla
+    rannalla 5 923 (21 %). Yhteensä 1 602 654 rakennusta (232 kuntaa, 15 maakuntaa), palsta 1 602 653:lle. Tiili 7,2 Mt;
+    tiilet yhteensä ~400 Mt. Muistin huippu 6,5 Gt. Pages-julkaisu 48 s.
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
