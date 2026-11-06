@@ -209,6 +209,9 @@ def mml_structure(muni):
 def main():
     muni = sys.argv[1] if len(sys.argv) > 1 else "834"
     phase = sys.argv[2] if len(sys.argv) > 2 else "rakenne"
+    if phase == "laske":
+        from .metsa_laske import run
+        return run(muni)
     if phase != "rakenne":
         raise SystemExit(f"Tuntematon vaihe {phase}")
     for title, fn in [("METSÄKESKUS: tietomalli", mv_model),

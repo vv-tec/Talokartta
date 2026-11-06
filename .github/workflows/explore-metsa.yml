@@ -23,6 +23,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r pipeline/requirements.txt "shapely~=2.1.0" "openpyxl~=3.1.0"
+      - name: Asenna tippecanoe (karttatiedostojen kokoarvio)
+        if: inputs.vaihe == 'laske'
+        run: sudo apt-get update -q && sudo apt-get install -y -q tippecanoe
       - name: Metsäkoe
         env:
           MML_API_KEY: ${{ secrets.MML_API_KEY }}
