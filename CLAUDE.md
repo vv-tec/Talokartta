@@ -78,6 +78,28 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   Käsiajon `koe_virhe` pysäyttää ajon tarkoituksella. Välimuistin avain `parcels-<aikaleima>` joka ajossa.
   Jobi `check` (deployn jälkeen) kutsuu `check-site.yml`:ää buildin `updated`/`count`-luvuilla; notify: jos deploy
   onnistui ja vain check epäonnistui, issuen otsikko "Talokartan sivun tarkistus löysi ongelman" (muuten "…päivitys epäonnistui").
+- **Metsakartta** (metsätilat, tiekartan kohta 6; vaihe 1 tehty 6.11.2026): koodi täällä, ajo ja julkaisu repositoriossa
+  **vv-tec/Metsakartta** (oma Pages 1 Gt: https://vv-tec.github.io/Metsakartta/, sama alkuperä kuin Talokartta → ei CORS-ongelmaa).
+  Metsakartan työnkulku `metsa.yml` ("Päivitä metsätilat ja julkaise", cron 47 4 * * * eli Talokartan jälkeen + käsin,
+  `ohita_tarkistukset`) hakee Talokartan koodin (`koodi/`), ajaa `python -m pipeline.metsa`, julkaisee ja ilmoittaa
+  epäonnistumisesta Metsakartan issueihin (sama malli). Salaisuus `MML_API_KEY` erikseen Metsakartassa (omistajan valinta A:
+  Metsakartta lataa palstat itse 30 pv välein, ~10 kuntaa/yö). Asetukset `config.METSA_*` (maakunnat `METSA_REGIONS`).
+  - `metsa.py`: kunta vanhimmasta (puuttuvat ensin, `METSA_MAX_AGE_DAYS` 30, `METSA_TIME_BUDGET_MIN` 150, `VERSION`-muutos
+    → uudelleenlaskenta): Metsäkeskuksen MV_<Kunta>.zip (nimi config.py:n kommenteista, `norm`), MML-palstat
+    (`municipality_parcels`), Ryhti (rakennukset kiinteistöittäin) → kuviot × palstat (STRtree, leikkausala) → talteen vain
+    metsätilat (metsämaata > `METSA_MIN_FOREST_HA`): määrät `am_<kauppatapa>|<puutavaralaji>` (m³), alat, luokkien ha:t,
+    raja 1 m yleistettynä lon/lat. Välimuisti `cache/metsa/<kunta>.json.gz` + `state.json` (avain `metsa-<aikaleima>`).
+    Arvo lasketaan julkaisussa joka ajo Luken uusimmilla hinnoilla (`props`). Kunnan virhe → muut jatkavat, ajo päättyy
+    virheeseen eikä julkaise. Turvatarkistus: maakunta ei putoa, kunnan tilamäärä ei pudota yli 5 %.
+  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z11–14, `--detect-shared-borders`), `data/fp.pmtiles`
+    (taso "fp", pisteet z6–10), `data/meta.json` (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}),
+    esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti). Talokartan sivua ei vielä muutettu.
+  - Ominaisuudet: `k` tunnus, `ka` kokonaisala, `mm` metsämaa, `kj` kitu+jouto, `mu` muu ala (ha), `mt` metsätietoa %,
+    `pn` palstoja, `e` arvo €, `eh` €/ha metsämaata, `eu` arvo hakkuutavan hinnoin, `et`/`ek` tukki/kuitu €, `t`/`ku`
+    tukki/kuitu m³, `v` m³, `vh` m³/ha, `sm`/`sk`/`sb`/`sl` puulajit m³ (havu, kuusi, koivu, muu lehti), `ps` pääpuulaji,
+    `ik` keski-ikä, `da` aukea/siemenpuu, `dt` taimikko, `d2`–`d5`, `de` eri-ikäis (% metsämaasta), `kp` yleisin kasvupaikka
+    1–8, `tu` turve %, `oj` ojitettu %, `hr` hakkuurajoitus %, `i0`/`i1` inventointi vvvv-kk, `rb`/`ab` rakennuksia/asuin-,
+    `pa` Luken hinta-alue.
 - `check/` – **sivun tarkistus** (`sivutarkistus.mjs`, Node + Playwright 1.63, `package.json`). Avaa julkaistun sivun
   Chromiumilla ja tarkistaa 17 kohtaa (meta-versio ja määrät, pmtiles 206, taustakartta, tunnetut paikat Tampere/Tammela/
   Kallio/Rovaniemi, tietokortti, puhelinkoko, JS-virheet, lataukset). Käyttää sivun globaaleja `map`, `META`, `B_LAYERS`,
