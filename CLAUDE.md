@@ -148,8 +148,9 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    Keskeneräinen moodi piilossa (esim. `?moodi=metsa`), kunnes omistaja hyväksyy.
    Käyttäjät eivät näe myynnissä olevia kohteita (myynti-ilmoituksia ei ole avoimena datana) → tutkimiseen ja vertailuun.
    **Metsätilat** (toteutetaan ensin, data valmiimpaa):
-   - Määritelmä (omistajan päätös 6.11.2026): kiinteistö, jolla yli 2 ha pinta-alaa – tulkittu metsämaaksi. Vaikuttaa:
-     Tammelassa kokonaisala > 2 ha 2 355 kiinteistöä, metsämaata > 2 ha 1 689 → omistaja päättää Excelin perusteella.
+   - Määritelmä (omistajan päätös 6.11.2026, vahvistettu Tammela-kokeen jälkeen): kiinteistö, jolla **metsämaata yli 2 ha**
+     (Metsäkeskuksen pääryhmä metsämaa; muuten esim. hiekkakuopat näkyisivät metsinä). Tammelassa 1 689 tilaa.
+     Yhteismetsät (esim. 834-874-1-0) ja suojelualueet (esim. kansallispuisto 834-891-1-3) **jäävät näkyviin**.
      Kiinteistön kaikki palstat yhteen; yhden palstan klikkaus korostaa koko tilan.
    - Lähteet: palstarajat nykyisestä MML-latauksesta (ei lisäkuormaa MML:lle; nyt rajat hylätään → talteen tilakohtaiset
      tulokset); Metsäkeskuksen avoin metsävaratieto (metsävarakuviot, CC BY 4.0, GPKG kunnittain, EPSG:3067, keskikoko
@@ -161,6 +162,10 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    - Tietokortti: alat (metsämaa, kitu-/joutomaa, **muu ala** = kokonaisala − metsäkuviot; omistajan päätös 6.11.2026),
      puusto puulajeittain, ikärakenne pylväinä, puuston arvo tukki/kuitu eriteltynä + käytetyt kantohinnat ja kuukausi,
      metsätiedon ajankohta. Maininta: laskennallinen arvo, ei kauppahinta.
+     Omistajan päätökset 6.11.2026: arvion oheen myös **arvo hakkuutavan hinnoin** pienellä infotekstillä (uudistuskypsä
+     uudistushakkuun, varttunut harvennushakkuun, nuori ensiharvennuksen hinnoin; Tammelassa ~9 % pystykaupan
+     keskihintoja pienempi) sekä **hakkuurajoituksen osuus** metsämaasta (Metsäkeskuksen `restriction`-taulu, esim.
+     kansallispuisto 100 %).
    - **Laajennusoptiot myöhemmin** (omistajan päätös 6.11.2026, ei ensimmäiseen versioon): metsätilan rantatieto
      (nykyinen rantalaskenta laajennettuna tiloille) sekä pellot ja suot erikseen MTK:sta (nyt "muu ala").
    - **Aineistot (selvitetty 6.11.2026, koeajo "Selvitys – metsätilat", `metsa_explore.py` / `metsa_laske.py`):**
@@ -195,6 +200,6 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    lataa sieltä) tai R2:een.
    **Tammela-koe tehty 6.11.2026** (luvut HISTORIA.md): 1 689 metsätilaa (metsämaata > 2 ha; kokonaisala > 2 ha 2 355),
    puuston arvo mediaani 8 400 €/ha, ajo 2 min. Kokoarvio koko Suomelle ~0,4–0,75 Gt (rajat z10/12–14) → **ei mahdu**
-   talojen kanssa sivun 1 Gt:hen → erillinen repo/R2. **Seuraavaksi:** omistajan pistokoe Excelistä (Karttapaikka-linkit,
-   vertailu esim. UPM:n laskuriin) ja päätökset: määritelmä A/B, hinnat (pystykauppa vs. hakkuutavan mukaan),
-   suurten erikoisyksiköiden ja hakkuurajoitettujen (suojelu) käsittely; sitten tuotantoajon suunnittelu.
+   talojen kanssa sivun 1 Gt:hen → erillinen repo/R2. Omistajan päätökset kokeen jälkeen kirjattu yllä (määritelmä,
+   erikoisyksiköt näkyviin, hakkuutavan hinnat + hakkuurajoitus korttiin). **Seuraavaksi:** tuotantoajon suunnitelma
+   omistajan hyväksyttäväksi (tallennuspaikka, yöajo, tiilet, piilotettu moodi `?moodi=metsa`).
