@@ -1,0 +1,8 @@
+{
+  "name": "talokartta-sivutarkistus",
+  "private": true,
+  "description": "Julkaistun sivun automaattinen tarkistus (check/sivutarkistus.mjs)",
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

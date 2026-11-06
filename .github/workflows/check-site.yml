@@ -1,0 +1,58 @@
+name: Tarkista sivu
+
+# Avaa julkaistun sivun oikeassa selaimessa ja tarkistaa, että se toimii (check/sivutarkistus.mjs).
+# Ajetaan automaattisesti yöajon lopuksi (build-deploy.yml, jobi "check") ja käsin:
+# Actions → "Tarkista sivu" → Run workflow. Ei kuormita rekistereitä; kesto noin 2 min.
+on:
+  workflow_dispatch:
+    inputs:
+      osoite:
+        description: "Tarkistettava sivu (jätä tyhjäksi = Talokartta)"
+        default: ""
+  workflow_call:
+    inputs:
+      expected_updated:
+        type: string
+        default: ""
+      expected_count:
+        type: string
+        default: ""
+
+jobs:
+  sivu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: check
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Asenna selain
+        working-directory: check
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Tarkista julkaistu sivu
+        working-directory: check
+        env:
+          SITE_URL: ${{ inputs.osoite }}
+          EXPECT_UPDATED: ${{ inputs.expected_updated }}
+          EXPECT_COUNT: ${{ inputs.expected_count }}
+          OUT_DIR: ${{ github.workspace }}/sivutarkistus
+        run: node sivutarkistus.mjs
+
+      - name: Tallenna kuvakaappaukset
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: sivutarkistus
+          path: sivutarkistus
+          retention-days: 14
+          if-no-files-found: ignore
