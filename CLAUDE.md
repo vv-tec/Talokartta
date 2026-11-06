@@ -156,9 +156,23 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
      pellot/suot MTK:sta (sama avain kuin vesialueet); kantohinnat Luonnonvarakeskuksen tilastoista (PxWeb-rajapinta).
    - Suodattimet: kokonaisala ja metsämaan ala (ha), **puuston arvo** (€ ja €/ha; omistajan nimitys), puumäärä
      (m³, m³/ha), pääpuulaji, ikärakenne kehitysluokkina (esim. uudistuskypsää ≥ x %), metsäpohja (kasvupaikka,
-     kivennäis-/turvemaa, ojitus), ranta (nykyinen rantalaskenta). Väritys valittavissa: €/ha, kehitysluokka, kasvupaikka.
-   - Tietokortti: alat (metsä/pelto/suo/vesi), puusto puulajeittain, ikärakenne pylväinä, puuston arvo tukki/kuitu
-     eriteltynä + käytetyt kantohinnat ja kuukausi, metsätiedon ajankohta. Maininta: laskennallinen arvo, ei kauppahinta.
+     kivennäis-/turvemaa, ojitus). Väritys valittavissa: €/ha, kehitysluokka, kasvupaikka.
+   - Tietokortti: alat (metsämaa, kitu-/joutomaa, **muu ala** = kokonaisala − metsäkuviot; omistajan päätös 6.11.2026),
+     puusto puulajeittain, ikärakenne pylväinä, puuston arvo tukki/kuitu eriteltynä + käytetyt kantohinnat ja kuukausi,
+     metsätiedon ajankohta. Maininta: laskennallinen arvo, ei kauppahinta.
+   - **Laajennusoptiot myöhemmin** (omistajan päätös 6.11.2026, ei ensimmäiseen versioon): metsätilan rantatieto
+     (nykyinen rantalaskenta laajennettuna tiloille) sekä pellot ja suot erikseen MTK:sta (nyt "muu ala").
+   - **Aineistot (selvitetty 6.11.2026, koeajo "Selvitys – metsätilat", `metsa_explore.py` / `metsa_laske.py`):**
+     Metsäkeskuksen uusi tietomalli tuotannossa 1.9.2026 (vanha poistuu 6/2027): `https://avoin.metsakeskus.fi/aineistot/MV/Kunta/MV_<Kunta>.zip`
+     (Tammela 53 Mt zip / 126 Mt GPKG, päivittyy viikoittain ke–to yönä). Taulut: `stand` (standid, geometry, area ha),
+     `growthplacedata` (maingroup 1 metsämaa / 2 kitu / 3 jouto, subgroup, fertilityclass, soiltype, drainagestate),
+     `treestand` (treestandclass 1 inventointi / 2 nykyhetki / 3 ennuste, developmentclass, maintreespecies, treedatadate),
+     `treestandsummary` (m³/ha: volume, sawlogvolume, pulpwoodvolume, age), `treestratum` (puulajeittain, m³/ha),
+     `codeschema_mapping` (koodien selitteet tiedostossa itsessään). Arvo −1 = puuttuu.
+     MML:n kuntatiedostossa ei ole rekisteriyksikkölajia (vain tunnukset, palstat, rajat, rajamerkit).
+     Luke: `https://statdb.luke.fi/PxWeb/api/v1/fi/LUKE/met/teokau/kk/0100_teokau.px` (INFO E_M3, MPKH01–08 hinta-alueet,
+     KAUP PKAUP/UUD/HAR/ENS, PTL TUK_MA/KU/KO, KUI_MA/KU/KO; ENS-tukkihinta aina puuttuu). Hinta-alueet maakunnittain
+     `metsa_laske.PRICE_AREA` (Kuusamo, Pudasjärvi, Taivalkoski → Kainuu-Koillismaa).
    - Puuston arvo = tukki- ja kuitupuun määrä × Luken kantohinnat hinta-alueittain. Omistajan päätös: **viimeisimmän
      kuukauden** hinnat, jos mahdollista (jos alueen kuukausihinta puuttuu, esim. vähäisen kaupan takia → edellinen
      julkaistu kuukausi; kerrotaan kortissa).

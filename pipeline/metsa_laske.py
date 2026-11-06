@@ -179,7 +179,7 @@ def read_stands(gp):
     for key in [("treestand", "treestandclass"), ("growthplacedata", "maingroup"), ("growthplacedata", "subgroup"),
                 ("growthplacedata", "fertilityclass"), ("growthplacedata", "drainagestate"), ("growthplacedata", "soiltype"),
                 ("treestand", "developmentclass"), ("treestratum", "treespecies"), ("treestratum", "storey"),
-                ("treestand", "treestanddatasource")]:
+                ("treestand", "treestanddatasource"), ("restriction", "cuttingrestriction")]:
         log(f"  koodisto {key}: {C.get(key)}")
     cls = C.get(("treestand", "treestandclass"), {})
     cur = next((c for c, l in cls.items() if "nykyhet" in l.lower() or "ajantas" in l.lower()), "2")
@@ -211,6 +211,9 @@ def read_stands(gp):
         sid = ts_cur.get(tsid)
         if sid is not None:
             stands[sid].update(age=num(age), vol=num(vol) or 0, saw=num(saw) or 0, pulp=num(pulp) or 0)
+    for sid, cr in con.execute("SELECT standid, cuttingrestriction FROM restriction WHERE cuttingrestriction IS NOT NULL"):
+        if sid in stands:
+            stands[sid]["restr"] = cr
     strata = collections.defaultdict(list)
     for tsid, sp, vol, saw, pulp in con.execute(
             "SELECT treestandid, treespecies, volume, sawlogvolume, pulpwoodvolume FROM treestratum"):
@@ -335,10 +338,12 @@ def run(muni):
             if mg == "1":
                 P[f"dc_{dc or '?'}"] += ha
                 P[f"fc_{s.get('fc')}"] += ha
-                if s.get("sg") in ("2", "3", "4"):
+                if s.get("sg") in ("2", "3", "4", "5"):
                     P["turve_ha"] += ha
                 if s.get("dr") in DRAINED:
                     P["ojitettu_ha"] += ha
+                if s.get("restr"):
+                    P["rajoitus_ha"] += ha
             if s.get("inv"):
                 meta[kt]["inv"].append((s["inv"], ha))
             if s.get("calc"):
@@ -394,6 +399,7 @@ def run(muni):
             "Kasvupaikka (yleisin)": fc_lab.get(fc_main, fc_main or ""),
             "Turvemaata %": round(100 * P["turve_ha"] / mm) if mm > 0.1 else None,
             "Ojitettu %": round(100 * P["ojitettu_ha"] / mm) if mm > 0.1 else None,
+            "Hakkuurajoitus %": round(100 * P["rajoitus_ha"] / mm) if mm > 0.1 else None,
             "Inventointi vanhin": inv[0][0][:7] if inv else "",
             "Inventointi uusin": inv[-1][0][:7] if inv else "",
             "Rakennuksia (Ryhti)": allb.get(kt, 0),
@@ -416,7 +422,7 @@ def run(muni):
     log(f"Valmis {time.time() - t0:.0f} s")
 
 
-DRAINED = {"3", "6", "7", "8"}  # tarkistetaan koodistosta lokissa (Kuivatustilanne)
+DRAINED = {"3", "7", "8", "9"}  # Kuivatustilanne: ojitettu kangas, ojikko, muuttuma, turvekangas
 
 
 def summarize(rows, latest, area, region, modified):
@@ -556,7 +562,8 @@ def write_outputs(muni, rows, summary, latest, ptable, months, area, C, sizes):
     for key, title in [(("growthplacedata", "fertilityclass"), "Kasvupaikka"),
                        (("treestand", "developmentclass"), "Kehitysluokka"),
                        (("growthplacedata", "drainagestate"), "Kuivatustilanne (ojitettu % = koodit " + ", ".join(sorted(DRAINED)) + ")"),
-                       (("growthplacedata", "subgroup"), "Alaryhmä (turvemaa = korpi, räme, neva)")]:
+                       (("growthplacedata", "subgroup"), "Alaryhmä (turvemaa = korpi, räme, neva)"),
+                       (("restriction", "cuttingrestriction"), "Hakkuun rajoitus")]:
         e.append([title + ":"])
         for code, lab in sorted(C.get(key, {}).items()):
             e.append([f"   {code} = {lab}"])
@@ -580,6 +587,7 @@ EXPLAIN = [
     "Kehitysluokat ja kasvupaikka: osuus metsämaan alasta. Keski-ikä: kuvioiden ikä painotettuna alalla.",
     "Inventointi vanhin/uusin: milloin kiinteistön kuvioiden puusto on inventoitu (vanha tieto on laskettu kasvumallilla nykyhetkeen).",
     "Tarkkuus (Metsäkeskus): kokonaistilavuus noin ±20 % noin 8/10 kuviolla; yksittäisen kuvion virhe voi olla suurempi.",
+    "Hakkuurajoitus %: osuus metsämaasta, jolla Metsäkeskuksen aineistossa on hakkuun rajoitus (esim. suojelu); arvo on laskettu silti.",
     "Rakennuksia: Ryhtin kaikki rakennukset kiinteistöllä; asuinrakennukset samoin perustein kuin Talokartan talonäkymässä.",
     "Lähteet: Suomen metsäkeskus, metsävaratieto (CC BY 4.0); Maanmittauslaitos, kiinteistörekisterikartta (CC BY 4.0); "
     "Luonnonvarakeskus, teollisuuspuun kauppa (CC BY 4.0); SYKE Ryhti (CC BY 4.0).",
