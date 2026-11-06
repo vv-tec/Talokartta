@@ -382,4 +382,4 @@ METSA_MAX_AGE_DAYS = 30        # kunnan metsätiedot ja palstat haetaan uudellee
 METSA_TIME_BUDGET_MIN = 150    # kuntahakuja tehdään enintään näin kauan; loput seuraavalla ajolla
 METSA_MIN_FOREST_HA = 2.0      # metsätila = metsämaata yli 2 ha (omistajan päätös 6.11.2026)
 METSA_SITE_URL = "https://vv-tec.github.io/Metsakartta/"   # julkaistut metsätiedostot (turvatarkistus vertaa tähän)
-METSA_POLY_MINZOOM = 11        # tilan rajat näkyvät tästä zoomista; kauempaa pisteet
+METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa ei mitään

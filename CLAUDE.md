@@ -91,7 +91,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     raja 1 m yleistettynä lon/lat. Välimuisti `cache/metsa/<kunta>.json.gz` + `state.json` (avain `metsa-<aikaleima>`).
     Arvo lasketaan julkaisussa joka ajo Luken uusimmilla hinnoilla (`props`). Kunnan virhe → muut jatkavat, ajo päättyy
     virheeseen eikä julkaise. Turvatarkistus: maakunta ei putoa, kunnan tilamäärä ei pudota yli 5 %.
-  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z11–14, `--detect-shared-borders`), `data/meta.json`
+  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z10–14 (11 → 10 6.11.2026 omistajan toiveesta), `--detect-shared-borders`), `data/meta.json`
     (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}),
     esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti, **suodattimet**: kokonaisala,
     puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
