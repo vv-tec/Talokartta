@@ -119,7 +119,7 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     tiilet 17 Mt. Yhteensä 779 778 rakennusta (96 kuntaa), palsta 779 771:lle.
 2f. ✅ Satakunta (16 kuntaa) 3.11.2026: ensiajo 33 min (Ryhti 4 min, palstat 26 min), 96 626 rakennusta, tiilet 21 Mt.
     Yhteensä 876 404 rakennusta (112 kuntaa, 6 maakuntaa), palsta 876 397:lle; tiilet yhteensä ~190 Mt.
-2. Koko Suomi. Rekisterien kuormitus pidetään pienenä (omistajan toive):
+2. ✅ Koko Suomi (Manner-Suomi 6.11.2026, ks. 2q; Ahvenanmaa ei ole Ryhtissä). Rekisterien kuormitus pidetään pienenä (omistajan toive):
    - Ryhti: ✅ muutoshaku ja tallennettu tila (`ryhti_store.py`, 3.11.2026). Koko maan ensimmäinen haku voi kestää
      tunteja → lisää maakunnat erissä tai lisää Ryhti-haulle aikaraja kuten palstoille.
    - Palstat: ✅ talteen vain tulokset (3.11.2026).
@@ -267,6 +267,13 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     56 s, Kuhmo 54 s rantaa). 39 316 rakennusta, omalla rannalla 16 516 (42 %). Yhteensä 1 796 315 rakennusta (271 kuntaa,
     17 maakuntaa), palsta 1 796 311:lle (4 puuttuu). Tiili 12,4 Mt; tiilet yhteensä ~455 Mt. Muistin huippu 7,3 Gt.
     Jäljellä Lappi (21 kuntaa; arviolta ~110 000 rak.).
+2q. ✅ Lappi (21 kuntaa: 047, 148, 240, 241, 261, 273, 320, 498, 583, 614, 683, 698, 732, 742, 751, 758, 845, 851, 854,
+    890, 976) 6.11.2026 rantatiedon kanssa; ei kuntaliitoksia, `maakunnat`-tarkistus OK (18/18). Build 1 h 15 min (Ryhti
+    ~4 min, palstat + ranta ~66 min; Inari 148: 180 s rantaa / 37 351 vesialuetta, Rovaniemi 97 s, Utsjoki 15 096
+    vesialuetta 48 s). 102 279 rakennusta, omalla rannalla 36 612 (36 %). **Koko Manner-Suomi valmis:** 1 898 604
+    rakennusta (292 kuntaa, 18 maakuntaa), palsta 1 898 595:lle (9 puuttuu). Tiili 30,3 Mt; tiilet yhteensä ~486 Mt / 1 Gt.
+    Muistin huippu 7,6 Gt / 16 Gt. Ensimmäinen deploy jumittui taas (Timeout 10 min) → käsiajo (välimuistilla build 7 min,
+    deploy 30 s) julkaisi. Jos Pages-jumit yleistyvät: harkitse deployn automaattista uudelleenyritystä (uusi ajo).
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
