@@ -223,3 +223,11 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     z6–11 0,13 Mt. Pinta-alan mukaan koko Suomi (~430 × Tammela) ~0,56 / 0,74 Gt + pisteet ~0,06 Gt (yläarvio; pohjoisessa
     tilat isompia) → ei mahdu talojen kanssa 1 Gt:n sivuun. Koko ajo 126 s, muisti pieni.
     Huom: ajon liitteitä (Excel) Claude ei voi ladata; Claude kokosi saman Excelin lokiin pakatusta CSV:stä.
+6a. ✅ Metsakartta vaihe 1 (6.11.2026): repositorio vv-tec/Metsakartta (omistaja loi, valinta A: oma MML-avain ja
+    palstalataukset), `pipeline/metsa.py`, `metsa_web/`. Ensimmäinen ajo kaatui (KeyError 'ia': nollat jätetään
+    välimuistista pois → `rec.get`), välimuisti tallessa → toinen ajo 10 s + julkaisu 5,5 min yhteensä.
+    Kanta-Häme 11 kuntaa haku 23 min: Hämeenlinna 103 551 kuviota / 42 716 palstaa / 5 953 tilaa 576 s (MML 491 s),
+    muut 51–133 s; Metsäkeskus 2–19 s/kunta. 16 728 metsätilaa. f-kanta-hame.pmtiles 23,0 Mt (z11–14, ~35 ominaisuutta),
+    fp.pmtiles 7,4 Mt (z6–10, -r1). Muisti 127 Mt + tippecanoe 135 Mt. Pinta-alan mukaan koko Suomi (~58 × Kanta-Häme)
+    ~1,3 Gt + 0,4 Gt → ennen laajennusta karsittava: tietokortin tiedot erilliseen kuntakohtaiseen JSONiin (tiileen vain
+    värityksen ja suodattimien kentät), pisteille harvemmat zoomit / tiheysruudut.

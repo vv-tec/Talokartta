@@ -147,6 +147,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 - Jos avain lakkaa toimimaan tai haluat vaihtaa sen:
   1. Kirjaudu Maanmittauslaitoksen **OmaTiliin** ja luo uusi API-avain avoimille rajapinnoille.
   2. GitHub → repositorio → **Settings → Secrets and variables → Actions** → **MML_API_KEY** → kynäkuvake → liitä uusi avain → **Update secret**.
+     **Tee sama myös Metsakartta-repositoriossa** (https://github.com/vv-tec/Metsakartta), jossa on oma kopio avaimesta.
   3. Käynnistä ajo käsin (kohta 5) ja katso, että se onnistuu.
 - Jos avain puuttuu, palvelu käyttää hitaampaa varatapaa tonteille.
 
@@ -230,7 +231,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
 - Osoitehaku, oma verkko-osoite. (Kaikki Manner-Suomen maakunnat lisätty 6.11.2026.)
-- **Metsätilat ja tontit** (suunniteltu 6.11.2026, ei vielä tehty): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
+- **Metsätilat ja tontit** (metsätilojen vaihe 1 tehty 6.11.2026, ks. kohta 12): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
   Metsätila = kiinteistö, jolla yli 2 ha metsämaata; haku mm. alan, **puuston arvon** (viimeisimmän kuukauden kantohinnoilla),
   ikärakenteen ja metsäpohjan mukaan. Tontit-moodissa rakentamattomat palstat alan ja rantatiedon mukaan; rakennusoikeus
   vasta, kun kunnat vievät kaavat Ryhtiin (pakollista 2029). Tarkempi suunnitelma: CLAUDE.md, tiekartan kohta 6.
@@ -240,6 +241,26 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
     yhteismetsät ja suojelualueet jäävät näkyviin; tietokorttiin hakkuurajoituksen osuus ja arvo hakkuutavan hinnoin
     pienellä selitteellä.
   - Myöhemmin (ei ensimmäiseen versioon): metsätilojen rantatieto sekä pellot ja suot erikseen (nyt ne ovat "muuta alaa").
+
+## 12. Metsakartta (metsätilat)
+
+Metsätilat (kiinteistöt, joilla metsämaata yli 2 ha) lasketaan ja julkaistaan omassa repositoriossa **Metsakartta**,
+koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelmakoodi on silti Talokartassa.
+
+- **Esikatselu:** https://vv-tec.github.io/Metsakartta/ – kartta, jossa metsätilat on väritetty puuston arvon (€/ha) mukaan.
+  Kauempaa pisteet, lähempää (zoom 11+) tilan rajat. Klikkaa tilaa: tietokortti (puuston arvo ja arvo hakkuutavan
+  hinnoin, alat, hakkuurajoitus, puusto puulajeittain, ikärakenne, metsäpohja, linkit Karttapaikkaan ja Talokarttaan).
+  Sivu on vain tarkistusta varten; metsätilat tulevat Talokarttaan omaksi näkymäkseen myöhemmin.
+- **Mukana nyt (6.11.2026):** Kanta-Häme, 11 kuntaa, 16 728 metsätilaa.
+- **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
+  kuukauden välein, muutama kunta kerrallaan; kantohinnat (Luke) joka ajossa uusimmasta julkaistusta kuukaudesta.
+  Ajo kestää yleensä muutaman minuutin.
+- **Ilmoitukset:** epäonnistunut ajo avaa Metsakartan **Issues**-välilehdelle ilmoituksen "Metsakartan päivitys
+  epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
+- **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
+- **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
+- **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Ennen koko Suomea karttatiedostoja on
+  pienennettävä: Kanta-Häme vie jo noin 30 Mt, koko Suomi veisi nykyisellään yli 1 Gt.
 
 ## Lähteet ja lisenssit
 

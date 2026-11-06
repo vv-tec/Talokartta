@@ -94,6 +94,10 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z11–14, `--detect-shared-borders`), `data/fp.pmtiles`
     (taso "fp", pisteet z6–10), `data/meta.json` (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}),
     esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti). Talokartan sivua ei vielä muutettu.
+    **Kanta-Häme 6.11.2026: 16 728 tilaa, f 23,0 Mt + fp 7,4 Mt → koko Suomi ~1,7 Gt nykyisellään.** Ennen laajennusta:
+    kortin tiedot kuntakohtaiseen JSONiin (`data/kortit/<kunta>.json`, kunta = tunnuksen 3 ensimmäistä numeroa),
+    tiileen vain suodatin-/värikentät; pisteille vähemmän zoomeja tai tiheysruudut. Ensimmäinen haku ~2 min/kunta
+    (Hämeenlinna 10 min, MML-lataus hallitsee).
   - Ominaisuudet: `k` tunnus, `ka` kokonaisala, `mm` metsämaa, `kj` kitu+jouto, `mu` muu ala (ha), `mt` metsätietoa %,
     `pn` palstoja, `e` arvo €, `eh` €/ha metsämaata, `eu` arvo hakkuutavan hinnoin, `et`/`ek` tukki/kuitu €, `t`/`ku`
     tukki/kuitu m³, `v` m³, `vh` m³/ha, `sm`/`sk`/`sb`/`sl` puulajit m³ (havu, kuusi, koivu, muu lehti), `ps` pääpuulaji,
@@ -225,3 +229,6 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    talojen kanssa sivun 1 Gt:hen → erillinen repo/R2. Omistajan päätökset kokeen jälkeen kirjattu yllä (määritelmä,
    erikoisyksiköt näkyviin, hakkuutavan hinnat + hakkuurajoitus korttiin). **Seuraavaksi:** tuotantoajon suunnitelma
    omistajan hyväksyttäväksi (tallennuspaikka, yöajo, tiilet, piilotettu moodi `?moodi=metsa`).
+   **Hyväksytty suunnitelma (6.11.2026):** 1 ✅ yöajo + tiedostot Kanta-Hämeelle Metsakartassa (esikatselu); 2 tiedostojen
+   karsinta + piilotettu moodi Talokartassa (`?moodi=metsa`); 3 laajennus maakunnittain; 4 julkistus omistajan
+   hyväksynnällä (tietosuojaseloste ennen).
