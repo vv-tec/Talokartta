@@ -91,13 +91,21 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     raja 1 m yleistettynä lon/lat. Välimuisti `cache/metsa/<kunta>.json.gz` + `state.json` (avain `metsa-<aikaleima>`).
     Arvo lasketaan julkaisussa joka ajo Luken uusimmilla hinnoilla (`props`). Kunnan virhe → muut jatkavat, ajo päättyy
     virheeseen eikä julkaise. Turvatarkistus: maakunta ei putoa, kunnan tilamäärä ei pudota yli 5 %.
-  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z11–14, `--detect-shared-borders`), `data/fp.pmtiles`
-    (taso "fp", pisteet z6–10), `data/meta.json` (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}),
-    esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti). Talokartan sivua ei vielä muutettu.
-    **Kanta-Häme 6.11.2026: 16 728 tilaa, f 23,0 Mt + fp 7,4 Mt → koko Suomi ~1,7 Gt nykyisellään.** Ennen laajennusta:
+  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z11–14, `--detect-shared-borders`), `data/meta.json`
+    (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}),
+    esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti, **suodattimet**: kokonaisala,
+    puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
+    nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). **Kaukaa ei näytetä mitään** (omistajan päätös 6.11.2026:
+    pisteet peittivät taustakartan) → pistetaso fp poistettu; paneeli kehottaa zoomaamaan. Talokartan sivua ei vielä muutettu.
+    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 10 kohtaa, mm. suodattimet ja
+    kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
+    `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
+    **Kanta-Häme 6.11.2026: 16 728 tilaa, f 23,0 Mt → koko Suomi ~1,3 Gt nykyisellään.** Ennen laajennusta:
     kortin tiedot kuntakohtaiseen JSONiin (`data/kortit/<kunta>.json`, kunta = tunnuksen 3 ensimmäistä numeroa),
-    tiileen vain suodatin-/värikentät; pisteille vähemmän zoomeja tai tiheysruudut. Ensimmäinen haku ~2 min/kunta
-    (Hämeenlinna 10 min, MML-lataus hallitsee).
+    tiileen vain suodatin-/värikentät. Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML-lataus hallitsee).
+  - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
+    peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit
+    (esim. README) ja aja uudelleen; meni läpi heti.
   - Ominaisuudet: `k` tunnus, `ka` kokonaisala, `mm` metsämaa, `kj` kitu+jouto, `mu` muu ala (ha), `mt` metsätietoa %,
     `pn` palstoja, `e` arvo €, `eh` €/ha metsämaata, `eu` arvo hakkuutavan hinnoin, `et`/`ek` tukki/kuitu €, `t`/`ku`
     tukki/kuitu m³, `v` m³, `vh` m³/ha, `sm`/`sk`/`sb`/`sl` puulajit m³ (havu, kuusi, koivu, muu lehti), `ps` pääpuulaji,

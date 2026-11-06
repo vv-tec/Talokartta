@@ -248,8 +248,13 @@ Metsätilat (kiinteistöt, joilla metsämaata yli 2 ha) lasketaan ja julkaistaan
 koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelmakoodi on silti Talokartassa.
 
 - **Esikatselu:** https://vv-tec.github.io/Metsakartta/ – kartta, jossa metsätilat on väritetty puuston arvon (€/ha) mukaan.
-  Kauempaa pisteet, lähempää (zoom 11+) tilan rajat. Klikkaa tilaa: tietokortti (puuston arvo ja arvo hakkuutavan
-  hinnoin, alat, hakkuurajoitus, puusto puulajeittain, ikärakenne, metsäpohja, linkit Karttapaikkaan ja Talokarttaan).
+  Tilat näkyvät vasta lähellä (noin kunnan osan kokoinen alue ruudulla); kaukaa kartta on tyhjä, jotta taustakartta erottuu.
+  Vasemmalla **suodattimet**: kokonaisala, puuston arvo yhteensä, metsäpohja (kivennäis-/turvemaa ja yleisin kasvupaikka)
+  ja ikäjakauma (esim. "uudistuskypsää vähintään 50 %"); alla näkyy, montako tilaa kartalla on näkyvissä. Puhelimessa
+  paneeli aukeaa napista **Suodattimet**. Klikkaa tilaa: tietokortti (puuston arvo ja arvo hakkuutavan hinnoin, alat,
+  hakkuurajoitus, puusto puulajeittain, ikärakenne, metsäpohja, linkit Karttapaikkaan ja Talokarttaan).
+- **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
+  kokeillaan. Jos jokin ei toimi, saat ilmoituksen kuten epäonnistuneesta ajosta.
   Sivu on vain tarkistusta varten; metsätilat tulevat Talokarttaan omaksi näkymäkseen myöhemmin.
 - **Mukana nyt (6.11.2026):** Kanta-Häme, 11 kuntaa, 16 728 metsätilaa.
 - **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
@@ -260,7 +265,9 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
 - **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Ennen koko Suomea karttatiedostoja on
-  pienennettävä: Kanta-Häme vie jo noin 30 Mt, koko Suomi veisi nykyisellään yli 1 Gt.
+  pienennettävä: Kanta-Häme vie noin 23 Mt, koko Suomi veisi nykyisellään noin 1,3 Gt.
+- **Jos julkaisu jumittuu** (ilmoituksessa "Timeout reached"): GitHubin oma häiriö. Pyydä Claudea ajamaan uudelleen
+  (Claude tekee pienen muutoksen, koska saman version uudelleenyritys jää usein jumiin).
 
 ## Lähteet ja lisenssit
 

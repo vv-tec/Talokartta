@@ -231,3 +231,8 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     fp.pmtiles 7,4 Mt (z6–10, -r1). Muisti 127 Mt + tippecanoe 135 Mt. Pinta-alan mukaan koko Suomi (~58 × Kanta-Häme)
     ~1,3 Gt + 0,4 Gt → ennen laajennusta karsittava: tietokortin tiedot erilliseen kuntakohtaiseen JSONiin (tiileen vain
     värityksen ja suodattimien kentät), pisteille harvemmat zoomit / tiheysruudut.
+6b. Metsakartta 6.11.2026 ilta: omistajan palautteesta pistetaso pois (taustakartta ei erottunut) ja esikatseluun
+    suodattimet (kokonaisala, puuston arvo, metsäpohja, ikäjakauma). Selaintarkistus Metsakartan jobiksi: Tammela z12
+    293 tilaa, kokonaisala ≥ 50 ha → 33, + uudistuskypsää ≥ 50 % → 1, tyhjennys → 293; kortti ja ei JS-virheitä.
+    Julkaisu jumittui kahdesti (deployment_queued, sama commit-versio peruutuksen jälkeen) → uusi commit → onnistui.
+    Tiedostot: f-kanta-hame.pmtiles 23,0 Mt (fp 7,4 Mt poistui).
