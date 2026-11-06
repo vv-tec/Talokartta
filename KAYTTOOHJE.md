@@ -253,8 +253,13 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   ja ikäjakauma (esim. "uudistuskypsää vähintään 50 %"); alla näkyy, montako tilaa kartalla on näkyvissä. Puhelimessa
   paneeli aukeaa napista **Suodattimet**. Klikkaa tilaa: tietokortti (puuston arvo ja arvo hakkuutavan hinnoin, alat,
   hakkuurajoitus, puusto puulajeittain, ikärakenne, metsäpohja, linkit Karttapaikkaan ja Talokarttaan).
+- **Talokartan metsätilanäkymä (piilotettu, 6.11.2026):** https://vv-tec.github.io/Talokartta/?moodi=metsa – yläreunassa
+  valinta **Talot | Metsätilat**. Metsätiloissa omat suodattimet (samat kuin esikatselussa) ja tietokortti; kortista pääsee
+  talonäkymään, jos tilalla on asuinrakennus, ja talon kortista metsätilaan, jos kiinteistö on metsätila. Ilman
+  `?moodi=metsa`-loppua Talokartta näyttää vain talot kuten ennenkin. Näkymä avataan kaikille, kun hyväksyt sen.
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
-  kokeillaan. Jos jokin ei toimi, saat ilmoituksen kuten epäonnistuneesta ajosta.
+  kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
+  epäonnistuneesta ajosta.
   Sivu on vain tarkistusta varten; metsätilat tulevat Talokarttaan omaksi näkymäkseen myöhemmin.
 - **Mukana nyt (6.11.2026):** Kanta-Häme, 11 kuntaa, 16 728 metsätilaa.
 - **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
@@ -264,8 +269,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Ennen koko Suomea karttatiedostoja on
-  pienennettävä: Kanta-Häme vie noin 23 Mt, koko Suomi veisi nykyisellään noin 1,3 Gt.
+- **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Tiedostot pienennettiin 6.11.2026: Kanta-Häme vie
+  noin 12 Mt, koko Suomi arviolta 0,7 Gt (raja 1 Gt).
 - **Jos julkaisu jumittuu** (ilmoituksessa "Timeout reached"): GitHubin oma häiriö. Pyydä Claudea ajamaan uudelleen
   (Claude tekee pienen muutoksen, koska saman version uudelleenyritys jää usein jumiin).
 

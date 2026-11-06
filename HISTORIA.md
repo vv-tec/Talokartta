@@ -236,3 +236,6 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     293 tilaa, kokonaisala ≥ 50 ha → 33, + uudistuskypsää ≥ 50 % → 1, tyhjennys → 293; kortti ja ei JS-virheitä.
     Julkaisu jumittui kahdesti (deployment_queued, sama commit-versio peruutuksen jälkeen) → uusi commit → onnistui.
     Tiedostot: f-kanta-hame.pmtiles 23,0 Mt (fp 7,4 Mt poistui).
+6c. Metsakartta vaihe 2 (6.11.2026): (a) tiileen vain suodatin-/värikentät + kortit kuntakohtaisiin JSONeihin + rajat
+    z13 asti: f-kanta-hame 25,7 → 9,1 Mt, kortit 3,0 Mt (11 kuntaa), julkaisu 4 s. Koko Suomi arvio ~0,7 Gt.
+    (b) Talokartan piilotettu metsätilanäkymä `?moodi=metsa` (web/metsa.js), tarkistus laajennettu Talokarttaan.

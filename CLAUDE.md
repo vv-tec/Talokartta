@@ -91,8 +91,11 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     raja 1 m yleistettynä lon/lat. Välimuisti `cache/metsa/<kunta>.json.gz` + `state.json` (avain `metsa-<aikaleima>`).
     Arvo lasketaan julkaisussa joka ajo Luken uusimmilla hinnoilla (`props`). Kunnan virhe → muut jatkavat, ajo päättyy
     virheeseen eikä julkaise. Turvatarkistus: maakunta ei putoa, kunnan tilamäärä ei pudota yli 5 %.
-  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z10–14 (11 → 10 6.11.2026 omistajan toiveesta), `--detect-shared-borders`), `data/meta.json`
-    (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}),
+  - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z10–13 (`POLY_MAXZOOM`, ylizoomaus; minzoom 11 → 10 6.11.2026
+    omistajan toiveesta), `--detect-shared-borders`, **vain `TILE_KEYS`**: k, ka, e (100 €), eh (10 €), tu, kp, da–d5),
+    `data/kortit/<kunta>.json` ({c: `CARD_KEYS`, r: {tunnus: [arvot]}}; tietokortti lataa klikatessa, kunta =
+    tunnuksen 1. osa 3 numeroksi), `data/meta.json`
+    (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`),
     esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti, **suodattimet**: kokonaisala,
     puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
     nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). **Kaukaa ei näytetä mitään** (omistajan päätös 6.11.2026:
@@ -100,9 +103,17 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 10 kohtaa, mm. suodattimet ja
     kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
     `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
-    **Kanta-Häme 6.11.2026: 16 728 tilaa, f 23,0 Mt → koko Suomi ~1,3 Gt nykyisellään.** Ennen laajennusta:
-    kortin tiedot kuntakohtaiseen JSONiin (`data/kortit/<kunta>.json`, kunta = tunnuksen 3 ensimmäistä numeroa),
-    tiileen vain suodatin-/värikentät. Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML-lataus hallitsee).
+    **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
+    pinta-alan mukaan ~0,5 + 0,17 Gt ≈ 0,7 Gt / 1 Gt.** Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML hallitsee).
+  - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
+    `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
+    houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
+    `index.html`: `#modeSwitch` (Talot | Metsätilat, hidden), `#fpanel` (metsäpaneeli, sisältö metsa.js:stä: `#fCount`,
+    `#fKaMin/Max`, `#fEMin/Max`, `#fPeat`, `#fSites`, `#fAge-a/n/v/u`, `#fReset`). `app.js`-koukut: `setHouseLayers`,
+    updateCount/click/mousemove ohjataan Metsalle, `curPanel()`, closeCard → clearSelection, talon kortissa `#forestLink`
+    (näkyy, jos kiinteistö on metsätila), fitBounds/alaotsikko vain talonäkymässä. Tasot `metsa-f-<maakunta>-fill/-line/-sel`
+    taustakartan nimien alla. Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
+    Tarkistus: `check/metsa_tarkistus.mjs` `runTalo` (TALO_URL, oletus julkaistu Talokartta; ajetaan Metsakartan jobissa).
   - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
     peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit
     (esim. README) ja aja uudelleen; meni läpi heti. Lisäksi Pages näyttää uuden version joskus vasta 5–15 min
@@ -239,6 +250,6 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    talojen kanssa sivun 1 Gt:hen → erillinen repo/R2. Omistajan päätökset kokeen jälkeen kirjattu yllä (määritelmä,
    erikoisyksiköt näkyviin, hakkuutavan hinnat + hakkuurajoitus korttiin). **Seuraavaksi:** tuotantoajon suunnitelma
    omistajan hyväksyttäväksi (tallennuspaikka, yöajo, tiilet, piilotettu moodi `?moodi=metsa`).
-   **Hyväksytty suunnitelma (6.11.2026):** 1 ✅ yöajo + tiedostot Kanta-Hämeelle Metsakartassa (esikatselu); 2 tiedostojen
+   **Hyväksytty suunnitelma (6.11.2026):** 1 ✅ yöajo + tiedostot Kanta-Hämeelle Metsakartassa (esikatselu); 2 ✅ tiedostojen
    karsinta + piilotettu moodi Talokartassa (`?moodi=metsa`); 3 laajennus maakunnittain; 4 julkistus omistajan
-   hyväksynnällä (tietosuojaseloste ennen).
+   hyväksynnällä (tietosuojaseloste ennen; moodivalinnan näyttäminen kaikille = metsa.js:n `params.has("moodi")`-ehto pois).
