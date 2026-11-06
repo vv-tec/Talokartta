@@ -220,6 +220,11 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
 - Osoitehaku, oma verkko-osoite. (Kaikki Manner-Suomen maakunnat lisätty 6.11.2026.)
+- **Metsätilat ja tontit** (suunniteltu 6.11.2026, ei vielä tehty): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
+  Metsätila = kiinteistö, jolla yli 2 ha metsämaata; haku mm. alan, **puuston arvon** (viimeisimmän kuukauden kantohinnoilla),
+  ikärakenteen ja metsäpohjan mukaan. Tontit-moodissa rakentamattomat palstat alan ja rantatiedon mukaan; rakennusoikeus
+  vasta, kun kunnat vievät kaavat Ryhtiin (pakollista 2029). Ensimmäinen askel on Tammela-koe Excelinä tarkistettavaksi.
+  Tarkempi suunnitelma: CLAUDE.md, tiekartan kohta 6.
 
 ## Lähteet ja lisenssit
 

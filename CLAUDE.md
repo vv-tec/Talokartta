@@ -292,3 +292,42 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     Kesto arviolta 1–2 min/ajo, ei kuormita rekistereitä.
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste.
+6. Toimintamoodit **Metsätilat** ja **Tontit** (suunniteltu 6.11.2026 omistajan kanssa, ei toteutettu; ei koodia ennen
+   omistajan lupaa). Sama sivu, yläreunassa moodivalinta **Talot | Metsätilat | Tontit**. Yhteiset: taustakartta, kartan
+   sijainti/zoom, myöhemmin osoitehaku. Moodikohtaiset: tasot, suodatinpaneeli, tietokortti. Moodi verkko-osoitteessa
+   (jaettava linkki). Ristiinlinkitys: metsätilan kortista talonäkymään (jos tilalla asuinrakennus) ja päinvastoin.
+   Käyttäjät eivät näe myynnissä olevia kohteita (myynti-ilmoituksia ei ole avoimena datana) → tutkimiseen ja vertailuun.
+   **Metsätilat** (toteutetaan ensin, data valmiimpaa):
+   - Määritelmä (omistajan päätös 6.11.2026): kiinteistö, jolla yli 2 ha pinta-alaa – tulkittu metsämaaksi (vastaus
+     kysymykseen "riittääkö 2 ha metsämaata"; varmista omistajalta Tammela-kokeessa, jos tulkinta vaikuttaa tuloksiin).
+     Kiinteistön kaikki palstat yhteen; yhden palstan klikkaus korostaa koko tilan.
+   - Lähteet: palstarajat nykyisestä MML-latauksesta (ei lisäkuormaa MML:lle; nyt rajat hylätään → talteen tilakohtaiset
+     tulokset); Metsäkeskuksen avoin metsävaratieto (metsävarakuviot, CC BY 4.0, GPKG kunnittain, EPSG:3067, keskikoko
+     1,4 ha, päivittyy 2×/vk; tarkkuus: kokonaistilavuus ±20 % ~8/10 kuviolla) – haetaan kunnittain esim. 30 pv välein;
+     pellot/suot MTK:sta (sama avain kuin vesialueet); kantohinnat Luonnonvarakeskuksen tilastoista (PxWeb-rajapinta).
+   - Suodattimet: kokonaisala ja metsämaan ala (ha), **puuston arvo** (€ ja €/ha; omistajan nimitys), puumäärä
+     (m³, m³/ha), pääpuulaji, ikärakenne kehitysluokkina (esim. uudistuskypsää ≥ x %), metsäpohja (kasvupaikka,
+     kivennäis-/turvemaa, ojitus), ranta (nykyinen rantalaskenta). Väritys valittavissa: €/ha, kehitysluokka, kasvupaikka.
+   - Tietokortti: alat (metsä/pelto/suo/vesi), puusto puulajeittain, ikärakenne pylväinä, puuston arvo tukki/kuitu
+     eriteltynä + käytetyt kantohinnat ja kuukausi, metsätiedon ajankohta. Maininta: laskennallinen arvo, ei kauppahinta.
+   - Puuston arvo = tukki- ja kuitupuun määrä × Luken kantohinnat hinta-alueittain. Omistajan päätös: **viimeisimmän
+     kuukauden** hinnat, jos mahdollista (jos alueen kuukausihinta puuttuu, esim. vähäisen kaupan takia → edellinen
+     julkaistu kuukausi; kerrotaan kortissa).
+   - Varmistettava kokeessa: tarkka ikä vuosina vs. vain kehitysluokka, kasvupaikka-/maalaji-/ojituskentät, tukki/kuitu-
+     jakauma, aineiston kattavuus (myös valtion maat?) ja ikä alueittain.
+   - Vertailukohta: UPM-metsä "Selvitä metsäsi arvo" laskee arvon avoimesta datasta kiinteistötunnuksella (yksi kerrallaan);
+     meillä kaikki selattavissa kerralla → mainitse tietosuojaselosteessa (kiinteistötunnus → omistaja selvitettävissä MML:stä).
+   **Tontit** (rakentamattomat palstat; toinen vaihe):
+   - Ala, rantatieto kaikille palstoille (nykyinen laskenta laajennettuna), rakentamaton = ei mitään Ryhti-rakennusta
+     (myös saunat, varastot – nyt talteen vain asuinrakennukset; vanhoja pikkurakennuksia voi puuttua rekisteristä),
+     asemakaava-alue vai haja-asutus (kaavojen ulkorajat, todennäköisesti avoimena – selvitä).
+   - Rakennusoikeus: ei koko maasta. Ryhtiin konemuotoiset kaavat vapaaehtoisesti, pakollisiksi 1.1.2029 (5/2026 vasta
+     27 kuntaa sai tallentaa). Siihen asti vain kuntien omat rajapinnat (iso työ/kunta) → aloitetaan ilman ja lisätään
+     kunnittain saatavuuden mukaan. Sivulle selvä varoitus: rakentamaton (ranta)palsta ei usein ole rakennuspaikka
+     (rantarakentaminen ratkaistaan kaavalla).
+   **Toteutusmalli:** oma yöajo/jobi metsälaskennalle (muisti jo 7,6 Gt / 16 Gt), näytetään vain suodatetut kohteet
+   (metsätilat > 2 ha, rakennuspaikan kokoiset rakentamattomat palstat), kaukaa pisteet/tiheysruudut ja lähellä rajat.
+   Jos tiilet eivät mahdu sivun 1 Gt:hen (nyt ~486 Mt), ne tallennetaan erilliseen GitHub-repoon (oma 1 Gt; sama sivu
+   lataa sieltä) tai R2:een. **Ensimmäinen askel:** Tammela-koe (selvitysajo) → GPKG:n muut sarakkeet (onko
+   rekisteriyksikkölaji), Metsäkeskuksen kuviot Tammelalle, tilakohtaiset luvut ja puuston arvo → Excel omistajalle
+   Karttapaikka-linkein + arvio tiilikoosta ennen mitään sivumuutosta.
