@@ -193,3 +193,17 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Muistin huippu 7,6 Gt / 16 Gt. Ensimmäinen deploy jumittui taas (Timeout 10 min) → käsiajo (välimuistilla build 7 min,
     deploy 30 s) julkaisi. Jos Pages-jumit yleistyvät: harkitse deployn automaattista uudelleenyritystä (uusi ajo).
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
+3b. ✅ Automaattinen sivun tarkistus julkaisun jälkeen (6.11.2026). `check/sivutarkistus.mjs` (Node 22 + Playwright 1.63
+    + Chromium), työnkulku `check-site.yml` ("Tarkista sivu": käsin + `workflow_call`), yöajossa jobi `check`
+    (`needs: [build, deploy]`, saa buildin meta.json:n `updated` ja `count`). Tarkistaa 17 kohtaa: meta.json-versio
+    (odottaa Pages-välimuistia enintään 6 × 30 s), määrä = maakuntien summa, 19 pmtiles-tiedostoa (Range → 206 +
+    "PMTiles" v3 -otsake), sivun lataus, taustakartta (tasoja > 20, OpenFreeMap-tiiliä > 0), maakuntatasot, tiheysruudut,
+    paneelin laskuri ja päivitysaika, rakennuksia Tampereella z15 / Tammelassa z14 / Kalliossa z15 / Rovaniemellä z14,
+    tietokortti (eristetyin rakennus, jolla osoite ja palstan ala; osoite ja ala kortissa), puhelin 390 × 844: jaettu
+    linkki `#kartta=` ja Suodattimet-nappi avaa paneelin, JS-virheet (`pageerror`), epäonnistuneet lataukset (fontit
+    ja ERR_ABORTED ohitetaan). Epäonnistuessa uusi yritys 60 s päästä; vasta toinen virhe hälyttää (`::error`, max 8).
+    Kuvakaappaukset (työpöytä Suomi + kortti, puhelin kartta + suodattimet) ajon liitteenä `sivutarkistus` 14 pv.
+    Koeajot 6.11.: erillinen ajo 17/17 OK (tarkistus 43 s, jobi ~2 min asennuksineen), tahallinen virhe
+    (`osoite` = olematon polku) → annotaatio "meta.json: meta.json ei latautunut", exit 1; push-ajo build 9 min →
+    deploy 50 s → check 2 min 8 s (näki uuden version heti) → notify OK. Clauden kone ei voi ladata ajon liitteitä
+    (blob-tallennus estetty proxyssa) → kuvat katsoo omistaja; lokin ✓/✗-rivit riittävät Claudelle.

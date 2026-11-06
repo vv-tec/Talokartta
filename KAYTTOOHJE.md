@@ -31,6 +31,10 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
   voi tarkentua vasta kunnan seuraavassa täydessä tonttihaussa (enintään kahden viikon päästä).
 - **Sivu** on pelkkiä tiedostoja, ei omaa palvelinta tai tietokantaa. Siksi palvelu on ilmainen ja kestää paljon käyttäjiä.
 - **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
+- **Sivun tarkistus:** julkaisun jälkeen GitHub avaa sivun automaattisesti oikeassa selaimessa (työpöytä- ja puhelinkoossa)
+  ja katsoo, että se toimii kuten sinulla: kartta ja taustakartta latautuvat, Tampereella, Tammelassa, Helsingin Kalliossa
+  ja Rovaniemellä näkyy taloja, talon tietokortti aukeaa osoitteineen ja tontin aloineen, puhelimen Suodattimet-nappi
+  toimii eikä sivulla ole virheitä. Jos jokin ei toimi, saat ilmoituksen (kohta 4). Tarkistus kestää noin 2 minuuttia.
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
 **Mukana nyt (6.11.2026): koko Manner-Suomi** – kaikki 18 maakuntaa (Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa,
@@ -44,7 +48,8 @@ Ahvenanmaa puuttuu (ks. kohta 6).
 
 **Normaalisti ei mitään.** Palvelu päivittyy itsestään.
 
-Kun saat sähköpostin otsikolla **"Talokartan päivitys epäonnistui"**, katso kohta 4.
+Kun saat sähköpostin otsikolla **"Talokartan päivitys epäonnistui"** tai **"Talokartan sivun tarkistus löysi
+ongelman"**, katso kohta 4.
 
 Hyvä tapa: avaa sivu silloin tällöin ja katso, että päivitysaika on tuore (enintään vuorokauden vanha).
 
@@ -78,6 +83,7 @@ Ilmoituksessa (GitHubin Issues ja sähköposti) lukee **Kohta** (mikä vaihe ep�
 | "on X Mt, yli GitHub Pagesin rajan" | Jokin karttatiedosto kasvoi liian suureksi. Pyydä Claudea jakamaan alue pienempiin osiin. |
 | Kohta on **deploy** (julkaisu), syy esim. "Timeout reached" | GitHub Pages jumittui sivua päivittäessään (sattunut 5.11. ja 6.11.2026). Ei mitään: seuraava yöajo julkaisee. Jos haluat heti, käynnistä ajo käsin (kohta 5). |
 | "Koe-epäonnistuminen" | Testiajo, joka pysäytettiin tarkoituksella. Ei toimenpiteitä. |
+| Otsikko **"Talokartan sivun tarkistus löysi ongelman"** (kohta **check / sivu**) | Tiedot päivittyivät, mutta automaattinen tarkistus huomasi, ettei kaikki sivulla toimi. Syy kertoo mikä, esim. "Taustakartta" (OpenFreeMap katkolla), "JavaScript-virheet" tai "Rovaniemen keskusta: ei yhtään rakennusta". Avaa sivu itse ja katso. Kuvakaappaukset: ajon sivun alareunassa **Artifacts → sivutarkistus** (zip). Tarkistus yrittää jo kahdesti, joten tilapäinen katko ei hälytä. Pyydä Claudea selvittämään ja liitä ilmoituksen teksti. |
 
 ---
 
@@ -93,6 +99,10 @@ Valikon valinnat (jätä normaalisti tyhjiksi):
 - **koe_virhe** – pysäyttää ajon tarkoituksella. Vain ilmoituksen testaamiseen; saat testisähköpostin.
 - **ohita_tarkistukset** – julkaisee, vaikka turvatarkistus huomauttaisi. Käytä vain, kun tiedät rakennusmäärän
   pudotuksen olevan todellinen (esim. kunta on poistettu asetuksista tarkoituksella).
+
+**Sivun tarkistus käsin** (esim. jos sivu tuntuu oudolta): Actions → vasemmalta **Tarkista sivu** → **Run workflow** →
+jätä osoite tyhjäksi → **Run workflow**. Noin 2 minuutissa vihreä ✓ = sivu toimii. Tulokset näet klikkaamalla ajoa:
+taulukko ✅/❌ ja alareunassa kuvakaappaukset (**sivutarkistus**). Tämä ei päivitä tietoja eikä kuormita rekistereitä.
 
 Muut ajot Actions-välilehdellä (**Selvitys – …**) ovat Clauden koeajoja. Ne eivät vaikuta sivuun.
 
@@ -169,7 +179,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
 - **Ulkoiset palvelut, joista sivu riippuu:** OpenFreeMap (taustakartta) ja unpkg (karttakirjastot). Jos jompikumpi on
-  katkolla, sivu ei toimi kunnes palvelu palaa.
+  katkolla, sivu ei toimi kunnes palvelu palaa. Yöllinen sivun tarkistus huomaa tällaisen katkon ja ilmoittaa siitä.
 
 ---
 
@@ -219,7 +229,6 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 11. Avoimet asiat ja suunnitelmat (6.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
-- **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
 - Osoitehaku, oma verkko-osoite. (Kaikki Manner-Suomen maakunnat lisätty 6.11.2026.)
 - **Metsätilat ja tontit** (suunniteltu 6.11.2026, ei vielä tehty): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
   Metsätila = kiinteistö, jolla yli 2 ha metsämaata; haku mm. alan, **puuston arvon** (viimeisimmän kuukauden kantohinnoilla),

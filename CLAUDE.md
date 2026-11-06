@@ -75,6 +75,14 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   epäonnistunut ajo ei julkaise. `[skip ci]` commit-viestissä ohittaa ajon (pelkät dokumenttimuutokset). Jobi `notify`:
   epäonnistunut ajo avaa issuen (label `ajo-epäonnistui`, mainitsee omistajan) tai kommentoi avointa; onnistunut sulkee.
   Käsiajon `koe_virhe` pysäyttää ajon tarkoituksella. Välimuistin avain `parcels-<aikaleima>` joka ajossa.
+  Jobi `check` (deployn jälkeen) kutsuu `check-site.yml`:ää buildin `updated`/`count`-luvuilla; notify: jos deploy
+  onnistui ja vain check epäonnistui, issuen otsikko "Talokartan sivun tarkistus löysi ongelman" (muuten "…päivitys epäonnistui").
+- `check/` – **sivun tarkistus** (`sivutarkistus.mjs`, Node + Playwright 1.63, `package.json`). Avaa julkaistun sivun
+  Chromiumilla ja tarkistaa 17 kohtaa (meta-versio ja määrät, pmtiles 206, taustakartta, tunnetut paikat Tampere/Tammela/
+  Kallio/Rovaniemi, tietokortti, puhelinkoko, JS-virheet, lataukset). Käyttää sivun globaaleja `map`, `META`, `B_LAYERS`,
+  `state` (`app.js`) sekä id:itä `#card`, `#filtersBtn`, `#panel`, `#visCount`, `#updated` → **päivitä tarkistus, jos
+  nämä muuttuvat** (myös moodien tullessa). Uusi yritys 60 s päästä ennen hälytystä. Käsiajo: työnkulku "Tarkista sivu"
+  (`check-site.yml`, valinnainen `osoite`). Lokin ✓/✗-rivit; kuvakaappaukset liitteenä (Claude ei voi ladata niitä).
 
 ## Tiilien sisältö
 
@@ -110,6 +118,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   `gh api -X POST repos/vv-tec/Talokartta/actions/workflows/build-deploy.yml/dispatches -f ref=main`; selvitysajo esim.
   `.../explore-ryhti.yml/dispatches -f ref=main -f 'inputs[kunta]=maakunnat'`. Seuraa ajoa `gh run view <id> --log` ja
   poimi lokista rivit "Ryhti:", "Rakennuksia", "palstat", "ranta NNN", "Valmis", "Mt", "Muistin huippu", "##[error]".
+  Sivun tarkistus: `.../check-site.yml/dispatches -f ref=main`; tulokset jobin lokista (`actions/jobs/<id>/logs`, rivit ✓/✗).
 - **Kunnan tai maakunnan lisäys:** aja `maakunnat`-tarkistus ennen ja jälkeen; tarkista kuntaliitokset (esim. Pertunmaa
   588 → Mäntyharju 507 1.1.2025: Ryhtissä 0 rakennusta, MML hylkää numeron HTTP 400). Kunnan siirto maakunnasta toiseen ei
   vaadi uudelleenhakua. Päivitä KAYTTOOHJE (maakunnat, luvut, rantataulukko) ja HISTORIA (mittaukset).
@@ -125,22 +134,10 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 ## Tiekartta
 
 Valmiit: 1 Tammela, 2 koko Manner-Suomi (2a–2q maakunnittain), 2x rantatieto, 3 ilmoitus epäonnistuneesta ajosta
-(issue + sähköposti). Yksityiskohdat HISTORIA.md.
+(issue + sähköposti), 3b automaattinen sivun tarkistus (6.11.2026). Yksityiskohdat HISTORIA.md.
+Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist/`:stä (estäisi rikkinäisen julkaisun).
 
-3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei toteutettu; omistajalle ehdotettu seuraavaksi
-    ennen metsätiloja). Tarkoitus: huomata ilman omistajaa, jos julkaistu sivu ei toimi (JS-virhe, CDN- tai
-    taustakarttakatko, rikkinäinen tiili), koska Claude ei näe sivua suoraan. Malli: jobi `check` deployn jälkeen
-    (`needs: deploy`), ennen `notify`a:
-    - Playwright + Chromium GitHubin ajokoneella;
-    - avaa `SITE_URL` (välimuistin ohitus `?v=<ajon id>`), odottaa `meta.json`:n ja kartan latautumisen;
-    - tarkistaa: ei JS-virheitä (`pageerror`), `meta.json`:n määrä ja maakunnat vastaavat buildin lukuja, taustakartta
-      latautui, jokaisen maakunnan pmtiles vastaa (HTTP 206 Range-pyyntöön);
-    - tunnetut kohteet (esim. Tampereen keskusta z15, Tammela z14): `map.queryRenderedFeatures` → pisteitä > 0; avaa
-      tietokortti ja tarkistaa osoitteen ja tontin alan;
-    - puhelinkoko (390 px): Suodattimet-nappi näkyy ja avaa paneelin;
-    - kuvakaappaukset (työpöytä + puhelin) ajon liitteiksi; epäonnistuessa `::error`-rivit → `notify`-issue.
-    Ei voi estää jo tehtyä julkaisua (hälyttää). Myöhemmin: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist/`:stä.
-    Kesto ~1–2 min/ajo, ei kuormita rekistereitä.
+
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste (ennen kuin palvelusta kerrotaan laajemmin; tärkeämpi metsätilojen myötä).
 6. Toimintamoodit **Metsätilat** ja **Tontit** (suunniteltu 6.11.2026 omistajan kanssa, ei toteutettu; ei koodia ennen
