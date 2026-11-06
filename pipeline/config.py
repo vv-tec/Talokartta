@@ -308,6 +308,29 @@ REGIONS = {
         "765",  # Sotkamo
         "777",  # Suomussalmi
     ],
+    "Lappi": [  # tarkistettu Tilastokeskuksen luokituksesta 2026 (selvitysajo "maakunnat"); ei kuntaliitoksia
+        "047",  # Enontekiö
+        "148",  # Inari
+        "240",  # Kemi
+        "241",  # Keminmaa
+        "261",  # Kittilä
+        "273",  # Kolari
+        "320",  # Kemijärvi
+        "498",  # Muonio
+        "583",  # Pelkosenniemi
+        "614",  # Posio
+        "683",  # Ranua
+        "698",  # Rovaniemi
+        "732",  # Salla
+        "742",  # Savukoski
+        "751",  # Simo
+        "758",  # Sodankylä
+        "845",  # Tervola
+        "851",  # Tornio
+        "854",  # Pello
+        "890",  # Utsjoki
+        "976",  # Ylitornio
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -339,7 +362,8 @@ SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uus
                  "Kymenlaakso", "Etelä-Karjala",
                  "Etelä-Savo", "Pohjois-Karjala",
                  "Pohjois-Savo", "Pohjanmaa", "Etelä-Pohjanmaa",
-                 "Keski-Pohjanmaa", "Pohjois-Pohjanmaa", "Kainuu"]
+                 "Keski-Pohjanmaa", "Pohjois-Pohjanmaa", "Kainuu",
+                 "Lappi"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
