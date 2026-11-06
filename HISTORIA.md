@@ -239,3 +239,8 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
 6c. Metsakartta vaihe 2 (6.11.2026): (a) tiileen vain suodatin-/värikentät + kortit kuntakohtaisiin JSONeihin + rajat
     z13 asti: f-kanta-hame 25,7 → 9,1 Mt, kortit 3,0 Mt (11 kuntaa), julkaisu 4 s. Koko Suomi arvio ~0,7 Gt.
     (b) Talokartan piilotettu metsätilanäkymä `?moodi=metsa` (web/metsa.js), tarkistus laajennettu Talokarttaan.
+6d. Metsakartta vaihe 3 alkaa (7.11.2026): Uusimaa lisätty. 26 kuntaa yhdessä ajossa 3 487 s (58 min, budjetti 150 min):
+    Espoo 444 3 398 tilaa 433 s (MML 382 s), Helsinki 091 103 tilaa 200 s, Kauniainen 235 2 tilaa, Raasepori 710
+    70 476 kuviota / 2 997 tilaa 229 s; Metsäkeskus 1–15 s/kunta, MML 33–382 s. Uusimaa 27 326 tilaa,
+    f-uusimaa.pmtiles 15,9 Mt; kortit 37 kuntaa 7,9 Mt; muistin huippu 710 Mt. Kaikki MV_<Kunta>.zip löytyivät
+    (lisätty varatapa: puuttuva tiedosto → varoitus, kunta 0 tilaa). Selaintarkistukset kaikki ✓.

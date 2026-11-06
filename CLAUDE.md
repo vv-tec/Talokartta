@@ -105,6 +105,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
     **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
     pinta-alan mukaan ~0,5 + 0,17 Gt ≈ 0,7 Gt / 1 Gt.** Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML hallitsee).
+    **Vaihe 3 (7.11.2026): + Uusimaa** 26 kuntaa 58 min, 27 326 tilaa, f-uusimaa 15,9 Mt; yhteensä 44 054 tilaa,
+    kortit 7,9 Mt, muisti 710 Mt. Kaikki MV-tiedostot löytyivät nimellä (puuttuva → `::warning` + 0 tilaa).
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
