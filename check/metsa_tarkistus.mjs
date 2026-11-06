@@ -91,7 +91,7 @@ async function run() {
     }, pt);
     if (hit) {
       await page.mouse.click(hit.x, hit.y);
-      await page.waitForSelector("#card", { state: "visible", timeout: 10_000 }).catch(() => {});
+      await page.waitForFunction(() => /Puuston arvo/.test(document.querySelector("#card")?.textContent || ""), null, { timeout: 15_000 }).catch(() => {});
       const card = (await page.textContent("#card")) || "";
       ok("tietokortti aukeaa", /Puuston arvo/.test(card) && /Hakkuurajoitus/.test(card) && /hakkuutavan hinnoin/.test(card),
         card.replace(/\s+/g, " ").slice(0, 120));

@@ -141,9 +141,29 @@ map.on("load", async () => {
   updateCount();
 });
 
-function select(f, ll) {
-  const p = f.properties;
-  for (const r of META.regions) map.setFilter(r.file.replace(/\.pmtiles$/, "") + "-sel", ["==", ["get", "k"], p.k]);
+// Tietokortin tiedot ovat kuntakohtaisissa tiedostoissa data/kortit/<kunta>.json ({c: sarakkeet, r: {tunnus: [arvot]}}),
+// jotta karttatiedostot pysyvät pieninä. Kunta = kiinteistötunnuksen ensimmäinen osa (3 numeroa).
+const CARDS = {};
+function cardData(k) {
+  const muni = k.split("-")[0].padStart(3, "0");
+  CARDS[muni] ??= fetch(`data/${META.cards || "kortit/"}${muni}.json?v=${encodeURIComponent(META.updated)}`)
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return CARDS[muni].then((d) => {
+    const row = d?.r?.[k];
+    return row ? Object.fromEntries(d.c.map((c, i) => [c, row[i]]).filter(([, v]) => v !== null)) : null;
+  });
+}
+
+async function select(f, ll) {
+  const k = f.properties.k;
+  for (const r of META.regions) map.setFilter(r.file.replace(/\.pmtiles$/, "") + "-sel", ["==", ["get", "k"], k]);
+  const card = document.getElementById("card");
+  card.innerHTML = `<h2>${k}</h2><p>Ladataan tietoja…</p>`;
+  card.style.display = "block";
+  const extra = await cardData(k);
+  if (document.querySelector("#card h2")?.textContent !== k) return;  // käyttäjä ehti klikata toista tilaa
+  const p = { tu: 0, oj: 0, hr: 0, ...f.properties, ...(extra || {}), k };
+  if (!extra) { card.innerHTML = `<h2>${k}</h2><p>Tilan tietoja ei saatu ladattua. Yritä hetken päästä uudelleen.</p>`; return; }
   const pr = META.prices?.[p.pa] || {};
   const month = Object.entries(pr).find(([k]) => k.startsWith("PKAUP|"))?.[1]?.[1] || "";
   const monthTxt = month ? `${parseInt(month.slice(5), 10)}/${month.slice(0, 4)}` : "";

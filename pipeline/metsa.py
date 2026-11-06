@@ -40,6 +40,12 @@ PEAT = {"2", "3", "4", "5"}           # korpi, räme, neva, letto
 DEV_KEYS = {"A0": "da", "S0": "da", "T1": "dt", "T2": "dt", "Y1": "dt", "02": "d2", "03": "d3", "04": "d4",
             "05": "d5", "ER": "de"}
 SPECIES_KEY = {"manty": "m", "kuusi": "k", "koivu": "b", "lehti": "l"}
+# Karttatiedostoon vain väritys- ja suodatinkentät (+ tunnus); muut tietokortin tiedot data/kortit/<kunta>.json
+# (ladataan vasta klikatessa). Pienentää tiedostoja ~puoleen (vaihe 2, 6.11.2026).
+TILE_KEYS = ("k", "ka", "e", "eh", "tu", "kp", "da", "dt", "d2", "d3", "d4", "d5")
+CARD_KEYS = ("ka", "mm", "kj", "mu", "mt", "pn", "e", "eh", "eu", "et", "ek", "t", "ku", "v", "vh", "sm", "sk", "sb", "sl",
+             "ps", "ik", "da", "dt", "d2", "d3", "d4", "d5", "de", "kp", "tu", "oj", "hr", "i0", "i1", "rb", "ab", "pa")
+POLY_MAXZOOM = 13  # rajat tallennetaan zoomiin 13 asti (tarkkuus ~0,6 m), lähempänä kartta suurentaa niitä
 
 
 def log(*a):
@@ -366,6 +372,9 @@ def build_site(cache, out, work, regions_ready):
 
     regions_meta, muni_counts, munis_meta = [], {}, {}
     kp_counts, ka_max, e_max = collections.Counter(), 0.0, 0
+    card_dir = os.path.join(data_dir, "kortit")
+    os.makedirs(card_dir, exist_ok=True)
+    card_bytes = 0
     total = 0
     for r in regions_ready:
         src = os.path.join(work, f"f-{slug(r)}.geojsonl")
@@ -376,11 +385,16 @@ def build_site(cache, out, work, regions_ready):
                 data = load_kunta(cache, m)
                 muni_counts[m] = len(data["tilat"])
                 munis_meta[m] = {"date": data["date"], "mv": data["mv"]}
+                cards = {}
                 for rec in data["tilat"]:
                     p = props(rec, prices[areas[m]], areas[m])
                     if not rec["g"]:
                         continue
-                    fpoly.write(json.dumps({"type": "Feature", "properties": p, "geometry":
+                    cards[p["k"]] = [p.get(c) for c in CARD_KEYS]
+                    tp = {c: p[c] for c in TILE_KEYS if p.get(c) not in (None, 0) or c in ("k", "ka", "e", "eh")}
+                    tp["e"] = int(round(p["e"], -2))      # pyöristys parantaa tiedoston pakkautumista
+                    tp["eh"] = int(round(p["eh"], -1))
+                    fpoly.write(json.dumps({"type": "Feature", "properties": tp, "geometry":
                                             {"type": "MultiPolygon", "coordinates": rec["g"]}},
                                            ensure_ascii=False, separators=(",", ":")) + "\n")
                     lons.append(rec["pt"][0])
@@ -388,13 +402,18 @@ def build_site(cache, out, work, regions_ready):
                     kp_counts[p.get("kp", 0)] += 1
                     ka_max, e_max = max(ka_max, p["ka"]), max(e_max, p["e"])
                     n += 1
+                cpath = os.path.join(card_dir, f"{m}.json")
+                with open(cpath, "w", encoding="utf-8") as f:
+                    json.dump({"c": CARD_KEYS, "r": cards}, f, ensure_ascii=False, separators=(",", ":"))
+                card_bytes += os.path.getsize(cpath)
         fname = f"f-{slug(r)}.pmtiles"
-        size = tippecanoe(src, os.path.join(data_dir, fname), "f", config.METSA_POLY_MINZOOM, 14,
+        size = tippecanoe(src, os.path.join(data_dir, fname), "f", config.METSA_POLY_MINZOOM, POLY_MAXZOOM,
                           ["--detect-shared-borders"])
         log(f"Maakunta {r}: {n} metsätilaa, {fname} {size:.1f} Mt")
         regions_meta.append({"name": r, "file": fname, "count": n,
                              "bounds": [min(lons), min(lats), max(lons), max(lats)] if n else None})
         total += n
+    log(f"Tietokortit: {len(muni_counts)} kuntaa, {card_bytes / 1e6:.1f} Mt")
 
     used = {}
     for a, tab in prices.items():
@@ -404,7 +423,7 @@ def build_site(cache, out, work, regions_ready):
         "count": total, "regions": regions_meta, "muni_counts": muni_counts, "munis": munis_meta,
         "prices": used, "poly_minzoom": config.METSA_POLY_MINZOOM, "min_forest_ha": config.METSA_MIN_FOREST_HA,
         "version": VERSION, "kp": {str(k): v for k, v in sorted(kp_counts.items())},
-        "max": {"ka": round(ka_max), "e": e_max},
+        "max": {"ka": round(ka_max), "e": e_max}, "poly_maxzoom": POLY_MAXZOOM, "cards": "kortit/",
     }
     with open(os.path.join(data_dir, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False)
