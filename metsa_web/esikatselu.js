@@ -117,7 +117,8 @@ toggle.addEventListener("click", () => {
 });
 
 map.on("load", async () => {
-  META = await (await fetch("data/meta.json", { cache: "no-cache" })).json();
+  // GitHub Pagesin välimuisti pitää tiedostoja jopa 10 min → kyselyparametri hakee aina tuoreen (pieni tiedosto)
+  META = await (await fetch("data/meta.json?v=" + Date.now(), { cache: "no-cache" })).json();
   const upd = new Date(META.updated).toLocaleString("fi-FI", { dateStyle: "short", timeStyle: "short" });
   document.getElementById("stats").textContent =
     `${fmt(META.count)} metsätilaa: ${META.regions.map((r) => r.name).join(", ")}. Päivitetty ${upd}.`;

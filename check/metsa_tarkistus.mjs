@@ -23,6 +23,17 @@ const visible = (page) => page.evaluate(() =>
   new Set(map.queryRenderedFeatures({ layers: META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill") })
     .map((f) => f.properties.k)).size);
 
+// Pages-välimuisti: odotetaan, kunnes juuri julkaistu meta.json näkyy (enintään 5 × 30 s), ennen sivun testausta.
+async function waitForVersion() {
+  if (!EXPECT_UPDATED) return;
+  for (let i = 1; i <= 6; i++) {
+    const m = await fetch(`${SITE}data/meta.json?v=${Date.now()}`).then((r) => r.json()).catch(() => null);
+    if (m?.updated === EXPECT_UPDATED) return;
+    console.log(`  meta.json: ${m ? "vielä versio " + m.updated : "ei saatu"}, odotetaan 30 s`);
+    if (i < 6) await sleep(30_000);
+  }
+}
+
 async function run() {
   const results = [];
   const ok = (name, pass, info = "") => { results.push({ name, pass, info }); console.log(`${pass ? "✓" : "✗"} ${name}${info ? " – " + info : ""}`); };
@@ -88,6 +99,7 @@ async function run() {
   return results;
 }
 
+await waitForVersion();
 let results = [];
 for (let i = 1; i <= ATTEMPTS; i++) {
   console.log(`Yritys ${i}/${ATTEMPTS}: ${SITE}`);
