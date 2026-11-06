@@ -1,5 +1,6 @@
-/* Metsakartta – esikatselu. Lukee data/meta.json:n ja näyttää metsätilat:
- * zoom 6–10 pisteet (fp.pmtiles, taso "fp"), zoomista 11 rajat (f-<maakunta>.pmtiles, taso "f").
+/* Metsakartta – esikatselu. Lukee data/meta.json:n ja näyttää metsätilat zoomista 11 alkaen
+ * (f-<maakunta>.pmtiles, taso "f"; kaukaa ei mitään, jotta taustakartta erottuu – omistajan toive 6.11.2026).
+ * Suodattimet: kokonaisala, puuston arvo, metsäpohja (maapohja + yleisin kasvupaikka), ikäjakauma.
  * Ominaisuuksien lyhyet avaimet: ks. Talokartan pipeline/metsa.py, funktio props. */
 const AREAS = { MPKH01: "Etelä-Suomi", MPKH02: "Keski-Suomi", MPKH03: "Savo-Karjala", MPKH04: "Kymi-Savo",
   MPKH05: "Etelä-Pohjanmaa", MPKH06: "Pohjois-Pohjanmaa", MPKH07: "Kainuu-Koillismaa", MPKH08: "Lappi" };
@@ -32,7 +33,7 @@ const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 const dataUrl = (file) => "pmtiles://" + new URL("data/" + file, location.href).href;
 const map = new maplibregl.Map({
-  container: "map", style: "https://tiles.openfreemap.org/styles/positron", center: [24.2, 60.85], zoom: 8.5,
+  container: "map", style: "https://tiles.openfreemap.org/styles/positron", center: [23.85, 60.75], zoom: 11,
   hash: "kartta", attributionControl: false,
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -43,16 +44,84 @@ let META = null;
 document.getElementById("legend").innerHTML = STEPS.map(([v, c], i) =>
   `<i style="background:${c}"></i><span>${i < STEPS.length - 1 ? `${fmt(v)}–${fmt(STEPS[i + 1][0])}` : `yli ${fmt(v)}`} €/ha</span>`).join("");
 
+const AGES = [["a", "Aukea ja taimikko", ["da", "dt"]], ["n", "Nuori kasvatusmetsä", ["d2"]],
+  ["v", "Varttunut kasvatusmetsä", ["d3"]], ["u", "Uudistuskypsä", ["d4", "d5"]]];
+const fillIds = () => META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill");
+const num = (id) => { const v = document.getElementById(id).value; return v === "" ? null : Number(v); };
+const sumOf = (keys) => ["+", 0, ...keys.map((k) => ["coalesce", ["get", k], 0])];
+
+function filterExpr() {
+  const f = ["all"];
+  const range = (key, lo, hi) => {
+    if (lo !== null) f.push([">=", ["get", key], lo]);
+    if (hi !== null) f.push(["<=", ["get", key], hi]);
+  };
+  range("ka", num("kaMin"), num("kaMax"));
+  range("e", num("eMin"), num("eMax"));
+  const peat = document.getElementById("peat").value;
+  if (peat === "min") f.push(["<", ["coalesce", ["get", "tu"], 0], 50]);
+  if (peat === "peat") f.push([">=", ["coalesce", ["get", "tu"], 0], 50]);
+  const boxes = [...document.querySelectorAll("#sites input")];
+  const on = boxes.filter((b) => b.checked).map((b) => Number(b.value));
+  if (on.length < boxes.length) f.push(["in", ["coalesce", ["get", "kp"], 0], ["literal", on]]);
+  for (const [id, , keys] of AGES) {
+    const v = Number(document.getElementById("age-" + id).value);
+    if (v > 0) f.push([">=", sumOf(keys), v]);
+  }
+  return f;
+}
+
+function applyFilters() {
+  if (!META) return;
+  const f = filterExpr();
+  for (const r of META.regions) {
+    const id = r.file.replace(/\.pmtiles$/, "");
+    map.setFilter(id + "-fill", f);
+    map.setFilter(id + "-line", f);
+  }
+  updateCount();
+}
+
+function updateCount() {
+  const el = document.getElementById("count");
+  if (map.getZoom() < (META.poly_minzoom || 11)) { el.textContent = "Zoomaa lähemmäs nähdäksesi metsätilat."; return; }
+  const seen = new Set(map.queryRenderedFeatures({ layers: fillIds() }).map((f) => f.properties.k));
+  el.textContent = `Kartalla näkyvissä ${fmt(seen.size)} metsätilaa.`;
+}
+
+function buildFilters() {
+  const kp = META.kp || {};
+  document.getElementById("sites").innerHTML = Object.keys(kp).sort((a, b) => a - b).map((code) =>
+    `<label class="chk"><input type="checkbox" value="${code}" checked> ${SITES[code] || "Ei tietoa"}<span class="n">${fmt(kp[code])}</span></label>`).join("");
+  document.getElementById("ages").innerHTML = AGES.map(([id, lab]) => `<div class="slider">
+    <label for="age-${id}"><span>${lab}</span><span id="age-${id}-v">0 %</span></label>
+    <input type="range" id="age-${id}" min="0" max="100" step="10" value="0"></div>`).join("");
+  document.getElementById("kaMax").placeholder = `enintään (${fmt(META.max?.ka)})`;
+  document.getElementById("panel").addEventListener("input", (e) => {
+    if (e.target.type === "range") document.getElementById(e.target.id + "-v").textContent = e.target.value + " %";
+    applyFilters();
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    for (const el of document.querySelectorAll("#panel input[type=number]")) el.value = "";
+    for (const el of document.querySelectorAll("#sites input")) el.checked = true;
+    for (const [id] of AGES) { document.getElementById("age-" + id).value = 0; document.getElementById("age-" + id + "-v").textContent = "0 %"; }
+    document.getElementById("peat").value = "";
+    applyFilters();
+  });
+}
+
+const toggle = document.getElementById("toggle");
+toggle.addEventListener("click", () => {
+  const open = document.getElementById("panel").classList.toggle("open");
+  toggle.setAttribute("aria-expanded", open);
+});
+
 map.on("load", async () => {
   META = await (await fetch("data/meta.json", { cache: "no-cache" })).json();
   const upd = new Date(META.updated).toLocaleString("fi-FI", { dateStyle: "short", timeStyle: "short" });
   document.getElementById("stats").textContent =
     `${fmt(META.count)} metsätilaa: ${META.regions.map((r) => r.name).join(", ")}. Päivitetty ${upd}.`;
   const minz = META.poly_minzoom || 11;
-  map.addSource("fp", { type: "vector", url: dataUrl("fp.pmtiles") });
-  map.addLayer({ id: "fp", type: "circle", source: "fp", "source-layer": "fp", maxzoom: minz,
-    paint: { "circle-color": color, "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 1.5, 10, 4],
-      "circle-stroke-color": "#24382b", "circle-stroke-width": 0.4 } });
   for (const r of META.regions) {
     const id = r.file.replace(/\.pmtiles$/, "");
     map.addSource(id, { type: "vector", url: dataUrl(r.file) });
@@ -63,12 +132,12 @@ map.on("load", async () => {
     map.addLayer({ id: id + "-sel", type: "line", source: id, "source-layer": "f", minzoom: minz,
       filter: ["==", ["get", "k"], ""], paint: { "line-color": "#d1495b", "line-width": 3 } });
     map.on("click", id + "-fill", (e) => select(e.features[0], e.lngLat));
+    map.on("mouseenter", id + "-fill", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", id + "-fill", () => (map.getCanvas().style.cursor = ""));
   }
-  map.on("click", "fp", (e) => select(e.features[0], e.lngLat));
-  for (const l of ["fp", ...META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill")]) {
-    map.on("mouseenter", l, () => (map.getCanvas().style.cursor = "pointer"));
-    map.on("mouseleave", l, () => (map.getCanvas().style.cursor = ""));
-  }
+  buildFilters();
+  map.on("idle", updateCount);
+  updateCount();
 });
 
 function select(f, ll) {

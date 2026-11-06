@@ -7,7 +7,7 @@ Kulku (python -m pipeline.metsa --out dist --cache cache --work work):
      Talteen vain metsätilat (metsämaata yli METSA_MIN_FOREST_HA): määrät puutavaralajeittain, alat, luokkaosuudet,
      yleistetty raja (lon/lat). Välimuisti cache/metsa/<kunta>.json.gz.
   2. Luken viimeisimmät kantohinnat (joka ajo) → puuston arvo pystykaupan hinnoin ja hakkuutavan hinnoin.
-  3. Valmiit maakunnat (kaikki kunnat tallessa) → f-<maakunta>.pmtiles (rajat), fp.pmtiles (pisteet), meta.json,
+  3. Valmiit maakunnat (kaikki kunnat tallessa) → f-<maakunta>.pmtiles (rajat; ei pisteitä kaukaa – omistajan päätös 6.11.2026), meta.json,
      esikatselusivu (metsa_web/).
 """
 import argparse
@@ -365,39 +365,36 @@ def build_site(cache, out, work, regions_ready):
             fail(f"Luken kantohintoja ei saatu hinta-alueelle {a}")
 
     regions_meta, muni_counts, munis_meta = [], {}, {}
-    pts = os.path.join(work, "fp.geojsonl")
+    kp_counts, ka_max, e_max = collections.Counter(), 0.0, 0
     total = 0
-    with open(pts, "w", encoding="utf-8") as fp:
-        for r in regions_ready:
-            src = os.path.join(work, f"f-{slug(r)}.geojsonl")
-            n = 0
-            lons, lats = [], []
-            with open(src, "w", encoding="utf-8") as fpoly:
-                for m in config.REGIONS[r]:
-                    data = load_kunta(cache, m)
-                    muni_counts[m] = len(data["tilat"])
-                    munis_meta[m] = {"date": data["date"], "mv": data["mv"]}
-                    for rec in data["tilat"]:
-                        p = props(rec, prices[areas[m]], areas[m])
-                        if rec["g"]:
-                            fpoly.write(json.dumps({"type": "Feature", "properties": p, "geometry":
-                                                    {"type": "MultiPolygon", "coordinates": rec["g"]}},
-                                                   ensure_ascii=False, separators=(",", ":")) + "\n")
-                        fp.write(json.dumps({"type": "Feature", "properties": p, "geometry":
-                                             {"type": "Point", "coordinates": rec["pt"]}},
-                                            ensure_ascii=False, separators=(",", ":")) + "\n")
-                        lons.append(rec["pt"][0])
-                        lats.append(rec["pt"][1])
-                        n += 1
-            fname = f"f-{slug(r)}.pmtiles"
-            size = tippecanoe(src, os.path.join(data_dir, fname), "f", config.METSA_POLY_MINZOOM, 14,
-                              ["--detect-shared-borders"])
-            log(f"Maakunta {r}: {n} metsätilaa, {fname} {size:.1f} Mt")
-            regions_meta.append({"name": r, "file": fname, "count": n,
-                                 "bounds": [min(lons), min(lats), max(lons), max(lats)] if n else None})
-            total += n
-    size = tippecanoe(pts, os.path.join(data_dir, "fp.pmtiles"), "fp", 6, config.METSA_POLY_MINZOOM - 1, ["-r1"])
-    log(f"Pisteet: fp.pmtiles {size:.1f} Mt")
+    for r in regions_ready:
+        src = os.path.join(work, f"f-{slug(r)}.geojsonl")
+        n = 0
+        lons, lats = [], []
+        with open(src, "w", encoding="utf-8") as fpoly:
+            for m in config.REGIONS[r]:
+                data = load_kunta(cache, m)
+                muni_counts[m] = len(data["tilat"])
+                munis_meta[m] = {"date": data["date"], "mv": data["mv"]}
+                for rec in data["tilat"]:
+                    p = props(rec, prices[areas[m]], areas[m])
+                    if not rec["g"]:
+                        continue
+                    fpoly.write(json.dumps({"type": "Feature", "properties": p, "geometry":
+                                            {"type": "MultiPolygon", "coordinates": rec["g"]}},
+                                           ensure_ascii=False, separators=(",", ":")) + "\n")
+                    lons.append(rec["pt"][0])
+                    lats.append(rec["pt"][1])
+                    kp_counts[p.get("kp", 0)] += 1
+                    ka_max, e_max = max(ka_max, p["ka"]), max(e_max, p["e"])
+                    n += 1
+        fname = f"f-{slug(r)}.pmtiles"
+        size = tippecanoe(src, os.path.join(data_dir, fname), "f", config.METSA_POLY_MINZOOM, 14,
+                          ["--detect-shared-borders"])
+        log(f"Maakunta {r}: {n} metsätilaa, {fname} {size:.1f} Mt")
+        regions_meta.append({"name": r, "file": fname, "count": n,
+                             "bounds": [min(lons), min(lats), max(lons), max(lats)] if n else None})
+        total += n
 
     used = {}
     for a, tab in prices.items():
@@ -406,7 +403,8 @@ def build_site(cache, out, work, regions_ready):
         "updated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": total, "regions": regions_meta, "muni_counts": muni_counts, "munis": munis_meta,
         "prices": used, "poly_minzoom": config.METSA_POLY_MINZOOM, "min_forest_ha": config.METSA_MIN_FOREST_HA,
-        "version": VERSION,
+        "version": VERSION, "kp": {str(k): v for k, v in sorted(kp_counts.items())},
+        "max": {"ka": round(ka_max), "e": e_max},
     }
     with open(os.path.join(data_dir, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False)
