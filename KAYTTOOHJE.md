@@ -58,7 +58,7 @@ Avaa https://github.com/vv-tec/Talokartta (kirjaudu sisään).
 |---|---|
 | **Actions** | Kaikki ajot. Vihreä ✓ = onnistui, punainen ✗ = epäonnistui, keltainen pyörivä = käynnissä. |
 | **Issues** | Ilmoitukset epäonnistuneista ajoista. Avoin ilmoitus = viimeisin ajo epäonnistui. Ilmoitus sulkeutuu itsestään, kun seuraava ajo onnistuu. |
-| **Code** | Koodi, tämä ohje ja kehittäjän muistio. |
+| **Code** | Koodi, tämä ohje, kehittäjän muistio (CLAUDE.md) ja kehityshistoria mittauksineen (HISTORIA.md). |
 
 Ajon yksityiskohdat: Actions → klikkaa ajoa → klikkaa **build** → avautuu loki.
 Lokin lopussa näkyy esimerkiksi rakennusten määrä ja karttatiedostojen koot.
@@ -154,6 +154,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 - **Aloita uusi keskustelu** isommille uusille asioille. Kirjoita alkuun esimerkiksi:
   *"Jatketaan Talokartta-projektia (GitHub vv-tec/Talokartta). Lue ensin CLAUDE.md ja KAYTTOOHJE.md."*
 - **Pyydä kirjaamaan päätökset** suunnitelmaan (CLAUDE.md). Keskusteluun jääneet päätökset unohtuvat.
+  Suunnitelma pidetään tiiviinä; vanhat mittaukset ja taustat siirretään HISTORIA.md:hen (tiivistetty 6.11.2026).
 - **Tallenna itsellesi tiedostot**, joita haluat säilyttää (esim. Claudelta saadut Excelit) – Clauden työkone on väliaikainen.
 - Pyydä isoista muutoksista silloin tällöin **erillinen katselmointi** uudessa keskustelussa.
 - Tarkista uudet ominaisuudet itse sivulta: Claude kertoo aina, mitä avata ja mitä pitäisi näkyä.
