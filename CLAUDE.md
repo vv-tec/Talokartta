@@ -105,7 +105,9 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     tiileen vain suodatin-/värikentät. Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML-lataus hallitsee).
   - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
     peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit
-    (esim. README) ja aja uudelleen; meni läpi heti.
+    (esim. README) ja aja uudelleen; meni läpi heti. Lisäksi Pages näyttää uuden version joskus vasta 5–15 min
+    "success"-julkaisun jälkeen, kyselyparametrista huolimatta → sivu hakee meta.jsonin `?v=<aika>`, tarkistus odottaa
+    versiota 10 min ja vanha versio on vain varoitus (`::warning`), ei hälytys.
   - Ominaisuudet: `k` tunnus, `ka` kokonaisala, `mm` metsämaa, `kj` kitu+jouto, `mu` muu ala (ha), `mt` metsätietoa %,
     `pn` palstoja, `e` arvo €, `eh` €/ha metsämaata, `eu` arvo hakkuutavan hinnoin, `et`/`ek` tukki/kuitu €, `t`/`ku`
     tukki/kuitu m³, `v` m³, `vh` m³/ha, `sm`/`sk`/`sb`/`sl` puulajit m³ (havu, kuusi, koivu, muu lehti), `ps` pääpuulaji,

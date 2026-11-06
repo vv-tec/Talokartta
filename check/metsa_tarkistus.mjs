@@ -8,7 +8,7 @@ const SITE = (process.env.SITE_URL || "https://vv-tec.github.io/Metsakartta/").r
 const EXPECT_UPDATED = process.env.EXPECT_UPDATED || "";
 const ATTEMPTS = Number(process.env.ATTEMPTS || 2);
 const GH = !!process.env.GITHUB_ACTIONS;
-const TIMEOUT = 60_000;
+const TIMEOUT = 60_000;  // versio-odotus enintään 10 min + kaksi yritystä → jobin aikaraja 25 min
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function idle(page) {
@@ -23,15 +23,17 @@ const visible = (page) => page.evaluate(() =>
   new Set(map.queryRenderedFeatures({ layers: META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill") })
     .map((f) => f.properties.k)).size);
 
-// Pages-välimuisti: odotetaan, kunnes juuri julkaistu meta.json näkyy (enintään 5 × 30 s), ennen sivun testausta.
+// Pages-välimuisti: uusi versio voi näkyä vasta 5–15 min julkaisun jälkeen (6.11.2026 havaittu yli 13 min).
+// Odotetaan enintään 10 min; jos vanha versio näkyy yhä, se on vain varoitus (sivu toimii, päivittyy pian).
 async function waitForVersion() {
-  if (!EXPECT_UPDATED) return;
-  for (let i = 1; i <= 6; i++) {
+  if (!EXPECT_UPDATED) return true;
+  for (let i = 1; i <= 21; i++) {
     const m = await fetch(`${SITE}data/meta.json?v=${Date.now()}`).then((r) => r.json()).catch(() => null);
-    if (m?.updated === EXPECT_UPDATED) return;
+    if (m?.updated === EXPECT_UPDATED) return true;
     console.log(`  meta.json: ${m ? "vielä versio " + m.updated : "ei saatu"}, odotetaan 30 s`);
-    if (i < 6) await sleep(30_000);
+    if (i < 21) await sleep(30_000);
   }
+  return false;
 }
 
 async function run() {
@@ -47,7 +49,10 @@ async function run() {
     await idle(page);
     const meta = await page.evaluate(() => ({ updated: META.updated, count: META.count, regions: META.regions.map((r) => r.name) }));
     ok("meta.json latautui", meta.count > 0, `${meta.count} metsätilaa, ${meta.regions.join(", ")}, päivitetty ${meta.updated}`);
-    if (EXPECT_UPDATED) ok("julkaistu versio näkyy sivulla", meta.updated === EXPECT_UPDATED, `odotettu ${EXPECT_UPDATED}`);
+    if (EXPECT_UPDATED && meta.updated !== EXPECT_UPDATED) {
+      console.log(`! julkaistu versio ei vielä näy (sivulla ${meta.updated}, odotettu ${EXPECT_UPDATED}) – GitHubin välimuisti, ei virhe`);
+      if (GH) console.log(`::warning::Metsakartta: uusi versio ${EXPECT_UPDATED} ei vielä näkynyt 10 min kuluessa (GitHubin välimuisti)`);
+    } else if (EXPECT_UPDATED) ok("julkaistu versio näkyy sivulla", true, EXPECT_UPDATED);
     ok("kaukaa (zoom 9) ei näy tiloja", (await visible(page)) === 0);
 
     await page.evaluate(() => map.jumpTo({ center: [23.85, 60.75], zoom: 12 }));
