@@ -458,8 +458,12 @@ def main(argv=None):
                 break
             fname = index.get(norm(names.get(m, m)))
             if not fname:
-                errors.append(f"kunta {m} ({names.get(m)}): Metsäkeskuksen tiedostoa ei löytynyt")
-                log("  VIRHE " + errors[-1])
+                # Esim. pienellä kaupunkikunnalla ei ehkä ole metsävaratietoa lainkaan → tallennetaan tyhjänä (0 tilaa),
+                # jotta maakunta voidaan julkaista; varoitus lokiin, jotta nimivirhe huomataan.
+                near = [f for k, f in index.items() if k[:4] == norm(names.get(m, m))[:4]]
+                log(f"::warning::Metsakartta: kunnalle {m} ({names.get(m)}) ei löytynyt Metsäkeskuksen tiedostoa "
+                    f"(lähellä: {near or 'ei mitään'}); tallennetaan 0 metsätilaa")
+                save_kunta(args.cache, m, {"date": today.isoformat(), "v": VERSION, "mv": "ei tiedostoa", "n": 0, "tilat": []})
                 continue
             try:
                 save_kunta(args.cache, m, compute_kunta(m, fname, client, args.work))
