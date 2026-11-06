@@ -172,11 +172,11 @@ def num(v):
     return None if v is None or v < 0 else v
 
 
-def read_stands(gp):
+def read_stands(gp, verbose=True):
     """Kuviot: {standid: dict(geom, ha, kasvupaikka..., luvut m³/ha, puulajiosuudet)}; koodien selitteet."""
     con = sqlite3.connect(gp)
     C = codes(con)
-    for key in [("treestand", "treestandclass"), ("growthplacedata", "maingroup"), ("growthplacedata", "subgroup"),
+    for key in [] if not verbose else [("treestand", "treestandclass"), ("growthplacedata", "maingroup"), ("growthplacedata", "subgroup"),
                 ("growthplacedata", "fertilityclass"), ("growthplacedata", "drainagestate"), ("growthplacedata", "soiltype"),
                 ("treestand", "developmentclass"), ("treestratum", "treespecies"), ("treestratum", "storey"),
                 ("treestand", "treestanddatasource"), ("restriction", "cuttingrestriction")]:
@@ -184,7 +184,8 @@ def read_stands(gp):
     cls = C.get(("treestand", "treestandclass"), {})
     cur = next((c for c, l in cls.items() if "nykyhet" in l.lower() or "ajantas" in l.lower()), "2")
     inv = next((c for c, l in cls.items() if "inventoi" in l.lower()), "1")
-    log(f"  puustotiedon luokka: nykyhetki = {cur} ({cls.get(cur)}), inventointi = {inv} ({cls.get(inv)})")
+    if verbose:
+        log(f"  puustotiedon luokka: nykyhetki = {cur} ({cls.get(cur)}), inventointi = {inv} ({cls.get(inv)})")
     sp_lab = C.get(("treestratum", "treespecies"), {}) or C.get(("treestand", "maintreespecies"), {})
 
     stands = {}
@@ -243,7 +244,8 @@ def read_stands(gp):
             share[kind] = {g: v / sum(tot.values()) for g, v in tot.items()}
         s["share"] = share
         paths["ositteista" if rows and any(r[2] is not None for r in rows) else ("ositteiden tilavuudesta" if rows else "pääpuulajista")] += 1
-    log(f"  kuvioita {len(stands)}; puulajijako: {dict(paths)}")
+    if verbose:
+        log(f"  kuvioita {len(stands)}; puulajijako: {dict(paths)}")
     return stands, C
 
 

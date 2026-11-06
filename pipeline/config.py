@@ -374,3 +374,12 @@ DENSITY_GRIDS = [
     {"size": 5000, "minzoom": 0, "maxzoom": 9},
     {"size": 1000, "minzoom": 10, "maxzoom": BUILDING_MINZOOM - 1},
 ]
+
+# ---------- METSAKARTTA (metsätilat; ajetaan repositoriossa vv-tec/Metsakartta, koodi pipeline/metsa.py) ----------
+# Maakunnat, joiden metsätilat lasketaan. Lisätään maakunta kerrallaan (ensimmäinen ajo hakee kunnat heti).
+METSA_REGIONS = ["Kanta-Häme"]
+METSA_MAX_AGE_DAYS = 30        # kunnan metsätiedot ja palstat haetaan uudelleen kuukauden välein (vanhimmasta alkaen)
+METSA_TIME_BUDGET_MIN = 150    # kuntahakuja tehdään enintään näin kauan; loput seuraavalla ajolla
+METSA_MIN_FOREST_HA = 2.0      # metsätila = metsämaata yli 2 ha (omistajan päätös 6.11.2026)
+METSA_SITE_URL = "https://vv-tec.github.io/Metsakartta/"   # julkaistut metsätiedostot (turvatarkistus vertaa tähän)
+METSA_POLY_MINZOOM = 11        # tilan rajat näkyvät tästä zoomista; kauempaa pisteet

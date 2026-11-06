@@ -143,7 +143,35 @@ def run():
         assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
     ryhti_store_tests(parcels)
     shore_tests()
+    metsa_tests()
     print("selftest OK")
+
+
+def metsa_tests():
+    """METSAKARTTA: arvon laskenta, hakuvuoro ja kuntanimet (ohitetaan, jos Shapely ei ole asennettu)."""
+    try:
+        import shapely  # noqa: F401
+    except ImportError:
+        print("  (metsätestit ohitettu: Shapely puuttuu)")
+        return
+    import datetime as dt
+    import tempfile
+    from . import metsa
+    rec = {"k": "83440400030074", "ka": 20.0, "mm": 15.0, "kj": 1.0, "mk": 0.5, "v": 3000, "sp_kuusi": 2000,
+           "sp_manty": 1000, "dc_04": 10, "dc_02": 5, "fc_3": 12, "hr": 15, "am_UUD|TUK_KU": 1000, "am_ENS|KUI_MA": 200}
+    prices = {("PKAUP", "TUK_KU"): (80.0, "2026M09"), ("PKAUP", "KUI_MA"): (20.0, "2026M09"),
+              ("UUD", "TUK_KU"): (90.0, "2026M09")}  # ENS/KUI_MA puuttuu → HAR → PKAUP
+    p = metsa.props(rec, prices, "MPKH01")
+    assert p["e"] == 84000 and p["eu"] == 94000 and p["et"] == 80000 and p["eh"] == 5600, p
+    assert p["mu"] == 3.5 and p["ps"] == "k" and p["d4"] == 67 and p["d2"] == 33 and p["kp"] == 3 and p["hr"] == 100
+    assert metsa.trade_of("03") == "HAR" and metsa.trade_of("T2") == "PKAUP" and metsa.trade_of("04") == "UUD"
+    assert metsa.muni_names()["834"] == "Tammela" and metsa.norm("Hämeenlinna") == "hameenlinna"
+    with tempfile.TemporaryDirectory() as d:
+        metsa.save_kunta(d, "834", {"date": "2026-10-01", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})
+        metsa.save_kunta(d, "061", {"date": "2026-11-05", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})
+        assert metsa.due(d, ["061", "834", "109"], dt.date(2026, 11, 6)) == ["109", "834"]
+        assert metsa.publish_problems({"regions": [{"name": "Kanta-Häme"}], "muni_counts": {"834": 100}},
+                                      ["Kanta-Häme"], {"834": 50}) != []
 
 
 def shore_tests():

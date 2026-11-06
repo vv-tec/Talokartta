@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metsakartta – esikatselu</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+  :root { --bg: #fbfaf7; --fg: #1f2a24; --muted: #5f6b64; --line: #d9ddd6; --accent: #2f6b3f; }
+  html, body { margin: 0; height: 100%; font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  #map { position: absolute; inset: 0; }
+  .box { position: absolute; z-index: 2; background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+         box-shadow: 0 2px 10px rgba(0,0,0,.12); padding: 10px 12px; }
+  #info { top: 12px; left: 12px; max-width: 300px; }
+  #info h1 { font-size: 17px; margin: 0 0 4px; }
+  #info p { margin: 2px 0; color: var(--muted); font-size: 13px; }
+  .legend { display: grid; grid-template-columns: 14px auto; gap: 3px 6px; margin-top: 8px; font-size: 12px; align-items: center; }
+  .legend i { width: 14px; height: 12px; border-radius: 2px; display: inline-block; }
+  #card { bottom: 24px; left: 12px; width: min(360px, calc(100vw - 48px)); max-height: 60vh; overflow: auto; display: none; }
+  #card h2 { font-size: 16px; margin: 0 0 6px; font-family: ui-monospace, monospace; }
+  #card table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  #card td { padding: 2px 0; vertical-align: top; }
+  #card td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  #card .sec { margin: 8px 0 2px; font-weight: 600; font-size: 13px; color: var(--accent); }
+  #card .note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  #card .x { float: right; border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+  .bars { display: flex; height: 12px; border-radius: 3px; overflow: hidden; margin: 4px 0; background: var(--line); }
+  .bars span { height: 100%; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="info" class="box">
+  <h1>Metsakartta – esikatselu</h1>
+  <p>Metsätilat (metsämaata yli 2 ha). Väri: puuston arvo €/ha. Lähellä rajat, kauempana pisteet.</p>
+  <p id="stats">Ladataan…</p>
+  <div class="legend" id="legend"></div>
+  <p style="margin-top:8px">Laskennallinen arvo, ei kauppahinta. Tämä sivu on vain tarkistusta varten.</p>
+</div>
+<div id="card" class="box" role="dialog" aria-label="Metsätilan tiedot"></div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
+<script src="esikatselu.js"></script>
+</body>
+</html>
