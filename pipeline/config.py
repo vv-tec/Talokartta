@@ -298,6 +298,16 @@ REGIONS = {
         "889",  # Utajärvi
         "977",  # Ylivieska
     ],
+    "Kainuu": [  # tarkistettu Tilastokeskuksen luokituksesta 2026 (selvitysajo "maakunnat"); ei kuntaliitoksia
+        "105",  # Hyrynsalmi
+        "205",  # Kajaani
+        "290",  # Kuhmo
+        "578",  # Paltamo
+        "620",  # Puolanka
+        "697",  # Ristijärvi
+        "765",  # Sotkamo
+        "777",  # Suomussalmi
+    ],
 }
 REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
@@ -329,7 +339,7 @@ SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uus
                  "Kymenlaakso", "Etelä-Karjala",
                  "Etelä-Savo", "Pohjois-Karjala",
                  "Pohjois-Savo", "Pohjanmaa", "Etelä-Pohjanmaa",
-                 "Keski-Pohjanmaa", "Pohjois-Pohjanmaa"]
+                 "Keski-Pohjanmaa", "Pohjois-Pohjanmaa", "Kainuu"]
 SITE_URL = "https://vv-tec.github.io/Talokartta/"  # julkaistu sivu (turvatarkistus vertaa sen meta.jsoniin)
 PARCEL_TIME_BUDGET_MIN = 150  # palstojen haku lopetetaan hallitusti, kun ajo on kestänyt näin kauan; loput seuraavalla ajolla
 
