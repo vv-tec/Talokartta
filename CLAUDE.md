@@ -67,7 +67,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     + `g.pmtiles` (tiheysruudut, tile-join) + `meta.json`, kopioi `web/` → `dist/`. Keskeytyy, jos tiedosto > 95 Mt.
   - Selvitysajot (eivät vaikuta sivuun): `ryhti_explore.py` ("Selvitys – Ryhti-kentät"; kunta `maakunnat` = kuntalistojen
     tarkistus Tilastokeskuksen luokitusta kunta_1_YYYY0101#maakunta_1_YYYY0101 vasten, `puuttuu:NNN` = kuntaliitosselvitys),
-    `mml_explore.py` ("Selvitys – MML-tiedostolataus"), `shore_explore.py` ("Selvitys – rantatesti"), `codes_explore.py`.
+    `mml_explore.py` ("Selvitys – MML-tiedostolataus"), `shore_explore.py` ("Selvitys – rantatesti"), `codes_explore.py`,
+    `metsa_explore.py` + `metsa_laske.py` ("Selvitys – metsätilat", vaihe `rakenne` / `laske` → Excel liitteenä + CSV lokiin).
 - `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle lähteen
   ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä,
   taustakartta OpenFreeMap (positron/dark).
@@ -147,8 +148,8 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    Keskeneräinen moodi piilossa (esim. `?moodi=metsa`), kunnes omistaja hyväksyy.
    Käyttäjät eivät näe myynnissä olevia kohteita (myynti-ilmoituksia ei ole avoimena datana) → tutkimiseen ja vertailuun.
    **Metsätilat** (toteutetaan ensin, data valmiimpaa):
-   - Määritelmä (omistajan päätös 6.11.2026): kiinteistö, jolla yli 2 ha pinta-alaa – tulkittu metsämaaksi (vastaus
-     kysymykseen "riittääkö 2 ha metsämaata"; varmista omistajalta Tammela-kokeessa, jos tulkinta vaikuttaa tuloksiin).
+   - Määritelmä (omistajan päätös 6.11.2026): kiinteistö, jolla yli 2 ha pinta-alaa – tulkittu metsämaaksi. Vaikuttaa:
+     Tammelassa kokonaisala > 2 ha 2 355 kiinteistöä, metsämaata > 2 ha 1 689 → omistaja päättää Excelin perusteella.
      Kiinteistön kaikki palstat yhteen; yhden palstan klikkaus korostaa koko tilan.
    - Lähteet: palstarajat nykyisestä MML-latauksesta (ei lisäkuormaa MML:lle; nyt rajat hylätään → talteen tilakohtaiset
      tulokset); Metsäkeskuksen avoin metsävaratieto (metsävarakuviot, CC BY 4.0, GPKG kunnittain, EPSG:3067, keskikoko
@@ -191,6 +192,9 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    **Toteutusmalli:** oma yöajo/jobi metsälaskennalle (muisti jo 7,6 Gt / 16 Gt), näytetään vain suodatetut kohteet
    (metsätilat > 2 ha, rakennuspaikan kokoiset rakentamattomat palstat), kaukaa pisteet/tiheysruudut ja lähellä rajat.
    Jos tiilet eivät mahdu sivun 1 Gt:hen (nyt ~486 Mt), ne tallennetaan erilliseen GitHub-repoon (oma 1 Gt; sama sivu
-   lataa sieltä) tai R2:een. **Ensimmäinen askel:** Tammela-koe (selvitysajo) → GPKG:n muut sarakkeet (onko
-   rekisteriyksikkölaji), Metsäkeskuksen kuviot Tammelalle, tilakohtaiset luvut ja puuston arvo → Excel omistajalle
-   Karttapaikka-linkein + arvio tiilikoosta ennen mitään sivumuutosta.
+   lataa sieltä) tai R2:een.
+   **Tammela-koe tehty 6.11.2026** (luvut HISTORIA.md): 1 689 metsätilaa (metsämaata > 2 ha; kokonaisala > 2 ha 2 355),
+   puuston arvo mediaani 8 400 €/ha, ajo 2 min. Kokoarvio koko Suomelle ~0,4–0,75 Gt (rajat z10/12–14) → **ei mahdu**
+   talojen kanssa sivun 1 Gt:hen → erillinen repo/R2. **Seuraavaksi:** omistajan pistokoe Excelistä (Karttapaikka-linkit,
+   vertailu esim. UPM:n laskuriin) ja päätökset: määritelmä A/B, hinnat (pystykauppa vs. hakkuutavan mukaan),
+   suurten erikoisyksiköiden ja hakkuurajoitettujen (suojelu) käsittely; sitten tuotantoajon suunnittelu.

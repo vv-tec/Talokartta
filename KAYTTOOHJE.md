@@ -233,8 +233,11 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 - **Metsätilat ja tontit** (suunniteltu 6.11.2026, ei vielä tehty): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
   Metsätila = kiinteistö, jolla yli 2 ha metsämaata; haku mm. alan, **puuston arvon** (viimeisimmän kuukauden kantohinnoilla),
   ikärakenteen ja metsäpohjan mukaan. Tontit-moodissa rakentamattomat palstat alan ja rantatiedon mukaan; rakennusoikeus
-  vasta, kun kunnat vievät kaavat Ryhtiin (pakollista 2029). Ensimmäinen askel on Tammela-koe Excelinä tarkistettavaksi.
-  Tarkempi suunnitelma: CLAUDE.md, tiekartan kohta 6.
+  vasta, kun kunnat vievät kaavat Ryhtiin (pakollista 2029). Tarkempi suunnitelma: CLAUDE.md, tiekartan kohta 6.
+  - **Tammela-koe tehty 6.11.2026** (koeajo Actions → **Selvitys – metsätilat**, ei vaikuta sivuun). Tulos on Excel
+    `metsatilat_834.xlsx`: ajon sivun alareunassa **Artifacts → metsatilat-834** (zip). Tammelassa 1 689 metsätilaa
+    (metsämaata yli 2 ha), puuston arvon mediaani noin 8 400 €/ha. Odottaa sinun pistokoettasi ja päätöksiä.
+  - Myöhemmin (ei ensimmäiseen versioon): metsätilojen rantatieto sekä pellot ja suot erikseen (nyt ne ovat "muuta alaa").
 
 ## Lähteet ja lisenssit
 

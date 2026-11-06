@@ -207,3 +207,19 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     (`osoite` = olematon polku) → annotaatio "meta.json: meta.json ei latautunut", exit 1; push-ajo build 9 min →
     deploy 50 s → check 2 min 8 s (näki uuden version heti) → notify OK. Clauden kone ei voi ladata ajon liitteitä
     (blob-tallennus estetty proxyssa) → kuvat katsoo omistaja; lokin ✓/✗-rivit riittävät Claudelle.
+6. Metsätilat – Tammela-koe 6.11.2026 (koeajo "Selvitys – metsätilat": `metsa_explore.py` vaihe `rakenne`, `metsa_laske.py`
+    vaihe `laske`; ajot 42219899316, 42221250166). Metsäkeskuksen uusi tietomalli (1.9.2026): MV_Tammela.zip 53 Mt
+    (GPKG 126 Mt, lataus 3 s), 32 180 kuviota, 100 487 puustotietoa, 185 518 ositetta; puulajijako ositteista 31 962
+    kuviolla, pääpuulajista 214, ilman puustoa 4. MML-kuntatiedosto 37,9 Mt: 10 831 palstaa / 8 687 kiinteistöä
+    (+ naapurikuntien rajapalstat); ei rekisteriyksikkölajia. Kuvioala kunnan kiinteistöillä 45 063 ha (kiinteistöjen
+    ulkopuolella ~0 %). Luke 0100_teokau toimii (PxWeb v1, json-stat2), viimeisin kuukausi 2026M09; Etelä-Suomen
+    pystykauppa €/m³: mäntytukki 78,12, kuusitukki 84,11, koivutukki 61,86, kuitu 22,39 / 24,51 / 22,33.
+    Tulokset: kokonaisala > 2 ha 2 355 kiinteistöä (62 291 ha); metsämaata > 2 ha 1 689 (metsämaa 43 255 ha, puuta
+    7,91 milj. m³ ≈ 183 m³/ha, arvo 424 M€, mediaani 8 401 €/ha, 10 %/90 % 2 771 / 17 305 €/ha); kokoluokat 2–5 ha 491,
+    5–10 ha 417, 10–20 ha 366, 20–50 ha 302, 50–100 ha 67, yli 100 ha 44. Asuinrakennus tilalla 646. Metsätietoa alle 50 %
+    alasta 204 tilalla. Hakkuurajoitus (restriction) keskim. 1,5 %, yli 50 % 15 tilalla (esim. 834-891-1-3 100 %).
+    Suurimmat ovat erikoisyksiköitä (834-874-1-0 5 150 ha, 63 palstaa, 141 asuinrakennusta; 834-891/893) → selvitettävä.
+    Karttatiedostokoe (tippecanoe, 1 m yleistys, 70 379 kärkipistettä): rajat z12–14 1,30 Mt, z10–14 1,72 Mt, pisteet
+    z6–11 0,13 Mt. Pinta-alan mukaan koko Suomi (~430 × Tammela) ~0,56 / 0,74 Gt + pisteet ~0,06 Gt (yläarvio; pohjoisessa
+    tilat isompia) → ei mahdu talojen kanssa 1 Gt:n sivuun. Koko ajo 126 s, muisti pieni.
+    Huom: ajon liitteitä (Excel) Claude ei voi ladata; Claude kokosi saman Excelin lokiin pakatusta CSV:stä.
