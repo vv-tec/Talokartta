@@ -1,0 +1,38 @@
+name: Selvitys – metsätilat
+
+# KOE (tiekartan kohta 6): metsätilat yhdelle kunnalle. Ei vaikuta julkaistuun sivuun eikä yölliseen ajoon.
+# Vaihe "rakenne" tulostaa aineistojen rakenteen lokiin; vaihe "laske" tekee tilakohtaisen Excelin (Artifacts).
+# Kumoaminen: poista tämä tiedosto ja pipeline/metsa_explore.py.
+on:
+  workflow_dispatch:
+    inputs:
+      kunta:
+        description: "Kuntanumero (esim. 834 = Tammela)"
+        default: "834"
+      vaihe:
+        description: "rakenne = aineistojen rakenne, laske = tilakohtainen Excel"
+        default: "rakenne"
+
+jobs:
+  metsa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r pipeline/requirements.txt "shapely~=2.1.0" "openpyxl~=3.1.0"
+      - name: Metsäkoe
+        env:
+          MML_API_KEY: ${{ secrets.MML_API_KEY }}
+        run: python -m pipeline.metsa_explore "${{ inputs.kunta }}" "${{ inputs.vaihe }}"
+      - uses: actions/upload-artifact@v7
+        if: inputs.vaihe == 'laske'
+        with:
+          name: metsatilat-${{ inputs.kunta }}
+          path: metsakoe/*.xlsx
+      - name: Tulokset lokiin (pakattuna, Clauden luettavaksi)
+        if: inputs.vaihe == 'laske'
+        run: |
+          echo "CSVBEGIN"; gzip -c metsakoe/*.csv | base64 -w 4000; echo "CSVEND"
