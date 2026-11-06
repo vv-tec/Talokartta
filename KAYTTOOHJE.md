@@ -34,8 +34,8 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
 - Sivun suodatinpaneelin alareunassa näkyy, milloin tiedot on viimeksi päivitetty.
 
 **Mukana nyt (6.11.2026):** Uusimaa, Varsinais-Suomi, Kanta-Häme, Pirkanmaa, Päijät-Häme, Satakunta, Keski-Suomi,
-Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo, Pohjanmaa, Etelä-Pohjanmaa, Keski-Pohjanmaa ja
-Pohjois-Pohjanmaa – 263 kuntaa, 1 756 994 asuinrakennusta.
+Kymenlaakso, Etelä-Karjala, Etelä-Savo, Pohjois-Karjala, Pohjois-Savo, Pohjanmaa, Etelä-Pohjanmaa, Keski-Pohjanmaa,
+Pohjois-Pohjanmaa ja Kainuu – 271 kuntaa, 1 796 315 asuinrakennusta.
 
 ---
 
@@ -99,7 +99,7 @@ Muut ajot Actions-välilehdellä (**Selvitys – …**) ovat Clauden koeajoja. N
 
 ## 6. Uuden maakunnan lisääminen
 
-Pyydä Claudea, esimerkiksi: *"Lisää Kainuu."*
+Pyydä Claudea, esimerkiksi: *"Lisää Lappi."*
 
 - Claude lisää maakunnan kunnat asetuksiin, ja ensimmäinen ajo alkaa heti.
 - Ensimmäinen ajo kestää noin 30–110 minuuttia (tontit ladataan Maanmittauslaitokselta kunta kerrallaan).
@@ -113,9 +113,9 @@ Pyydä Claudea, esimerkiksi: *"Lisää Kainuu."*
   haetaan sille automaattisesti uudelleen.
 - Yhteen ajoon mahtuu noin 30 kuntaa (1–2 keskikokoista maakuntaa; Pohjois-Pohjanmaa, 31 kuntaa Oulu mukaan lukien, vei 1 h 29 min).
 - **Rantatieto** lasketaan oletuksena samalla, koska se on käytössä kaikissa nykyisissä maakunnissa (lisää ensiajoon
-  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Kainuu ilman rantatietoa."*
+  noin 10–20 %). Jos et halua sitä uudelle maakunnalle, mainitse pyynnössä: *"Lisää Lappi ilman rantatietoa."*
 
-Puuttuvat maakunnat (6.11.2026): Kainuu ja Lappi. Ahvenanmaalla on oma
+Puuttuva maakunta (6.11.2026): Lappi. Ahvenanmaalla on oma
 rakennusrekisterinsä, joten sen tiedot on selvitettävä erikseen.
 
 ---
@@ -161,7 +161,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 9. Kulut ja rajat
 
 - **Kulut:** 0 €. GitHub Actions ja GitHub Pages ovat ilmaisia julkiselle repositoriolle; rekisterien avoin data on maksutonta.
-- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 440 Mt), yksittäinen tiedosto enintään 100 Mt
+- **GitHub Pagesin rajat:** koko sivusto enintään 1 Gt (nyt noin 455 Mt), yksittäinen tiedosto enintään 100 Mt
   (suurin, Uusimaa, noin 63 Mt). Koko Suomi (arviolta 1,9 miljoonaa rakennusta) vie noin 450–500 Mt, joten mahtuu.
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
@@ -204,7 +204,8 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   | Etelä-Pohjanmaa | 15 563 / 89 445 | 17 % |
   | Keski-Pohjanmaa | 5 810 / 27 586 | 21 % |
   | Pohjois-Pohjanmaa | 36 759 / 153 223 | 24 % |
-  | **Yhteensä** | **noin 485 800 / 1 756 994** | **28 %** |
+  | Kainuu | 16 516 / 39 316 | 42 % |
+  | **Yhteensä** | **noin 502 300 / 1 796 315** | **28 %** |
 
 - Rantatieto päivittyy kunnan tonttien kanssa kahden viikon välein; laskenta lisää yöajoon noin 4 minuuttia.
 - Uudelle maakunnalle rantatieto lasketaan oletuksena samalla, kun maakunta lisätään (kohta 6).
@@ -215,7 +216,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
 - **Automaattinen sivun tarkistus** yöajon lopuksi – suunniteltu.
-- Kainuu ja Lappi, osoitehaku, oma verkko-osoite.
+- Lappi, osoitehaku, oma verkko-osoite.
 
 ## Lähteet ja lisenssit
 

@@ -262,6 +262,11 @@ kun toiminta, asetukset, ilmoitukset tai maakunnat muuttuvat** (myös "Päivitet
     153 223 rakennusta, omalla rannalla 36 759 (24 %; Kuusamo 58 %). Yhteensä 1 756 994 rakennusta (263 kuntaa,
     16 maakuntaa), palsta 1 756 993:lle. Tiili 40,5 Mt; tiilet yhteensä ~440 Mt. **Muistin huippu 7,1 Gt** (1,76 milj. rak.)
     → Kainuu + Lappi arviolta ~7,7 Gt / 16 Gt. Pages-julkaisu 30 s. Jäljellä Kainuu (8 kuntaa) ja Lappi (21).
+2p. ✅ Kainuu (8 kuntaa: 105, 205, 290, 578, 620, 697, 765, 777) 6.11.2026 rantatiedon kanssa; ei kuntaliitoksia,
+    `maakunnat`-tarkistus OK ennen ajoa (17/17 maakuntaa). Build 31 min (Ryhti ~1,5 min, palstat + ranta ~27 min; Kajaani
+    56 s, Kuhmo 54 s rantaa). 39 316 rakennusta, omalla rannalla 16 516 (42 %). Yhteensä 1 796 315 rakennusta (271 kuntaa,
+    17 maakuntaa), palsta 1 796 311:lle (4 puuttuu). Tiili 12,4 Mt; tiilet yhteensä ~455 Mt. Muistin huippu 7,3 Gt.
+    Jäljellä Lappi (21 kuntaa; arviolta ~110 000 rak.).
 3. ✅ Ilmoitus omistajalle, jos yöajo epäonnistuu (3.11.2026, GitHub-issue + sähköposti).
 3b. Automaattinen sivun tarkistus yöajon lopuksi (suunniteltu 3.11.2026, ei vielä toteutettu). Tarkoitus: huomata ilman
     omistajaa, jos julkaistu sivu ei toimi (esim. JS-virhe, CDN- tai taustakarttakatko, rikkinäinen tiili), koska Claude ei
