@@ -164,6 +164,7 @@ def metsa_tests():
     p = metsa.props(rec, prices, "MPKH01")
     assert p["e"] == 84000 and p["eu"] == 94000 and p["et"] == 80000 and p["eh"] == 5600, p
     assert p["mu"] == 3.5 and p["ps"] == "k" and p["d4"] == 67 and p["d2"] == 33 and p["kp"] == 3 and p["hr"] == 100
+    assert metsa.props({"k": "83440400030074", "ka": 3.0, "mm": 3.0, "ih": 3.0}, prices, "MPKH01")["ik"] == 0
     assert metsa.trade_of("03") == "HAR" and metsa.trade_of("T2") == "PKAUP" and metsa.trade_of("04") == "UUD"
     assert metsa.muni_names()["834"] == "Tammela" and metsa.norm("Hämeenlinna") == "hameenlinna"
     with tempfile.TemporaryDirectory() as d:

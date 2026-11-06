@@ -294,7 +294,7 @@ def props(rec, prices, area):
     if v > 0:
         p["ps"] = max(sp, key=sp.get)
     if rec.get("ih"):
-        p["ik"] = round(rec["ia"] / rec["ih"])
+        p["ik"] = round(rec.get("ia", 0) / rec["ih"])  # nollat jätetään välimuistista pois (ikä 0 = aukea)
     dev = collections.Counter()
     for code, key in DEV_KEYS.items():
         dev[key] += rec.get("dc_" + code, 0)
