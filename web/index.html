@@ -29,6 +29,11 @@
         <p id="sub">Asuinrakennukset avoimista rekistereistä</p>
       </div>
     </div>
+    <!-- METSÄTILAT (tiekartan kohta 6): moodivalinta näkyy vain osoitteella ?moodi=metsa, kunnes omistaja hyväksyy -->
+    <div id="modeSwitch" class="seg mode" role="group" aria-label="Näkymä" hidden>
+      <button type="button" data-m="talot" aria-pressed="true">Talot</button>
+      <button type="button" data-m="metsa" aria-pressed="false">Metsätilat</button>
+    </div>
     <button type="button" id="filtersBtn" class="btn only-mobile filters-btn" aria-label="Suodattimet" aria-controls="panel" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl">Suodattimet</span><span id="fcount" class="badge" hidden></span></button>
   </header>
 
@@ -88,6 +93,9 @@
     </p>
   </aside>
 
+  <!-- METSÄTILAT: suodatinpaneeli (sisällön rakentaa metsa.js) -->
+  <aside id="fpanel" class="panel" aria-label="Metsätilojen suodattimet" hidden></aside>
+
   <main id="map" aria-label="Kartta"></main>
   <div id="hint" class="hint" hidden>Lähennä nähdäksesi yksittäiset rakennukset</div>
   <article id="card" class="card" hidden aria-live="polite"></article>
@@ -96,5 +104,6 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
 <script src="app.js"></script>
+<script src="metsa.js"></script>
 </body>
 </html>

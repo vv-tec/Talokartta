@@ -219,9 +219,16 @@ function addDataLayers() {
     });
     SEL_LAYERS.push(id + "-sel");
   }
+  setHouseLayers(!window.Metsa?.active);
   applyFilters();
 }
-map.on("style.load", () => { styleReady = true; addDataLayers(); });
+// Talojen tasot piiloon, kun metsätilanäkymä on päällä (metsa.js kutsuu).
+function setHouseLayers(visible) {
+  for (const id of ["g", "g-n", ...B_LAYERS, ...SEL_LAYERS]) {
+    if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+  }
+}
+map.on("style.load", () => { styleReady = true; addDataLayers(); window.Metsa?.addLayers(); });
 
 function applyFilters() {
   if (!B_LAYERS.length || !ranges.year) return;
@@ -244,6 +251,7 @@ function markSelected(id) {
 let countTimer = null;
 function scheduleCount() { clearTimeout(countTimer); countTimer = setTimeout(updateCount, 120); }
 function updateCount() {
+  if (window.Metsa?.active) return window.Metsa.updateCount();
   const z = map.getZoom(), close = z >= minZoomB();
   $("hint").hidden = close || !META;
   if (!close) {
@@ -273,6 +281,7 @@ function pick(point) {
   return best;
 }
 map.on("click", (e) => {
+  if (window.Metsa?.active) return window.Metsa.click(e);
   if (map.getZoom() < minZoomB()) {
     const g = map.getLayer("g") && map.queryRenderedFeatures(e.point, { layers: ["g"] })[0];
     if (g) map.flyTo({ center: g.geometry.coordinates, zoom: Math.max(minZoomB() + 0.6, map.getZoom() + 2) });
@@ -282,6 +291,7 @@ map.on("click", (e) => {
   f ? select(f.properties, f.geometry.coordinates, f.source) : closeCard();
 });
 map.on("mousemove", (e) => {
+  if (window.Metsa?.active) return window.Metsa.hover(e);
   const layers = map.getZoom() < minZoomB() ? ["g"] : B_LAYERS;
   const hit = layers.length && map.getLayer(layers[0]) && map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers }).length;
   map.getCanvas().style.cursor = hit ? "pointer" : "";
@@ -352,6 +362,7 @@ function select(p, coords, source) {
         <dt>Kiinteistötunnus</dt><dd>${p.k ? `${esc(p.k)}<button type="button" class="copy" id="copyKt">Kopioi</button>` : "–"}</dd>
       </dl></div>
       ${shoreCard(p, source)}
+      ${window.Metsa?.enabled ? '<div id="forestLink"></div>' : ""}
       ${notes.length ? `<div class="sect"><h4>Huomioita</h4><ul class="notes">${notes.map((n) => `<li>${n}</li>`).join("")}</ul></div>` : ""}
       <div class="sect"><h4>Avaa muualla</h4><div class="links">
         <a href="${sv}" target="_blank" rel="noopener">Google Street View <small>katunäkymä lähimmästä kuvauspisteestä ↗</small></a>
@@ -367,9 +378,11 @@ function select(p, coords, source) {
     navigator.clipboard?.writeText(p.k).then(() => { e.target.textContent = "Kopioitu"; setTimeout(() => { e.target.textContent = "Kopioi"; }, 1500); },
       () => toast("Kopiointi ei onnistunut"));
   });
+  window.Metsa?.houseLink(p.k, $("forestLink"));
   closePanel();
 }
 function closeCard() {
+  window.Metsa?.clearSelection();
   state.selected = null;
   $("card").hidden = true;
   markSelected("__none__");
@@ -377,9 +390,10 @@ function closeCard() {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeCard(); closePanel(); } });
 
 /* ---------- paneeli (puhelimessa alhaalta nouseva) ---------- */
-function openPanel() { $("panel").classList.add("open"); $("filtersBtn").setAttribute("aria-expanded", "true"); }
-function closePanel() { $("panel").classList.remove("open"); $("filtersBtn").setAttribute("aria-expanded", "false"); }
-$("filtersBtn").addEventListener("click", () => ($("panel").classList.contains("open") ? closePanel() : openPanel()));
+const curPanel = () => $(window.Metsa?.active ? "fpanel" : "panel");  // metsätilanäkymällä oma paneeli
+function openPanel() { curPanel().classList.add("open"); $("filtersBtn").setAttribute("aria-expanded", "true"); }
+function closePanel() { for (const id of ["panel", "fpanel"]) $(id).classList.remove("open"); $("filtersBtn").setAttribute("aria-expanded", "false"); }
+$("filtersBtn").addEventListener("click", () => (curPanel().classList.contains("open") ? closePanel() : openPanel()));
 $("panelClose").addEventListener("click", closePanel);
 
 /* ---------- käynnistys ---------- */
@@ -463,10 +477,10 @@ fetch("data/meta.json", { cache: "no-cache" })
     initControls();
     addDataLayers();  // jos taustakartta ehti latautua ensin
     if (m) {
-      if (m.title) $("sub").textContent = m.title;
+      if (m.title && !window.Metsa?.active) $("sub").textContent = m.title;
       const d = new Date(m.updated);
       $("updated").textContent = `Tiedot päivitetty ${d.toLocaleDateString("fi-FI")} klo ${d.toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}.`;
-      if (!HAD_VIEW) map.fitBounds([[m.bounds[0], m.bounds[1]], [m.bounds[2], m.bounds[3]]], { padding: 40, duration: 0 });
+      if (!HAD_VIEW && !window.Metsa?.active) map.fitBounds([[m.bounds[0], m.bounds[1]], [m.bounds[2], m.bounds[3]]], { padding: 40, duration: 0 });
     } else {
       toast("Aineiston tietoja ei saatu ladattua.");
     }

@@ -5,6 +5,8 @@
 import { chromium } from "playwright";
 
 const SITE = (process.env.SITE_URL || "https://vv-tec.github.io/Metsakartta/").replace(/\/?$/, "/");
+// Talokartan piilotettu metsätilanäkymä (?moodi=metsa), joka lukee tiedot Metsakartasta. Tyhjä = ei tarkisteta.
+const TALO = process.env.TALO_URL ?? "https://vv-tec.github.io/Talokartta/";
 const EXPECT_UPDATED = process.env.EXPECT_UPDATED || "";
 const ATTEMPTS = Number(process.env.ATTEMPTS || 2);
 const GH = !!process.env.GITHUB_ACTIONS;
@@ -100,11 +102,65 @@ async function run() {
     ok("sivu toimii", false, String(e.message || e).slice(0, 200));
   }
   ok("ei JavaScript-virheitä", errors.length === 0, errors.slice(0, 3).join(" | "));
+  if (TALO) await runTalo(browser, ok);
   await browser.close();
   return results;
 }
 
 await waitForVersion();
+// Talokartta ?moodi=metsa: moodivalinta näkyy, talot piilossa, metsätilat näkyvät, suodatin toimii, kortti aukeaa.
+async function runTalo(browser, ok) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e.message || e).slice(0, 300)));
+  const fills = () => page.evaluate(() => map.getStyle().layers.filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id));
+  const vis = () => page.evaluate(() => {
+    const layers = map.getStyle().layers.filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);
+    return new Set(map.queryRenderedFeatures({ layers }).map((f) => f.properties.k)).size;
+  });
+  try {
+    await page.goto(TALO + "?moodi=metsa&t=" + Date.now() + "#kartta=12/60.75/23.85", { waitUntil: "load", timeout: TIMEOUT });
+    await page.waitForFunction(() => window.Metsa?.meta && map.getStyle().layers.some((l) => /^metsa-.*-fill$/.test(l.id)), null, { timeout: TIMEOUT });
+    await idle(page);
+    ok("Talokartta: moodivalinta näkyy", await page.isVisible("#modeSwitch"));
+    ok("Talokartta: metsätilatasot ladattu", (await fills()).length > 0);
+    const n0 = await vis();
+    ok("Talokartta: Tammelassa näkyy metsätiloja", n0 > 20, `${n0} tilaa`);
+    const houses = await page.evaluate(() => B_LAYERS.filter((l) => map.getLayoutProperty(l, "visibility") !== "none").length);
+    ok("Talokartta: talot piilossa metsätilanäkymässä", houses === 0);
+    await page.fill("#fKaMin", "50");
+    await idle(page);
+    const n1 = await vis();
+    ok("Talokartta: suodatin vähentää metsätiloja", n1 < n0 && n1 > 0, `${n0} → ${n1}`);
+    await page.click("#fReset");
+    await idle(page);
+    const pt = await page.evaluate(() => {
+      const layers = map.getStyle().layers.filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);
+      const { width, height } = map.getCanvas().getBoundingClientRect();
+      for (let y = 40; y < height; y += 25) for (let x = 40; x < width; x += 25) {
+        if (map.queryRenderedFeatures([x, y], { layers }).length) return { x, y };
+      }
+      return null;
+    });
+    if (pt) {
+      const box = await page.locator("#map").boundingBox();
+      await page.mouse.click(box.x + pt.x, box.y + pt.y);
+      await page.waitForFunction(() => /Puuston arvo/.test(document.querySelector("#card")?.textContent || ""), null, { timeout: 15_000 }).catch(() => {});
+      const card = (await page.textContent("#card")) || "";
+      ok("Talokartta: metsätilan kortti aukeaa", /Puuston arvo/.test(card) && /Hakkuutavan hinnoin/.test(card), card.replace(/\s+/g, " ").slice(0, 100));
+    } else ok("Talokartta: metsätilan kortti aukeaa", false, "klikattavaa tilaa ei löytynyt");
+    await page.click('#modeSwitch button[data-m="talot"]');
+    await page.evaluate(() => map.jumpTo({ center: [23.763, 60.8095], zoom: 14 }));
+    await idle(page);
+    const back = await page.evaluate(() => new Set(map.queryRenderedFeatures({ layers: B_LAYERS }).map((f) => f.properties.id)).size);
+    ok("Talokartta: takaisin taloihin – rakennukset näkyvät", back > 0, `${back} rakennusta`);
+  } catch (e) {
+    ok("Talokartta: metsätilanäkymä toimii", false, String(e.message || e).slice(0, 200));
+  }
+  ok("Talokartta: ei JavaScript-virheitä", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+}
+
 let results = [];
 for (let i = 1; i <= ATTEMPTS; i++) {
   console.log(`Yritys ${i}/${ATTEMPTS}: ${SITE}`);
