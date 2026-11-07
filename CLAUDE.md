@@ -113,6 +113,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     f 59,6 Mt + kortit 18,8 Mt = 78 Mt.
     **+ Varsinais-Suomi (7.11.2026)** 27 kuntaa 56 min, 35 248 tilaa, f 21,1 Mt; yhteensä 139 842 tilaa, f 80,7 Mt +
     kortit 25,1 Mt = 106 Mt, muisti 1,3 Gt. `mv_file`: MV-tiedosto myös nimen 1. sanalla (Koski Tl → löytyi).
+    **+ Satakunta (7.11.2026)** 16 kuntaa, 24 797 tilaa, f 12,4 Mt; yhteensä 164 639 tilaa, f 93,1 Mt + kortit 29,6 Mt
+    = 123 Mt. `mv_download` yrittää uudelleen 4× (Eurajoki: Connection reset kaatoi ensimmäisen ajon).
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).

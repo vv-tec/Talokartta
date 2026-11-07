@@ -254,3 +254,8 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     102 594 kuviota / 6 135 tilaa 343 s, Turku 853 614 tilaa 250 s, Koski Tl 284 726 tilaa (nimi löytyi); muut 48–199 s.
     35 248 tilaa, f-varsinais-suomi 21,1 Mt; yhteensä 139 842 tilaa, f 80,7 Mt + kortit 25,1 Mt; muistin huippu 1,3 Gt.
     Tarkistukset ✓.
+    Satakunta 7.11.2026: 1. ajo 2 433 s, 15/16 kuntaa; Eurajoki 051 kaatui MV-latauksessa (ConnectionResetError, ei
+    uudelleenyritystä) → ajo virheeseen, ei julkaisua, issue. Välimuisti tallessa → `mv_download` 4 yritystä (20/40/60 s)
+    → 2. ajo vain Eurajoki 164 s (1 431 tilaa), koko ajo 216 s, issue suljettiin automaattisesti. Pori 609 3 205 tilaa
+    323 s, Kankaanpää 214 2 439, Eura 050 2 202. Satakunta 24 797 tilaa, f-satakunta 12,4 Mt; yhteensä 164 639 tilaa,
+    f 93,1 Mt + kortit 29,6 Mt. Tarkistukset ✓.
