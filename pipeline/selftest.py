@@ -166,7 +166,8 @@ def metsa_tests():
     assert p["mu"] == 3.5 and p["ps"] == "k" and p["d4"] == 67 and p["d2"] == 33 and p["kp"] == 3 and p["hr"] == 100
     assert metsa.props({"k": "83440400030074", "ka": 3.0, "mm": 3.0, "ih": 3.0}, prices, "MPKH01")["ik"] == 0
     assert metsa.trade_of("03") == "HAR" and metsa.trade_of("T2") == "PKAUP" and metsa.trade_of("04") == "UUD"
-    assert metsa.muni_names()["834"] == "Tammela" and metsa.norm("Hämeenlinna") == "hameenlinna"
+    names = metsa.muni_names()
+    assert names["834"] == "Tammela" and names["291"] == "Kuhmoinen" and metsa.norm("Hämeenlinna") == "hameenlinna"
     with tempfile.TemporaryDirectory() as d:
         metsa.save_kunta(d, "834", {"date": "2026-10-01", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})
         metsa.save_kunta(d, "061", {"date": "2026-11-05", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})

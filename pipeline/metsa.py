@@ -66,7 +66,8 @@ def trade_of(dc):
 def muni_names():
     """Kuntien nimet config.py:n kommenteista ("834",  # Tammela)."""
     src = open(os.path.join(ROOT, "pipeline", "config.py"), encoding="utf-8").read()
-    return {m: n.strip() for m, n in re.findall(r'"(\d{3})",\s*#\s*([^\n]+)', src)}
+    # lisätiedot sulkeissa pois: "291",  # Kuhmoinen (Pirkanmaata vuodesta 2021) → Kuhmoinen
+    return {m: n.split("(")[0].strip() for m, n in re.findall(r'"(\d{3})",\s*#\s*([^\n]+)', src)}
 
 
 def norm(name):
