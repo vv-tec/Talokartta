@@ -250,3 +250,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     f-pirkanmaa 24,6 Mt; kaikki yhteensä 88 318 tilaa, f 49,6 Mt + kortit 15,9 Mt; muisti 692 Mt. Tarkistukset ✓.
     Päijät-Häme 7.11.2026: 10 kuntaa 1 315 s (22 min), 56–182 s/kunta (Hollola 182 s, Lahti 288 tilaa 167 s).
     16 276 tilaa, f-paijat-hame 10,0 Mt; yhteensä 104 594 tilaa, f 59,6 Mt + kortit 18,8 Mt; muisti 495 Mt. Tarkistukset ✓.
+    Varsinais-Suomi 7.11.2026: 27 kuntaa 3 385 s (56 min). Parainen 445 3 218 tilaa 491 s (MML 428 s), Salo 734
+    102 594 kuviota / 6 135 tilaa 343 s, Turku 853 614 tilaa 250 s, Koski Tl 284 726 tilaa (nimi löytyi); muut 48–199 s.
+    35 248 tilaa, f-varsinais-suomi 21,1 Mt; yhteensä 139 842 tilaa, f 80,7 Mt + kortit 25,1 Mt; muistin huippu 1,3 Gt.
+    Tarkistukset ✓.

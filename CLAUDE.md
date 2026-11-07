@@ -111,6 +111,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     kortit 15,9 Mt ≈ 0,74 kt/tila → koko Suomi ~0,7–0,8 Gt (seuraa). `muni_names` jättää sulkulisätiedot pois (Kuhmoinen).
     **+ Päijät-Häme (7.11.2026)** 10 kuntaa 22 min, 16 276 tilaa, f-paijat-hame 10,0 Mt; yhteensä 104 594 tilaa,
     f 59,6 Mt + kortit 18,8 Mt = 78 Mt.
+    **+ Varsinais-Suomi (7.11.2026)** 27 kuntaa 56 min, 35 248 tilaa, f 21,1 Mt; yhteensä 139 842 tilaa, f 80,7 Mt +
+    kortit 25,1 Mt = 106 Mt, muisti 1,3 Gt. `mv_file`: MV-tiedosto myös nimen 1. sanalla (Koski Tl → löytyi).
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
