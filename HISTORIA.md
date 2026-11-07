@@ -248,3 +248,5 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Tampere 837 1 589 tilaa 226 s, Virrat 936 3 232, Ylöjärvi 980 2 957; muut 54–207 s. Kuhmoisen nimen kommentin
     sulkulisätieto olisi estänyt MV-tiedoston löytymisen → korjattu ennen ajoa (1 874 tilaa). Pirkanmaa 44 264 tilaa,
     f-pirkanmaa 24,6 Mt; kaikki yhteensä 88 318 tilaa, f 49,6 Mt + kortit 15,9 Mt; muisti 692 Mt. Tarkistukset ✓.
+    Päijät-Häme 7.11.2026: 10 kuntaa 1 315 s (22 min), 56–182 s/kunta (Hollola 182 s, Lahti 288 tilaa 167 s).
+    16 276 tilaa, f-paijat-hame 10,0 Mt; yhteensä 104 594 tilaa, f 59,6 Mt + kortit 18,8 Mt; muisti 495 Mt. Tarkistukset ✓.
