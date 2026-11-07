@@ -259,3 +259,8 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     → 2. ajo vain Eurajoki 164 s (1 431 tilaa), koko ajo 216 s, issue suljettiin automaattisesti. Pori 609 3 205 tilaa
     323 s, Kankaanpää 214 2 439, Eura 050 2 202. Satakunta 24 797 tilaa, f-satakunta 12,4 Mt; yhteensä 164 639 tilaa,
     f 93,1 Mt + kortit 29,6 Mt. Tarkistukset ✓.
+    Kymenlaakso 7.–8.11.2026: 6 kuntaa 1 197 s (20 min). Kouvola 286 143 021 kuviota / 64 677 palstaa / 8 756 tilaa
+    555 s (MML 451 s), Hamina 3 038, Kotka 1 326. 17 796 tilaa, f-kymenlaakso 9,6 Mt; ensimmäinen eri hinta-alue (MPKH04).
+    Yhteensä 182 435 tilaa, f 102,7 Mt + kortit 32,7 Mt; muistin huippu 1,3 Gt. Tarkistuksen 1. yritys: Talokartan
+    metsätilanäkymässä "Cannot read properties of undefined (reading 'layers')" (map.getStyle() tyhjä, kun metsa.js
+    lisäsi tasoja) → 2. yritys ✓. Korjattu: addLayers odottaa idle-tapahtumaa, tarkistus käyttää `getStyle()?.layers`.
