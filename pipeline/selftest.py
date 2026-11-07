@@ -168,6 +168,9 @@ def metsa_tests():
     assert metsa.trade_of("03") == "HAR" and metsa.trade_of("T2") == "PKAUP" and metsa.trade_of("04") == "UUD"
     names = metsa.muni_names()
     assert names["834"] == "Tammela" and names["291"] == "Kuhmoinen" and metsa.norm("Hämeenlinna") == "hameenlinna"
+    idx = {"koski": "MV_Koski.zip", "kemionsaari": "MV_Kemiönsaari.zip", "koskitl": "MV_Koski_Tl.zip"}
+    assert metsa.mv_file(idx, "Kemiönsaari") == "MV_Kemiönsaari.zip" and metsa.mv_file(idx, "Koski Tl") == "MV_Koski_Tl.zip"
+    assert metsa.mv_file({"koski": "MV_Koski.zip"}, "Koski Tl") == "MV_Koski.zip" and metsa.mv_file(idx, "Turku") is None
     with tempfile.TemporaryDirectory() as d:
         metsa.save_kunta(d, "834", {"date": "2026-10-01", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})
         metsa.save_kunta(d, "061", {"date": "2026-11-05", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})

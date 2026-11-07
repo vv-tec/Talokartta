@@ -81,6 +81,11 @@ def mv_index():
     return {norm(f[3:-4]): f for f in files}
 
 
+def mv_file(index, name):
+    """Kunnan MV-tiedosto nimellä; varalla ensimmäinen sana ("Koski Tl" → MV_Koski.zip)."""
+    return index.get(norm(name)) or index.get(norm(name.split()[0])) if name.strip() else None
+
+
 # ---------- yhden kunnan laskenta ----------
 
 def mv_download(fname, workdir):
@@ -457,7 +462,7 @@ def main(argv=None):
             if time.time() - t0 > config.METSA_TIME_BUDGET_MIN * 60:
                 log(f"Aikaraja {config.METSA_TIME_BUDGET_MIN} min: {len(todo) - i} kuntaa jää seuraavaan ajoon")
                 break
-            fname = index.get(norm(names.get(m, m)))
+            fname = mv_file(index, names.get(m, m))
             if not fname:
                 # Esim. pienellä kaupunkikunnalla ei ehkä ole metsävaratietoa lainkaan → tallennetaan tyhjänä (0 tilaa),
                 # jotta maakunta voidaan julkaista; varoitus lokiin, jotta nimivirhe huomataan.
