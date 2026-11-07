@@ -149,7 +149,10 @@
   M.addLayers = () => {
     if (!FM || !styleReady || (ids.length && map.getLayer(ids[0] + "-fill"))) return;  // styleReady: app.js
     // tilat taustakartan nimien alle, jotta paikannimet erottuvat
-    const before = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
+    // Taustakartta voi olla hetken kesken (esim. teeman vaihto) → getStyle() on tyhjä; yritetään uudelleen, kun kartta on valmis.
+    const style = map.getStyle();
+    if (!style?.layers) { map.once("idle", M.addLayers); return; }
+    const before = style.layers.find((l) => l.type === "symbol")?.id;
     const minz = FM.poly_minzoom || 10;
     const vis = M.active ? "visible" : "none";
     ids = [];

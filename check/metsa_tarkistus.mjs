@@ -113,14 +113,14 @@ async function runTalo(browser, ok) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e.message || e).slice(0, 300)));
-  const fills = () => page.evaluate(() => map.getStyle().layers.filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id));
+  const fills = () => page.evaluate(() => (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id));
   const vis = () => page.evaluate(() => {
-    const layers = map.getStyle().layers.filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);
+    const layers = (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);
     return new Set(map.queryRenderedFeatures({ layers }).map((f) => f.properties.k)).size;
   });
   try {
     await page.goto(TALO + "?moodi=metsa&t=" + Date.now() + "#kartta=12/60.75/23.85", { waitUntil: "load", timeout: TIMEOUT });
-    await page.waitForFunction(() => window.Metsa?.meta && map.getStyle().layers.some((l) => /^metsa-.*-fill$/.test(l.id)), null, { timeout: TIMEOUT });
+    await page.waitForFunction(() => window.Metsa?.meta && (map.getStyle()?.layers || []).some((l) => /^metsa-.*-fill$/.test(l.id)), null, { timeout: TIMEOUT });
     await idle(page);
     ok("Talokartta: moodivalinta näkyy", await page.isVisible("#modeSwitch"));
     ok("Talokartta: metsätilatasot ladattu", (await fills()).length > 0);
@@ -135,7 +135,7 @@ async function runTalo(browser, ok) {
     await page.click("#fReset");
     await idle(page);
     const pt = await page.evaluate(() => {
-      const layers = map.getStyle().layers.filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);
+      const layers = (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);
       const { width, height } = map.getCanvas().getBoundingClientRect();
       for (let y = 40; y < height; y += 25) for (let x = 40; x < width; x += 25) {
         if (map.queryRenderedFeatures([x, y], { layers }).length) return { x, y };
