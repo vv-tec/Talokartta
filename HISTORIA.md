@@ -244,3 +244,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     70 476 kuviota / 2 997 tilaa 229 s; Metsäkeskus 1–15 s/kunta, MML 33–382 s. Uusimaa 27 326 tilaa,
     f-uusimaa.pmtiles 15,9 Mt; kortit 37 kuntaa 7,9 Mt; muistin huippu 710 Mt. Kaikki MV_<Kunta>.zip löytyivät
     (lisätty varatapa: puuttuva tiedosto → varoitus, kunta 0 tilaa). Selaintarkistukset kaikki ✓.
+    Pirkanmaa 7.11.2026: 23 kuntaa 3 011 s (50 min). Sastamala 790 86 323 kuviota / 6 139 tilaa 380 s (MML 326 s),
+    Tampere 837 1 589 tilaa 226 s, Virrat 936 3 232, Ylöjärvi 980 2 957; muut 54–207 s. Kuhmoisen nimen kommentin
+    sulkulisätieto olisi estänyt MV-tiedoston löytymisen → korjattu ennen ajoa (1 874 tilaa). Pirkanmaa 44 264 tilaa,
+    f-pirkanmaa 24,6 Mt; kaikki yhteensä 88 318 tilaa, f 49,6 Mt + kortit 15,9 Mt; muisti 692 Mt. Tarkistukset ✓.

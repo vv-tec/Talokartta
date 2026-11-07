@@ -107,6 +107,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     pinta-alan mukaan ~0,5 + 0,17 Gt ≈ 0,7 Gt / 1 Gt.** Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML hallitsee).
     **Vaihe 3 (7.11.2026): + Uusimaa** 26 kuntaa 58 min, 27 326 tilaa, f-uusimaa 15,9 Mt; yhteensä 44 054 tilaa,
     kortit 7,9 Mt, muisti 710 Mt. Kaikki MV-tiedostot löytyivät nimellä (puuttuva → `::warning` + 0 tilaa).
+    **+ Pirkanmaa (7.11.2026)** 23 kuntaa 50 min, 44 264 tilaa, f-pirkanmaa 24,6 Mt; yhteensä 88 318 tilaa, f 49,6 Mt +
+    kortit 15,9 Mt ≈ 0,74 kt/tila → koko Suomi ~0,7–0,8 Gt (seuraa). `muni_names` jättää sulkulisätiedot pois (Kuhmoinen).
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
