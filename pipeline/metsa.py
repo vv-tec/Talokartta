@@ -22,6 +22,7 @@ import subprocess
 import sys
 import time
 import zipfile
+import requests
 
 from shapely.ops import unary_union
 from shapely.strtree import STRtree
@@ -88,14 +89,24 @@ def mv_file(index, name):
 
 # ---------- yhden kunnan laskenta ----------
 
-def mv_download(fname, workdir):
+def mv_download(fname, workdir, tries=4):
     dest = os.path.join(workdir, fname)
-    with net.session().get(MV_BASE + fname, stream=True, timeout=900) as r:
-        r.raise_for_status()
-        modified = r.headers.get("Last-Modified", "")
-        with open(dest, "wb") as f:
-            for chunk in r.iter_content(1 << 20):
-                f.write(chunk)
+    for attempt in range(tries):
+        # Yhteys voi katketa kesken (7.11.2026 Eurajoki: "Connection reset by peer") → uusi yritys viiveellä.
+        try:
+            with net.session().get(MV_BASE + fname, stream=True, timeout=900) as r:
+                r.raise_for_status()
+                modified = r.headers.get("Last-Modified", "")
+                with open(dest, "wb") as f:
+                    for chunk in r.iter_content(1 << 20):
+                        f.write(chunk)
+            break
+        except (requests.ConnectionError, requests.Timeout, requests.exceptions.ChunkedEncodingError) as e:
+            if attempt == tries - 1:
+                raise
+            wait = 20 * (attempt + 1)
+            log(f"  {fname}: lataus katkesi ({type(e).__name__}), uusi yritys {wait} s päästä")
+            time.sleep(wait)
     with zipfile.ZipFile(dest) as z:
         name = next(n for n in z.namelist() if n.lower().endswith(".gpkg"))
         z.extract(name, workdir)
