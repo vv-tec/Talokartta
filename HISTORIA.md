@@ -271,3 +271,11 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     4 084 tilaa 315 s, Saarijärvi 3 612, Viitasaari 3 354; muut 67–203 s. MV_Laukaa.zip katkesi (ConnectionError) →
     uusi yritys 20 s päästä onnistui. 44 897 tilaa, f-keski-suomi 26,7 Mt; yhteensä 249 597 tilaa, f 141,7 Mt + kortit
     44,8 Mt; muisti 895 Mt. Tarkistukset ✓ 1. yrityksellä.
+    Etelä-Savo 8.11.2026: ennen ajoa havaittu, että Mäntyharjun (507) kuntatiedoston Pertunmaan palstat (tunnus 588-…)
+    olisi hylätty tunnusalun takia ja kortti haettu tiedostosta 588.json → MERGED_PROPERTY_PREFIXES + kortit tunnusalun
+    mukaan. 1. ajo: kaikki 11 kuntaa "JSONDecodeError: Expecting value" heti MV-latauksen jälkeen (MML:n tiedostopalvelu
+    palautti tyhjiä vastauksia ~16.46–16.50 UTC; Talokartan yöajo oli onnistunut) → ei julkaisua, issue. MML-asiakkaaseen
+    JSON-vastauksen uudelleenyritys + virheeseen kohta (traceback). 2. ajo 3 307 s: Mikkeli 491 194 968 kuviota /
+    9 415 tilaa 708 s (MML 398 s), Savonlinna 740 7 055 tilaa 562 s, Mäntyharju 507 4 817 (sis. Pertunmaa), Pieksämäki
+    4 791. 41 862 tilaa, f-etela-savo 28,9 Mt; kortit 162 tiedostoa 52,4 Mt; muistin huippu 2,0 Gt. Tarkistukset ✓.
+    Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
