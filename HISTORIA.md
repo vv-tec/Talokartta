@@ -267,3 +267,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Etelä-Karjala 8.11.2026: 9 kuntaa 1 361 s (23 min). Lappeenranta 405 95 348 kuviota / 5 842 tilaa 303 s,
     Ruokolahti 3 101, Luumäki 2 935, Imatra 619; muut 79–205 s. 22 265 tilaa, f-etela-karjala 12,3 Mt; yhteensä
     204 700 tilaa, f 115,0 Mt + kortit 36,7 Mt; muisti 851 Mt. Tarkistukset ✓ 1. yrityksellä.
+    Keski-Suomi 8.11.2026: 22 kuntaa 3 066 s (51 min). Jämsä 182 102 939 kuviota / 5 211 tilaa 273 s, Jyväskylä 179
+    4 084 tilaa 315 s, Saarijärvi 3 612, Viitasaari 3 354; muut 67–203 s. MV_Laukaa.zip katkesi (ConnectionError) →
+    uusi yritys 20 s päästä onnistui. 44 897 tilaa, f-keski-suomi 26,7 Mt; yhteensä 249 597 tilaa, f 141,7 Mt + kortit
+    44,8 Mt; muisti 895 Mt. Tarkistukset ✓ 1. yrityksellä.

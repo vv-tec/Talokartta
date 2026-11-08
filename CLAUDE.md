@@ -119,6 +119,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     yhteensä 182 435 tilaa, f 102,7 Mt + kortit 32,7 Mt = 136 Mt. `metsa.js` addLayers odottaa `getStyle()`:a (idle).
     **+ Etelä-Karjala (8.11.2026)** 9 kuntaa 23 min, 22 265 tilaa, f 12,3 Mt; yhteensä 204 700 tilaa, f 115,0 Mt +
     kortit 36,7 Mt = 152 Mt.
+    **+ Keski-Suomi (8.11.2026)** 22 kuntaa 51 min, 44 897 tilaa, f 26,7 Mt; yhteensä 249 597 tilaa (150/292 kuntaa),
+    f 141,7 Mt + kortit 44,8 Mt = 187 Mt → koko Suomi ~0,5–0,7 Gt. MV-latauksen uusi yritys toimi (Laukaa).
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
