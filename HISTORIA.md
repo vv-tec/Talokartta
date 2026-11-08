@@ -278,4 +278,9 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     JSON-vastauksen uudelleenyritys + virheeseen kohta (traceback). 2. ajo 3 307 s: Mikkeli 491 194 968 kuviota /
     9 415 tilaa 708 s (MML 398 s), Savonlinna 740 7 055 tilaa 562 s, Mäntyharju 507 4 817 (sis. Pertunmaa), Pieksämäki
     4 791. 41 862 tilaa, f-etela-savo 28,9 Mt; kortit 162 tiedostoa 52,4 Mt; muistin huippu 2,0 Gt. Tarkistukset ✓.
+    Pohjois-Savo 8.11.2026: 19 kuntaa 3 772 s (63 min). Kuopio 297 209 383 kuviota / 45 041 palstaa / 7 574 tilaa
+    914 s (MML 747 s; ei vieraiden tunnusalkujen varoitusta – Maaningan ja Juankosken tunnukset jo 297), Iisalmi 140
+    2 709, Leppävirta 420 3 868, Kiuruvesi 263 3 707, Lapinlahti 402 3 447; muut 82–274 s. Ei VIRHE- eikä "ei JSON"
+    -rivejä. 46 470 tilaa, f-pohjois-savo 30,0 Mt; yhteensä 337 929 tilaa, f 200,6 Mt + kortit 181 tiedostoa 60,7 Mt;
+    muistin huippu 2,1 Gt. Tarkistukset ✓ 1. yrityksellä.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.

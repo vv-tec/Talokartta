@@ -123,6 +123,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     f 141,7 Mt + kortit 44,8 Mt = 187 Mt → koko Suomi ~0,5–0,7 Gt. MV-latauksen uusi yritys toimi (Laukaa).
     **+ Etelä-Savo (8.11.2026)** 11 kuntaa 55 min (1. ajo: MML palautti tyhjiä vastauksia kaikille → `_req_json`
     yrittää uudelleen ja kertoo tilan), 41 862 tilaa, f 28,9 Mt; yhteensä 291 459 tilaa, f 170,6 Mt + kortit 52,4 Mt.
+    **+ Pohjois-Savo (8.11.2026)** 19 kuntaa 63 min (Kuopio 914 s, ei liitosvaroitusta), 46 470 tilaa, f 30,0 Mt,
+    hinta-alue MPKH03; yhteensä 337 929 tilaa (180/292 kuntaa), f 200,6 Mt + kortit 60,7 Mt = 261 Mt, muisti 2,1 Gt.
     **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"]} (Pertunmaan tunnukset yhä 588) → palstat
     mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`, 162 tiedostoa / 161 kuntaa);
     paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus).
