@@ -283,4 +283,9 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     2 709, Leppävirta 420 3 868, Kiuruvesi 263 3 707, Lapinlahti 402 3 447; muut 82–274 s. Ei VIRHE- eikä "ei JSON"
     -rivejä. 46 470 tilaa, f-pohjois-savo 30,0 Mt; yhteensä 337 929 tilaa, f 200,6 Mt + kortit 181 tiedostoa 60,7 Mt;
     muistin huippu 2,1 Gt. Tarkistukset ✓ 1. yrityksellä.
+    Pohjois-Karjala 8.11.2026: 13 kuntaa 3 400 s (57 min). Ennen ajoa varmuuden vuoksi liitoskuntien tunnusalut
+    Kesälahti 248 (→ Kitee 2020) ja Valtimo 911 (→ Nurmes 2020) + loki "tunnusalut": Kitee 248 0 / 260 17 477 (poistettu
+    asetuksesta), Nurmes 541 11 069 / 911 4 661 (ilman asetusta ~30 % Nurmeksen palstoista olisi jäänyt pois). Joensuu
+    167 7 595 tilaa 464 s, Lieksa 422 4 848 601 s, Kitee 5 224, Nurmes 4 688. 46 783 tilaa, f-pohjois-karjala 29,3 Mt;
+    yhteensä 384 712 tilaa, f 229,9 Mt + kortit 195 tiedostoa 69,2 Mt; muisti 1,7 Gt. Ei varoituksia. Tarkistukset ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.

@@ -125,9 +125,11 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     yrittää uudelleen ja kertoo tilan), 41 862 tilaa, f 28,9 Mt; yhteensä 291 459 tilaa, f 170,6 Mt + kortit 52,4 Mt.
     **+ Pohjois-Savo (8.11.2026)** 19 kuntaa 63 min (Kuopio 914 s, ei liitosvaroitusta), 46 470 tilaa, f 30,0 Mt,
     hinta-alue MPKH03; yhteensä 337 929 tilaa (180/292 kuntaa), f 200,6 Mt + kortit 60,7 Mt = 261 Mt, muisti 2,1 Gt.
-    **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"]} (Pertunmaan tunnukset yhä 588) → palstat
-    mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`, 162 tiedostoa / 161 kuntaa);
-    paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus).
+    **+ Pohjois-Karjala (8.11.2026)** 13 kuntaa 57 min, 46 783 tilaa, f 29,3 Mt; yhteensä 384 712 tilaa (193/292),
+    f 229,9 Mt + kortit 69,2 Mt = 299 Mt → koko Suomi ~0,6–0,7 Gt. Valtimo (→ Nurmes 2020) 4 661 palstaa yhä 911.
+    **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"], "541": ["911"]} (Pertunmaa, Valtimo) → palstat
+    mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`); loki "tunnusalut …" näyttää määrät;
+    paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus). Lisää epäilty liitos ennen ajoa.
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).

@@ -385,6 +385,6 @@ METSA_SITE_URL = "https://vv-tec.github.io/Metsakartta/"   # julkaistut metsäti
 METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa ei mitään
 # Kuntaliitokset, joissa kiinteistötunnukset alkavat yhä vanhalla kuntanumerolla (MML ei ole vielä numeroinut uudelleen):
 # nykyinen kunta → vanhat tunnusalut. Metsälaskenta ottaa nämä palstat mukaan ja tietokortit tallennetaan tunnusalun mukaan.
-# Pertunmaa → Mäntyharju 1.1.2025, Kesälahti → Kitee ja Valtimo → Nurmes 1.1.2020 (varmuuden vuoksi; loki kertoo
-# "tunnusalut …", ovatko vanhat alut vielä käytössä – jos 0, rivin voi poistaa).
-MERGED_PROPERTY_PREFIXES = {"507": ["588"], "260": ["248"], "541": ["911"]}
+# Pertunmaa → Mäntyharju 1.1.2025, Valtimo → Nurmes 1.1.2020 (8.11.2026: 4 661 palstaa yhä 911). Kesälahden (→ Kitee 2020)
+# tunnukset jo 260. Loki "tunnusalut …" kertoo määrät; uusi epäilty liitos kannattaa lisätä varmuuden vuoksi ennen ajoa.
+MERGED_PROPERTY_PREFIXES = {"507": ["588"], "541": ["911"]}
