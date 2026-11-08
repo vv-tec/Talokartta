@@ -295,4 +295,6 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Etelä-Pohjanmaa 9.11.2026: 18 kuntaa 3 005 s (50 min), ei varoituksia (Jalasjärvi → Kurikka 2016 jo 301).
     Seinäjoki 6 341 tilaa 442 s, Kauhava 5 273, Kurikka 4 667 411 s, Kauhajoki 4 191. 50 232 tilaa, f 26,5 Mt;
     yhteensä 472 968, f 276,7 Mt + kortit 227 tiedostoa 84,9 Mt; muisti 0,7 Gt. Tarkistukset ✓.
+    Keski-Pohjanmaa 9.11.2026: 8 kuntaa 1 170 s, ei varoituksia (Kokkola 2009 jo 272: 4 470 tilaa 405 s). 13 123 tilaa,
+    f 8,0 Mt; yhteensä 486 091, f 284,7 Mt + kortit 235 tiedostoa 87,3 Mt. Tarkistukset ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
