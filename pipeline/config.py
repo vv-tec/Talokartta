@@ -377,7 +377,7 @@ DENSITY_GRIDS = [
 
 # ---------- METSAKARTTA (metsätilat; ajetaan repositoriossa vv-tec/Metsakartta, koodi pipeline/metsa.py) ----------
 # Maakunnat, joiden metsätilat lasketaan. Lisätään maakunta kerrallaan (ensimmäinen ajo hakee kunnat heti).
-METSA_REGIONS = ["Kanta-Häme", "Uusimaa", "Pirkanmaa", "Päijät-Häme", "Varsinais-Suomi", "Satakunta", "Kymenlaakso", "Etelä-Karjala", "Keski-Suomi", "Etelä-Savo", "Pohjois-Savo"]
+METSA_REGIONS = ["Kanta-Häme", "Uusimaa", "Pirkanmaa", "Päijät-Häme", "Varsinais-Suomi", "Satakunta", "Kymenlaakso", "Etelä-Karjala", "Keski-Suomi", "Etelä-Savo", "Pohjois-Savo", "Pohjois-Karjala"]
 METSA_MAX_AGE_DAYS = 30        # kunnan metsätiedot ja palstat haetaan uudelleen kuukauden välein (vanhimmasta alkaen)
 METSA_TIME_BUDGET_MIN = 150    # kuntahakuja tehdään enintään näin kauan; loput seuraavalla ajolla
 METSA_MIN_FOREST_HA = 2.0      # metsätila = metsämaata yli 2 ha (omistajan päätös 6.11.2026)
@@ -385,4 +385,6 @@ METSA_SITE_URL = "https://vv-tec.github.io/Metsakartta/"   # julkaistut metsäti
 METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa ei mitään
 # Kuntaliitokset, joissa kiinteistötunnukset alkavat yhä vanhalla kuntanumerolla (MML ei ole vielä numeroinut uudelleen):
 # nykyinen kunta → vanhat tunnusalut. Metsälaskenta ottaa nämä palstat mukaan ja tietokortit tallennetaan tunnusalun mukaan.
-MERGED_PROPERTY_PREFIXES = {"507": ["588"]}  # Pertunmaa liitettiin Mäntyharjuun 1.1.2025
+# Pertunmaa → Mäntyharju 1.1.2025, Kesälahti → Kitee ja Valtimo → Nurmes 1.1.2020 (varmuuden vuoksi; loki kertoo
+# "tunnusalut …", ovatko vanhat alut vielä käytössä – jos 0, rivin voi poistaa).
+MERGED_PROPERTY_PREFIXES = {"507": ["588"], "260": ["248"], "541": ["911"]}

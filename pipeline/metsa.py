@@ -164,6 +164,9 @@ def compute_kunta(muni, mv_file, client, workdir):
             others[p["ref"][:3]] += 1
     # Naapurikuntien rajapalstoja on tavallisesti vähän; suuri määrä vierasta tunnusalkua viittaa kuntaliitokseen,
     # jota ei ole MERGED_PROPERTY_PREFIXES-asetuksessa → varoitus lokiin.
+    if len(prefixes) > 1:
+        own = collections.Counter(r[:3] for r, _ in parcels)
+        log(f"  kunta {muni}: tunnusalut " + ", ".join(f"{k} {own[k]}" for k in sorted(prefixes)))
     big = {k: n for k, n in others.items() if n > max(200, 0.05 * len(parcels))}
     if big:
         log(f"::warning::Metsakartta: kunnan {muni} tiedostossa paljon muiden tunnusalkujen palstoja {big} "
