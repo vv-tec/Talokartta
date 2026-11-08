@@ -264,3 +264,6 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Yhteensä 182 435 tilaa, f 102,7 Mt + kortit 32,7 Mt; muistin huippu 1,3 Gt. Tarkistuksen 1. yritys: Talokartan
     metsätilanäkymässä "Cannot read properties of undefined (reading 'layers')" (map.getStyle() tyhjä, kun metsa.js
     lisäsi tasoja) → 2. yritys ✓. Korjattu: addLayers odottaa idle-tapahtumaa, tarkistus käyttää `getStyle()?.layers`.
+    Etelä-Karjala 8.11.2026: 9 kuntaa 1 361 s (23 min). Lappeenranta 405 95 348 kuviota / 5 842 tilaa 303 s,
+    Ruokolahti 3 101, Luumäki 2 935, Imatra 619; muut 79–205 s. 22 265 tilaa, f-etela-karjala 12,3 Mt; yhteensä
+    204 700 tilaa, f 115,0 Mt + kortit 36,7 Mt; muisti 851 Mt. Tarkistukset ✓ 1. yrityksellä.
