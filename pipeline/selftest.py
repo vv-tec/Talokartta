@@ -155,6 +155,8 @@ def metsa_tests():
         print("  (metsätestit ohitettu: Shapely puuttuu)")
         return
     import datetime as dt
+    import json
+    import os
     import tempfile
     from . import metsa
     rec = {"k": "83440400030074", "ka": 20.0, "mm": 15.0, "kj": 1.0, "mk": 0.5, "v": 3000, "sp_kuusi": 2000,
@@ -171,6 +173,17 @@ def metsa_tests():
     idx = {"koski": "MV_Koski.zip", "kemionsaari": "MV_Kemiönsaari.zip", "koskitl": "MV_Koski_Tl.zip"}
     assert metsa.mv_file(idx, "Kemiönsaari") == "MV_Kemiönsaari.zip" and metsa.mv_file(idx, "Koski Tl") == "MV_Koski_Tl.zip"
     assert metsa.mv_file({"koski": "MV_Koski.zip"}, "Koski Tl") == "MV_Koski.zip" and metsa.mv_file(idx, "Turku") is None
+    idx2 = {"pedersore": "MV_Pedersore.zip", "kemi": "MV_Kemi.zip", "kemijarvi": "MV_Kemijarvi.zip", "keminmaa": "MV_Keminmaa.zip"}
+    assert metsa.mv_file(idx2, "Pedersören kunta") == "MV_Pedersore.zip" and metsa.mv_file(idx2, "Kemi") == "MV_Kemi.zip"
+    assert metsa.mv_file(idx2, "Kemijärvi") == "MV_Kemijarvi.zip" and metsa.mv_file(idx2, "Ke") is None
+    assert metsa.merged_of("507") == ["588"] and metsa.merged_of("834") == []
+    with tempfile.TemporaryDirectory() as td:
+        for m in ("834", "507"):
+            metsa.save_kunta(td, m, {"date": dt.date.today().isoformat(), "v": metsa.VERSION, "mv": "x", "n": 1, "tilat": []})
+        assert metsa.due(td, ["834", "507"], dt.date.today()) == []
+        sp = os.path.join(td, "metsa", "state.json")
+        st = json.load(open(sp)); st["507"]["px"] = []; json.dump(st, open(sp, "w"))
+        assert metsa.due(td, ["834", "507"], dt.date.today()) == ["507"]  # liitosasetus muuttui → uudelleen
     assert metsa.own_prefixes("507") == {"507", "588"} and metsa.own_prefixes("834") == {"834"}
     assert metsa.card_prefix("588-402-1-23") == "588" and metsa.card_prefix("91-1-2-3") == "091"
     with tempfile.TemporaryDirectory() as d:

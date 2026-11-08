@@ -84,8 +84,16 @@ def mv_index():
 
 
 def mv_file(index, name):
-    """Kunnan MV-tiedosto nimellä; varalla ensimmäinen sana ("Koski Tl" → MV_Koski.zip)."""
-    return index.get(norm(name)) or index.get(norm(name.split()[0])) if name.strip() else None
+    """Kunnan MV-tiedosto nimellä; varalla ensimmäinen sana ("Koski Tl" → MV_Koski.zip) ja lopuksi yksikäsitteinen
+    alkuosa ("Pedersören kunta" → MV_Pedersore.zip)."""
+    if not name.strip():
+        return None
+    n = norm(name)
+    hit = index.get(n) or index.get(norm(name.split()[0]))
+    if hit:
+        return hit
+    near = {f for k, f in index.items() if len(k) >= 5 and (n.startswith(k) or k.startswith(n))}
+    return near.pop() if len(near) == 1 else None
 
 
 # ---------- yhden kunnan laskenta ----------
@@ -136,6 +144,11 @@ def own_prefixes(muni):
     """Kunnan omat kiinteistötunnusten alut (3 numeroa), myös liitetyn kunnan vanha numero."""
     m = muni.zfill(3)
     return {m, *getattr(config, "MERGED_PROPERTY_PREFIXES", {}).get(m, [])}
+
+
+def merged_of(muni):
+    """Kunnan lisätunnusalut (kuntaliitokset) välimuistin tilaa varten: muutos → kunta lasketaan uudelleen."""
+    return sorted(own_prefixes(muni) - {muni.zfill(3)})
 
 
 def card_prefix(k):
@@ -274,7 +287,7 @@ def save_kunta(cache, muni, data):
     os.replace(tmp, cache_path(cache, muni))
     sp = os.path.join(cache, "metsa", "state.json")
     state = json.load(open(sp, encoding="utf-8")) if os.path.exists(sp) else {}
-    state[muni] = {"date": data["date"], "v": data["v"], "n": data["n"], "mv": data["mv"]}
+    state[muni] = {"date": data["date"], "v": data["v"], "n": data["n"], "mv": data["mv"], "px": merged_of(muni)}
     json.dump(state, open(sp, "w", encoding="utf-8"), indent=0, sort_keys=True)
     with open(os.path.join(cache, "metsa.stamp"), "w") as f:  # välimuistin avain (workflow)
         f.write(dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S"))
@@ -287,7 +300,7 @@ def due(cache, munis, today):
         info = kunta_info(cache, m)
         if not info or not os.path.exists(cache_path(cache, m)):
             out.append(("0000-00-00", m))
-        elif info["v"] != VERSION or (today - dt.date.fromisoformat(info["date"])).days >= config.METSA_MAX_AGE_DAYS:
+        elif info["v"] != VERSION or info.get("px", merged_of(m)) != merged_of(m) or (today - dt.date.fromisoformat(info["date"])).days >= config.METSA_MAX_AGE_DAYS:
             out.append((info["date"], m))
     return [m for _, m in sorted(out)]
 
