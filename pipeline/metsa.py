@@ -131,6 +131,17 @@ def lonlat_geom(g):
     return out
 
 
+def own_prefixes(muni):
+    """Kunnan omat kiinteistötunnusten alut (3 numeroa), myös liitetyn kunnan vanha numero."""
+    m = muni.zfill(3)
+    return {m, *getattr(config, "MERGED_PROPERTY_PREFIXES", {}).get(m, [])}
+
+
+def card_prefix(k):
+    """Tietokortin tiedosto valitaan kiinteistötunnuksen alusta (sama sääntö kuin selaimessa)."""
+    return str(k).split("-")[0].zfill(3)
+
+
 def compute_kunta(muni, mv_file, client, workdir):
     """Palauttaa kunnan metsätilat välimuistiin tallennettavassa muodossa."""
     t0 = time.time()
@@ -141,12 +152,21 @@ def compute_kunta(muni, mv_file, client, workdir):
         os.remove(gp)
     t_mv = time.time() - t0
     raw = municipality_parcels(client, muni, workdir, log=log)
-    parcels = []
+    prefixes = own_prefixes(muni)
+    parcels, others = [], collections.Counter()
     for p in raw:
-        if p["ref"].startswith(muni.zfill(3)):
+        if p["ref"][:3] in prefixes:
             g = to_shape(p["polys"])
             if g is not None and not g.is_empty:
                 parcels.append((p["ref"], g))
+        else:
+            others[p["ref"][:3]] += 1
+    # Naapurikuntien rajapalstoja on tavallisesti vähän; suuri määrä vierasta tunnusalkua viittaa kuntaliitokseen,
+    # jota ei ole MERGED_PROPERTY_PREFIXES-asetuksessa → varoitus lokiin.
+    big = {k: n for k, n in others.items() if n > max(200, 0.05 * len(parcels))}
+    if big:
+        log(f"::warning::Metsakartta: kunnan {muni} tiedostossa paljon muiden tunnusalkujen palstoja {big} "
+            f"– kuntaliitos? (config.MERGED_PROPERTY_PREFIXES)")
     t_mml = time.time() - t0 - t_mv
     allb, resb = collections.Counter(), collections.Counter()
     for b in ryhti.buildings(muni):
@@ -392,6 +412,7 @@ def build_site(cache, out, work, regions_ready):
     card_dir = os.path.join(data_dir, "kortit")
     os.makedirs(card_dir, exist_ok=True)
     card_bytes = 0
+    all_cards = collections.defaultdict(dict)
     total = 0
     for r in regions_ready:
         src = os.path.join(work, f"f-{slug(r)}.geojsonl")
@@ -402,12 +423,11 @@ def build_site(cache, out, work, regions_ready):
                 data = load_kunta(cache, m)
                 muni_counts[m] = len(data["tilat"])
                 munis_meta[m] = {"date": data["date"], "mv": data["mv"]}
-                cards = {}
                 for rec in data["tilat"]:
                     p = props(rec, prices[areas[m]], areas[m])
                     if not rec["g"]:
                         continue
-                    cards[p["k"]] = [p.get(c) for c in CARD_KEYS]
+                    all_cards[card_prefix(p["k"])][p["k"]] = [p.get(c) for c in CARD_KEYS]
                     tp = {c: p[c] for c in TILE_KEYS if p.get(c) not in (None, 0) or c in ("k", "ka", "e", "eh")}
                     tp["e"] = int(round(p["e"], -2))      # pyöristys parantaa tiedoston pakkautumista
                     tp["eh"] = int(round(p["eh"], -1))
@@ -419,10 +439,6 @@ def build_site(cache, out, work, regions_ready):
                     kp_counts[p.get("kp", 0)] += 1
                     ka_max, e_max = max(ka_max, p["ka"]), max(e_max, p["e"])
                     n += 1
-                cpath = os.path.join(card_dir, f"{m}.json")
-                with open(cpath, "w", encoding="utf-8") as f:
-                    json.dump({"c": CARD_KEYS, "r": cards}, f, ensure_ascii=False, separators=(",", ":"))
-                card_bytes += os.path.getsize(cpath)
         fname = f"f-{slug(r)}.pmtiles"
         size = tippecanoe(src, os.path.join(data_dir, fname), "f", config.METSA_POLY_MINZOOM, POLY_MAXZOOM,
                           ["--detect-shared-borders"])
@@ -430,7 +446,13 @@ def build_site(cache, out, work, regions_ready):
         regions_meta.append({"name": r, "file": fname, "count": n,
                              "bounds": [min(lons), min(lats), max(lons), max(lats)] if n else None})
         total += n
-    log(f"Tietokortit: {len(muni_counts)} kuntaa, {card_bytes / 1e6:.1f} Mt")
+    # Kortit tunnusalun mukaan (selain päättelee tiedoston tunnuksesta; liitetyn kunnan tilat vanhalla numerolla)
+    for pre, cards in sorted(all_cards.items()):
+        cpath = os.path.join(card_dir, f"{pre}.json")
+        with open(cpath, "w", encoding="utf-8") as f:
+            json.dump({"c": CARD_KEYS, "r": cards}, f, ensure_ascii=False, separators=(",", ":"))
+        card_bytes += os.path.getsize(cpath)
+    log(f"Tietokortit: {len(all_cards)} tiedostoa ({len(muni_counts)} kuntaa), {card_bytes / 1e6:.1f} Mt")
 
     used = {}
     for a, tab in prices.items():

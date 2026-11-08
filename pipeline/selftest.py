@@ -171,6 +171,8 @@ def metsa_tests():
     idx = {"koski": "MV_Koski.zip", "kemionsaari": "MV_Kemiönsaari.zip", "koskitl": "MV_Koski_Tl.zip"}
     assert metsa.mv_file(idx, "Kemiönsaari") == "MV_Kemiönsaari.zip" and metsa.mv_file(idx, "Koski Tl") == "MV_Koski_Tl.zip"
     assert metsa.mv_file({"koski": "MV_Koski.zip"}, "Koski Tl") == "MV_Koski.zip" and metsa.mv_file(idx, "Turku") is None
+    assert metsa.own_prefixes("507") == {"507", "588"} and metsa.own_prefixes("834") == {"834"}
+    assert metsa.card_prefix("588-402-1-23") == "588" and metsa.card_prefix("91-1-2-3") == "091"
     with tempfile.TemporaryDirectory() as d:
         metsa.save_kunta(d, "834", {"date": "2026-10-01", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})
         metsa.save_kunta(d, "061", {"date": "2026-11-05", "v": metsa.VERSION, "mv": "", "n": 1, "tilat": []})
