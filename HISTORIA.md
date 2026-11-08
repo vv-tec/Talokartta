@@ -292,4 +292,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     uudelleenlaskenta). 14 kuntaa 2 447 s (41 min), kaikki MV-tiedostot löytyivät, ei liitosvaroituksia (Vöyri 2011,
     Vaasa 2013 jo uusilla tunnuksilla). Mustasaari 5 735 tilaa, Närpiö 5 579, Vöyri 4 276; Kaskinen 15, Pietarsaari 270.
     38 024 tilaa, f-pohjanmaa 20,3 Mt; yhteensä 422 736, f 250,2 Mt + kortit 209 tiedostoa 76,0 Mt; muisti 0,7 Gt. ✓.
+    Etelä-Pohjanmaa 9.11.2026: 18 kuntaa 3 005 s (50 min), ei varoituksia (Jalasjärvi → Kurikka 2016 jo 301).
+    Seinäjoki 6 341 tilaa 442 s, Kauhava 5 273, Kurikka 4 667 411 s, Kauhajoki 4 191. 50 232 tilaa, f 26,5 Mt;
+    yhteensä 472 968, f 276,7 Mt + kortit 227 tiedostoa 84,9 Mt; muisti 0,7 Gt. Tarkistukset ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.

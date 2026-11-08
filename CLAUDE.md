@@ -129,6 +129,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     f 229,9 Mt + kortit 69,2 Mt = 299 Mt → koko Suomi ~0,6–0,7 Gt. Valtimo (→ Nurmes 2020) 4 661 palstaa yhä 911.
     **+ Pohjanmaa (8.11.2026)** 14 kuntaa 41 min, 38 024 tilaa, f 20,3 Mt; yhteensä 422 736 tilaa (207/292),
     f 250,2 Mt + kortit 76,0 Mt = 326 Mt. `mv_file` myös yksikäsitteisellä alkuosalla (Pedersören kunta).
+    **+ Etelä-Pohjanmaa (9.11.2026)** 18 kuntaa 50 min, 50 232 tilaa, f 26,5 Mt; yhteensä 472 968 tilaa (225/292),
+    f 276,7 Mt + kortit 84,9 Mt = 362 Mt.
     **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"], "541": ["911"]} (Pertunmaa, Valtimo) → palstat
     mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`); loki "tunnusalut …" näyttää määrät;
     paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus). Lisää epäilty liitos ennen ajoa.
