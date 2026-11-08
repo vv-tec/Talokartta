@@ -127,9 +127,12 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     hinta-alue MPKH03; yhteensä 337 929 tilaa (180/292 kuntaa), f 200,6 Mt + kortit 60,7 Mt = 261 Mt, muisti 2,1 Gt.
     **+ Pohjois-Karjala (8.11.2026)** 13 kuntaa 57 min, 46 783 tilaa, f 29,3 Mt; yhteensä 384 712 tilaa (193/292),
     f 229,9 Mt + kortit 69,2 Mt = 299 Mt → koko Suomi ~0,6–0,7 Gt. Valtimo (→ Nurmes 2020) 4 661 palstaa yhä 911.
+    **+ Pohjanmaa (8.11.2026)** 14 kuntaa 41 min, 38 024 tilaa, f 20,3 Mt; yhteensä 422 736 tilaa (207/292),
+    f 250,2 Mt + kortit 76,0 Mt = 326 Mt. `mv_file` myös yksikäsitteisellä alkuosalla (Pedersören kunta).
     **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"], "541": ["911"]} (Pertunmaa, Valtimo) → palstat
     mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`); loki "tunnusalut …" näyttää määrät;
     paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus). Lisää epäilty liitos ennen ajoa.
+    Tilassa `px` (= `merged_of`): asetuksen muutos → `due` laskee kunnan uudelleen seuraavassa ajossa.
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).

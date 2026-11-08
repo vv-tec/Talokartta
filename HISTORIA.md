@@ -288,4 +288,8 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     asetuksesta), Nurmes 541 11 069 / 911 4 661 (ilman asetusta ~30 % Nurmeksen palstoista olisi jäänyt pois). Joensuu
     167 7 595 tilaa 464 s, Lieksa 422 4 848 601 s, Kitee 5 224, Nurmes 4 688. 46 783 tilaa, f-pohjois-karjala 29,3 Mt;
     yhteensä 384 712 tilaa, f 229,9 Mt + kortit 195 tiedostoa 69,2 Mt; muisti 1,7 Gt. Ei varoituksia. Tarkistukset ✓.
+    Pohjanmaa 8.11.2026: ennen ajoa `mv_file`-alkuosahaku ("Pedersören kunta") ja `px`-tila (liitosasetuksen muutos →
+    uudelleenlaskenta). 14 kuntaa 2 447 s (41 min), kaikki MV-tiedostot löytyivät, ei liitosvaroituksia (Vöyri 2011,
+    Vaasa 2013 jo uusilla tunnuksilla). Mustasaari 5 735 tilaa, Närpiö 5 579, Vöyri 4 276; Kaskinen 15, Pietarsaari 270.
+    38 024 tilaa, f-pohjanmaa 20,3 Mt; yhteensä 422 736, f 250,2 Mt + kortit 209 tiedostoa 76,0 Mt; muisti 0,7 Gt. ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.

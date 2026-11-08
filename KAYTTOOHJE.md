@@ -262,10 +262,10 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   epäonnistuneesta ajosta.
   Sivu on vain tarkistusta varten; metsätilat tulevat Talokarttaan omaksi näkymäkseen myöhemmin.
 - **Mukana nyt (8.11.2026):** Kanta-Häme, Uusimaa, Pirkanmaa, Päijät-Häme, Varsinais-Suomi, Satakunta, Kymenlaakso,
-  Etelä-Karjala, Keski-Suomi, Etelä-Savo, Pohjois-Savo ja Pohjois-Karjala, 193 kuntaa, 384 712 metsätilaa (Kanta-Häme 16 728,
+  Etelä-Karjala, Keski-Suomi, Etelä-Savo, Pohjois-Savo, Pohjois-Karjala ja Pohjanmaa, 207 kuntaa, 422 736 metsätilaa (Kanta-Häme 16 728,
   Uusimaa 27 326, Pirkanmaa 44 264, Päijät-Häme 16 276, Varsinais-Suomi 35 248, Satakunta 24 797, Kymenlaakso 17 796,
   Etelä-Karjala 22 265, Keski-Suomi 44 897, Etelä-Savo 41 862, Pohjois-Savo 46 470,
-  Pohjois-Karjala 46 783).
+  Pohjois-Karjala 46 783, Pohjanmaa 38 024).
 - **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
   kuukauden välein, muutama kunta kerrallaan; kantohinnat (Luke) joka ajossa uusimmasta julkaistusta kuukaudesta.
   Ajo kestää yleensä muutaman minuutin.
@@ -273,15 +273,15 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Tiedostot vievät nyt noin 299 Mt
+- **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Tiedostot vievät nyt noin 326 Mt
   (Kanta-Häme 9 Mt, Uusimaa 16 Mt, Pirkanmaa 25 Mt, Päijät-Häme 10 Mt, Varsinais-Suomi 21 Mt, Satakunta 12 Mt,
   Kymenlaakso 10 Mt, Etelä-Karjala 12 Mt, Keski-Suomi 27 Mt, Etelä-Savo 29 Mt, Pohjois-Savo 30 Mt,
-  Pohjois-Karjala 29 Mt, tietokortit 69 Mt); koko Suomi arviolta
+  Pohjois-Karjala 29 Mt, Pohjanmaa 20 Mt, tietokortit 76 Mt); koko Suomi arviolta
   0,5–0,7 Gt (raja 1 Gt). Uuden maakunnan ensimmäinen haku kestää 20–60 min (Uusimaa 58, Pirkanmaa 50, Päijät-Häme 22,
   Varsinais-Suomi 56, Satakunta 41, Kymenlaakso 20, Etelä-Karjala 23, Keski-Suomi 51, Etelä-Savo 55,
-  Pohjois-Savo 63, Pohjois-Karjala 57).
+  Pohjois-Savo 63, Pohjois-Karjala 57, Pohjanmaa 41).
 - **Kuntaliitokset:** jos liitetyn kunnan kiinteistötunnukset alkavat yhä vanhalla numerolla (esim. Pertunmaa 588 →
-  Mäntyharju, Valtimo 911 → Nurmes), Claude lisää sen asetukseen; ajo varoittaa lokissa, jos se huomaa uuden tällaisen tapauksen.
+  Mäntyharju, Valtimo 911 → Nurmes), Claude lisää sen asetukseen (kunta lasketaan silloin automaattisesti uudelleen); ajo varoittaa lokissa, jos se huomaa uuden tällaisen tapauksen.
 - **Jos yksittäisen kunnan haku katkeaa** (ilmoituksessa esim. "Connection reset"): muut kunnat jäävät talteen ja
   julkaisu odottaa, kunnes maakunta on valmis. Seuraava ajo (aamulla tai käsiajo) hakee vain puuttuvan kunnan.
 - **Jos julkaisu jumittuu** (ilmoituksessa "Timeout reached"): GitHubin oma häiriö. Pyydä Claudea ajamaan uudelleen
