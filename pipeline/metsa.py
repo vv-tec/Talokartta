@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import time
+import traceback
 import zipfile
 import requests
 
@@ -508,7 +509,10 @@ def main(argv=None):
                 save_kunta(args.cache, m, compute_kunta(m, fname, client, args.work))
             except Exception as e:  # noqa: BLE001 – yksi kunta ei kaada muita; jää haettavaksi seuraavaan ajoon
                 errors.append(f"kunta {m} ({names.get(m)}): {type(e).__name__}: {e}"[:300])
-                log("  VIRHE " + errors[-1])
+                # missä vaiheessa (tiedosto:rivi funktio) – helpottaa vianetsintää
+                where = " ← ".join(f"{os.path.basename(f.filename)}:{f.lineno} {f.name}"
+                                   for f in traceback.extract_tb(e.__traceback__)[-3:])
+                log("  VIRHE " + errors[-1] + f" [{where}]")
 
     ready = [r for r in config.METSA_REGIONS if all(os.path.exists(cache_path(args.cache, m)) for m in config.REGIONS[r])]
     waiting = [r for r in config.METSA_REGIONS if r not in ready]

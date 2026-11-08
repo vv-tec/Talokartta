@@ -44,12 +44,25 @@ class MMLFiles:
             time.sleep(min(60, 5 * 2 ** attempt))
         raise RuntimeError(f"{method} {url} epäonnistui: {err}")
 
+    def _req_json(self, method, url, tries=4, **kw):
+        """Kuten _req, mutta vastauksen on oltava JSONia. Tyhjä tai muu vastaus (esim. huoltosivu, 8.11.2026 koko
+        Etelä-Savo: "Expecting value") yritetään uudelleen viiveellä; lopuksi virheilmoitukseen tila ja vastauksen alku."""
+        for attempt in range(tries):
+            r = self._req(method, url, **kw)
+            try:
+                return r.json()
+            except ValueError:
+                err = f"HTTP {r.status_code}, {r.headers.get('Content-Type', '?')}, vastaus: {r.text[:200]!r}"
+                if self.log:
+                    self.log(f"  MML: ei JSON-vastausta ({err}), uusi yritys")
+                time.sleep(min(120, 15 * 2 ** attempt))
+        raise RuntimeError(f"{method} {url}: ei JSON-vastausta ({err})")
+
     def get_json(self, path):
-        return self._req("GET", path if path.startswith("http") else BASE + path).json()
+        return self._req_json("GET", path if path.startswith("http") else BASE + path)
 
     def execute(self, process_id, inputs):
-        r = self._req("POST", f"{BASE}/processes/{process_id}/execution", json={"id": process_id, "inputs": inputs})
-        job = r.json()
+        job = self._req_json("POST", f"{BASE}/processes/{process_id}/execution", json={"id": process_id, "inputs": inputs})
         return job.get("jobID") or job.get("jobId") or job.get("id")
 
     def wait(self, job_id, max_minutes=120):
