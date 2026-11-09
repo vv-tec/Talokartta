@@ -98,7 +98,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`),
     `data/r.pmtiles` (**metsäruudut**, taso "r", `metsa_grid.py` `ForestGrid` + `write_grid`, `config.METSA_GRIDS` 5 km z0–7,
     1 km z8–9; tilan m³ ja metsämaa jaetaan ruuduille alaosuuksin, oma leikkaus ilman Shapelya; näytetään, jos metsämaata
-    ≥ `MIN_SHARE` 5 % ruudusta; ominaisuudet vh, mm, n, s (km), c = i·10000+j; meta `grid`),
+    ≥ `MIN_SHARE` 5 % ruudusta; ominaisuudet vh, mm, n, s (km), c = i·10000+j; meta `grid`; 9.11.2026: 5 km 11 755 ja
+    1 km 262 692 ruutua, r.pmtiles 11,6 Mt, jako 493 s + tiedosto 32 s joka ajossa, muisti 1,2 Gt),
     esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri m³/ha (9.11.2026, ennen €/ha), tietokortti, **suodattimet**: kokonaisala,
     puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
     nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). Kaukaa ei pisteitä (6.11.2026: peittivät taustakartan);

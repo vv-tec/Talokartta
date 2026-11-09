@@ -277,14 +277,14 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   juuri näy.
 - **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
   kuukauden välein, muutama kunta kerrallaan; kantohinnat (Luke) joka ajossa uusimmasta julkaistusta kuukaudesta.
-  Ajo kestää yleensä 20–30 min (noin 10 kuntaa yössä). Koska suurin osa kunnista lisättiin 6.–9.11.2026, niiden
+  Ajo kestää yleensä 30–40 min (noin 10 kuntaa yössä; metsäruutujen laskenta noin 9 min). Koska suurin osa kunnista lisättiin 6.–9.11.2026, niiden
   kuukausipäivitys osuu joulukuun alkuun: muutamana aamuna ajo kestää silloin noin 2,5 h ja osa kunnista siirtyy
   seuraavaan yöhön. Se on normaalia, eikä siitä tule ilmoitusta; kartalla näkyvät sillä välin edelliset tiedot.
 - **Ilmoitukset:** epäonnistunut ajo avaa Metsakartan **Issues**-välilehdelle ilmoituksen "Metsakartan päivitys
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Koko:** tiedostot vievät noin 534 Mt sivuston 1 Gt:n rajasta (tilarajat 421 Mt, suurimmat Lappi 53 Mt ja
+- **Koko:** tiedostot vievät noin 546 Mt sivuston 1 Gt:n rajasta (tilarajat 421 Mt, metsäruudut 12 Mt, suurimmat Lappi 53 Mt ja
   Pohjois-Pohjanmaa 52 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 114 Mt). Maakunnan ensimmäinen haku kesti
   20–82 min (pisin Pohjois-Pohjanmaa 82, Lappi 69).
 - **Kuntaliitokset:** jos liitetyn kunnan kiinteistötunnukset alkavat yhä vanhalla numerolla (esim. Pertunmaa 588 →

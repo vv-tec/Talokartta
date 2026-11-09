@@ -307,4 +307,9 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     **Koko Manner-Suomi valmis:** 632 504 metsätilaa, 292 kuntaa, f 404,6 Mt + kortit 293 tiedostoa 113,7 Mt ≈ 518 Mt;
     muisti 1,5 Gt. Tarkistukset ✓. Maakuntien lisäys 6.–9.11.2026; epäonnistuneet ajot vain Satakunnassa
     (Eurajoki, Connection reset) ja Etelä-Savossa (MML:n tyhjät vastaukset) → uudelleenyritykset koodiin.
+    Metsäruudut 9.11.2026 (omistajan päätös: kaukaa ruudut, väri m³/ha metsämaata myös tiloissa, ruudun tietoruutu):
+    5 km 11 755 ja 1 km 262 692 ruutua (näytetään, jos metsätilojen metsämaata ≥ 5 % ruudusta), r.pmtiles 11,6 Mt;
+    jako ruutuihin 493 s + tiedostot 32 s (koko ajo ilman hakuja 805 s), muisti 1,2 Gt. Ensimmäinen ajo kaatui
+    ZeroDivisionErroriin (ruutukoot asetuksissa suurin ensin) → järjestys lajitellaan, testi asetusten järjestyksellä.
+    Tiiliin lisättiin samana päivänä vh (m³/ha) liukusäädintä varten: f 404,6 → 420,6 Mt.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
