@@ -148,6 +148,18 @@ async function runTalo(browser, ok) {
       ok(`Talokartta: liukusäädin ${lab} vähentää metsätiloja`, b < a && b > 0, `${a} → ${b}`);
       await page.click("#fReset");
     }
+    // Tilojen värin valinta: € ↔ m³/ha vaihtaa täyttövärin lausekkeen
+    {
+      const colorKey = () => page.evaluate(() => {
+        const l = (map.getStyle()?.layers || []).find((x) => /^metsa-.*-fill$/.test(x.id));
+        return JSON.stringify(map.getPaintProperty(l.id, "fill-color")).includes('["get","e"]') ? "eur" : "m3";
+      });
+      await page.check('input[name=fColor][value=eur]');
+      const k1 = await colorKey();
+      await page.check('input[name=fColor][value=m3]');
+      const k2 = await colorKey();
+      ok("Talokartta: tilojen värin valinta (€ / m³/ha) toimii", k1 === "eur" && k2 === "m3", `${k1} → ${k2}`);
+    }
     await idle(page);
     const pt = await page.evaluate(() => {
       const layers = (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);

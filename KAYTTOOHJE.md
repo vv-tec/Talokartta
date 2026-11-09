@@ -263,8 +263,9 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   pellot ja taajamat vaalentavat, joten tumma tarkoittaa aluetta, jossa on todella paljon puuta. Lähde on
   Luonnonvarakeskuksen valtakunnan metsien inventoinnin (VMI) kartta-aineisto 2023, joka kattaa kaikki metsät myös
   valtion maat. Väritys on läpikuultava, jotta taustakartan paikannimet ja maasto erottuvat (läpinäkyvyys lisätty
-  9.11.2026; kaukonäkymässä ei ole tietoruutua). Lähempänä (zoomista 10) näkyvät yksittäiset metsätilat, joiden väri kertoo
-  tilan puuston määrän metsämaan hehtaaria kohden (Metsäkeskuksen aineisto). Paneelissa on molemmille oma väriselite.
+  9.11.2026; kaukonäkymässä ei ole tietoruutua). Lähempänä (zoomista 10) näkyvät yksittäiset metsätilat samalla väriasteikolla: puuta tilan koko alaa kohden
+  (Metsäkeskuksen aineisto), joten värit jatkuvat kaukonäkymästä tiloihin. Paneelin kohdasta **Tilojen väri** voi vaihtaa
+  tilat väritettäväksi **puuston arvon yhteensä (€)** mukaan; valinta muistetaan selaimessa (9.11.2026).
   Siirtymä kaukonäkymästä tiloihin on häivytetty: zoomatessa metsäkuva haalistuu vähitellen ja tilat tulevat esiin
   (9.11.2026). Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
   vaihtamaan vuosi (asetus `pipeline/vmi.py`).

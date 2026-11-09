@@ -27,18 +27,46 @@
     ["de", "Eri-ikäisrakenteinen", "#6a8caf"]];
   const AGES = [["a", "Aukea ja taimikko", ["da", "dt"]], ["n", "Nuori kasvatusmetsä", ["d2"]],
     ["v", "Varttunut kasvatusmetsä", ["d3"]], ["u", "Uudistuskypsä", ["d4", "d5"]]];
-  const STEPS = [[0, "#f1eadb"], [50, "#d6e5b9"], [100, "#a8cf8e"], [150, "#6fae6b"], [200, "#3c8a4f"], [250, "#1d5e34"]];
-  const COLOR = ["interpolate", ["linear"], ["coalesce", ["get", "vh"], 0], ...STEPS.flat()];   // liukuva väri
+  // Tilojen väri (omistajan päätös 9.11.2026): oletuksena puuta koko alaa kohden (vk, m³/ha) samalla asteikolla kuin
+  // kaukonäkymän metsäkuva, jotta värit pysyvät synkronissa; vaihtoehtona puuston arvo yhteensä (e, €).
+  const GREENS = ["#f1eadb", "#d6e5b9", "#a8cf8e", "#6fae6b", "#3c8a4f", "#1d5e34"];
+  const RAMP_DEFAULT = [[0, GREENS[0]], [25, GREENS[1]], [50, GREENS[2]], [75, GREENS[3]], [100, GREENS[4]], [140, GREENS[5]]];
+  const TILE_OPACITY = 0.55;
+  let colorBy = "m3";
+  try { if (localStorage.getItem("metsaVari") === "eur") colorBy = "eur"; } catch (e) { /* ei selaimen muistia */ }
+  const m3Stops = () => FM?.grid?.ramp || RAMP_DEFAULT;
+  const eurStops = () => {
+    const st = FM?.e_stops?.length > 1 ? FM.e_stops : [0, 25000, 50000, 100000, 200000, 500000];
+    return st.map((v, i) => [v, GREENS[Math.round(i * (GREENS.length - 1) / (st.length - 1))]]);
+  };
+  const colorExpr = () => colorBy === "eur"
+    ? ["interpolate", ["linear"], ["coalesce", ["get", "e"], 0], ...eurStops().flat()]
+    : ["interpolate", ["linear"], ["coalesce", ["get", "vk"], 0], ...m3Stops().flat()];
   const GRID = "metsa-r";     // kaukonäkymän metsäkuva (rasteri)
   const RASTER_OPACITY = 0.6; // metsäkuvan läpinäkyvyys (omistajan toive 9.11.2026: läpinäkyvämpi; kuvan oma peitto 0,78 → yht. ~0,47)
   // Ristihäivytys kaukonäkymästä tiloihin (omistajan valinta 9.11.2026): tilojen zoomista (poly_minzoom) alkaen metsäkuva
   // haalistuu XFADE zoomausaskeleen aikana ja tilat vahvistuvat FADE_IN askeleen aikana.
   const XFADE = 0.7, FADE_IN = 0.6;
   const fade = (z0, from, to, len) => ["interpolate", ["linear"], ["zoom"], z0, from, z0 + len, to];
-  const gradient = (stops) => `linear-gradient(to right, ${stops.map(([v, c]) => `${c} ${(100 * v / stops[stops.length - 1][0]).toFixed(1)}%`).join(", ")})`;
-  const legend = (stops, unit, op = 1) => `<div class="fgrad" style="background:${gradient(stops)};opacity:${op}"></div>
-    <div class="fgrad-l">${stops.map(([v], i) => `<span style="left:${(100 * v / stops[stops.length - 1][0]).toFixed(1)}%">${nf.format(v)}${i === stops.length - 1 ? "+" : ""}</span>`).join("")}</div>
+  // even = portaat tasavälein (€-asteikko on epälineaarinen; väri muuttuu portaiden välillä lineaarisesti)
+  const pos = (stops, i, even) => (even ? 100 * i / (stops.length - 1) : 100 * stops[i][0] / stops[stops.length - 1][0]);
+  const gradient = (stops, even) => `linear-gradient(to right, ${stops.map(([, c], i) => `${c} ${pos(stops, i, even).toFixed(1)}%`).join(", ")})`;
+  const legend = (stops, unit, op = 1, even = false, fmt = (v) => nf.format(v)) => `<div class="fgrad" style="background:${gradient(stops, even)};opacity:${op}"></div>
+    <div class="fgrad-l">${stops.map(([v], i) => `<span style="left:${pos(stops, i, even).toFixed(1)}%">${fmt(v)}${i === stops.length - 1 ? "+" : ""}</span>`).join("")}</div>
     <div class="muted" style="font-size:12px;text-align:right">${unit}</div>`;
+  const keur = (v) => (v >= 1000 ? `${nf.format(v / 1000)} t` : nf.format(v));
+  function legendHtml() {
+    const far = FM?.grid ? (FM.grid.opacity || 1) * RASTER_OPACITY : 0;
+    const m3 = `<div class="muted" style="font-size:13px">${colorBy === "m3" ? "Puuta koko alaa kohden – sama asteikko kaukaa ja tiloissa" : "Kaukaa: puuta koko alaa kohden"}
+        (meri, järvet ja pellot vaalentavat)</div>${legend(m3Stops(), "m³/ha", far || TILE_OPACITY)}`;
+    const eu = colorBy === "eur" ? `<div class="muted" style="font-size:13px;margin-top:8px">Tilat: puuston arvo yhteensä</div>
+        ${legend(eurStops(), "€ (t = tuhatta)", TILE_OPACITY, true, keur)}` : "";
+    return m3 + eu;
+  }
+  function setColors() {
+    for (const id of ids) if (map.getLayer(id + "-fill")) map.setPaintProperty(id + "-fill", "fill-color", colorExpr());
+    if ($("fLegend")) $("fLegend").innerHTML = legendHtml();
+  }
   const eur = (n) => nf.format(Math.round((n ?? 0) / 100) * 100) + " €";
   const ha = (n) => nf.format(Math.round((n ?? 0) * 10) / 10) + " ha";
   // Liukusäätimien portaat (viimeinen = ei ylärajaa)
@@ -109,10 +137,11 @@
         ${AGES.map(([id, lab]) => `<div class="fage"><label for="fAge-${id}"><span>${lab}</span><span id="fAge-${id}-v">0 %</span></label>
           <input type="range" id="fAge-${id}" min="0" max="100" step="10" value="0"></div>`).join("")}</section>
       <section><h3>Värit</h3>
-        ${FM?.grid?.ramp ? `<div class="muted" style="font-size:13px">Kaukaa: puuta koko alaa kohden – meri, järvet ja pellot vaalentavat</div>
-        ${legend(FM.grid.ramp, "m³/ha", (FM.grid.opacity || 1) * RASTER_OPACITY)}` : ""}
-        <div class="muted" style="font-size:13px;margin-top:8px">Lähellä: metsätilan puusto metsämaan hehtaaria kohden</div>
-        ${legend(STEPS, "m³/ha metsämaata", 0.55)}
+        <div class="muted" style="font-size:13px;margin-bottom:2px">Tilojen väri</div>
+        <div class="checks fcolor">
+          <label><input type="radio" name="fColor" value="m3"${colorBy === "m3" ? " checked" : ""}><span>Puuston määrä (m³/ha)</span></label>
+          <label><input type="radio" name="fColor" value="eur"${colorBy === "eur" ? " checked" : ""}><span>Puuston arvo yhteensä (€)</span></label></div>
+        <div id="fLegend" style="margin-top:6px">${legendHtml()}</div>
         ${FM?.grid ? `<p class="muted" style="font-size:12px;margin:6px 0 0">Kaukonäkymä: Luonnonvarakeskus, monilähteisen VMI:n
           kartta-aineisto ${FM.grid.year} (kaikki metsät, myös valtion).</p>` : ""}</section>
       <button type="button" id="fReset" class="btn wide">Tyhjennä suodattimet</button>
@@ -121,6 +150,12 @@
         kiinteistöt: Maanmittauslaitos, kantohinnat: <a href="https://www.luke.fi/" target="_blank" rel="noopener">Luonnonvarakeskus</a>,
         rakennukset: SYKE Ryhti (kaikki CC BY 4.0). <span id="fUpdated"></span></p>`;
     $("fpanel").addEventListener("input", (e) => {
+      if (e.target.name === "fColor") {
+        colorBy = e.target.value;
+        try { localStorage.setItem("metsaVari", colorBy); } catch (err) { /* ei selaimen muistia */ }
+        setColors();
+        return;
+      }
       if (e.target.id.startsWith("fAge-")) $(e.target.id + "-v").textContent = e.target.value + " %";
       apply();
     });
@@ -196,7 +231,7 @@
       const id = "metsa-" + r.file.replace(/\.pmtiles$/, "");
       if (!map.getSource(id)) map.addSource(id, { type: "vector", url: "pmtiles://" + METSA_BASE + r.file });
       map.addLayer({ id: id + "-fill", type: "fill", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
-        paint: { "fill-color": COLOR, "fill-opacity": fade(minz, 0, 0.55, FADE_IN) } }, before);
+        paint: { "fill-color": colorExpr(), "fill-opacity": fade(minz, 0, TILE_OPACITY, FADE_IN) } }, before);
       map.addLayer({ id: id + "-line", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
         paint: { "line-color": "#24382b", "line-opacity": fade(minz, 0, 0.7, FADE_IN), "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 15, 1.2] } }, before);
       map.addLayer({ id: id + "-sel", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
@@ -296,7 +331,8 @@
           <dt>Hakkuurajoitus</dt><dd>${p.hr} % metsämaasta</dd>
         </dl><p class="fine">Muu ala: pellot, pihat, tiet, vedet ja alueet, joilta metsätieto puuttuu. Hakkuurajoitus: esim. suojelualue.</p></div>
         <div class="sect"><h4>Puusto</h4><dl class="kv">
-          <dt>Puumäärä</dt><dd>${nf.format(p.v ?? 0)} m³ · ${nf.format(p.vh ?? 0)} m³/ha</dd>
+          <dt>Puumäärä</dt><dd>${nf.format(p.v ?? 0)} m³ · ${nf.format(p.vh ?? 0)} m³/ha metsämaata</dd>
+          ${p.vk != null ? `<dt>Koko alaa kohden</dt><dd>${nf.format(p.vk)} m³/ha</dd>` : ""}
           <dt>Tukki / kuitu</dt><dd>${nf.format(p.t ?? 0)} / ${nf.format(p.ku ?? 0)} m³</dd>
           ${Object.entries(SPECIES).filter(([key]) => p[key]).map(([key, lab]) => `<dt>${lab}</dt><dd>${nf.format(p[key])} m³</dd>`).join("")}
           ${p.ik != null ? `<dt>Keski-ikä</dt><dd>${p.ik} v</dd>` : ""}
