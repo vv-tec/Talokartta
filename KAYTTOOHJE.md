@@ -261,28 +261,25 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
   epäonnistuneesta ajosta.
   Sivu on vain tarkistusta varten; metsätilat tulevat Talokarttaan omaksi näkymäkseen myöhemmin.
-- **Mukana nyt (9.11.2026):** Kanta-Häme, Uusimaa, Pirkanmaa, Päijät-Häme, Varsinais-Suomi, Satakunta, Kymenlaakso,
-  Etelä-Karjala, Keski-Suomi, Etelä-Savo, Pohjois-Savo, Pohjois-Karjala, Pohjanmaa, Etelä-Pohjanmaa, Keski-Pohjanmaa, Pohjois-Pohjanmaa ja Kainuu, 271 kuntaa, 582 551 metsätilaa (Kanta-Häme 16 728,
+- **Mukana nyt (9.11.2026): koko Manner-Suomi**, 18 maakuntaa, 292 kuntaa, 632 504 metsätilaa (Kanta-Häme 16 728,
   Uusimaa 27 326, Pirkanmaa 44 264, Päijät-Häme 16 276, Varsinais-Suomi 35 248, Satakunta 24 797, Kymenlaakso 17 796,
-  Etelä-Karjala 22 265, Keski-Suomi 44 897, Etelä-Savo 41 862, Pohjois-Savo 46 470,
-  Pohjois-Karjala 46 783, Pohjanmaa 38 024,
-  Etelä-Pohjanmaa 50 232, Keski-Pohjanmaa 13 123, Pohjois-Pohjanmaa 73 276, Kainuu 23 184).
+  Etelä-Karjala 22 265, Keski-Suomi 44 897, Etelä-Savo 41 862, Pohjois-Savo 46 470, Pohjois-Karjala 46 783,
+  Pohjanmaa 38 024, Etelä-Pohjanmaa 50 232, Keski-Pohjanmaa 13 123, Pohjois-Pohjanmaa 73 276, Kainuu 23 184,
+  Lappi 49 953). Utsjoella ei ole yhtään metsätilaa: Metsäkeskuksen aineistossa on siellä vain 9 metsikkökuviota.
+  Metsäkeskuksen aineisto kattaa lähinnä yksityismetsät, joten esimerkiksi valtion (Metsähallituksen) laajoja maita ei
+  juuri näy.
 - **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
   kuukauden välein, muutama kunta kerrallaan; kantohinnat (Luke) joka ajossa uusimmasta julkaistusta kuukaudesta.
-  Ajo kestää yleensä muutaman minuutin.
+  Ajo kestää yleensä 20–30 min (noin 10 kuntaa yössä). Koska suurin osa kunnista lisättiin 6.–9.11.2026, niiden
+  kuukausipäivitys osuu joulukuun alkuun: muutamana aamuna ajo kestää silloin noin 2,5 h ja osa kunnista siirtyy
+  seuraavaan yöhön. Se on normaalia, eikä siitä tule ilmoitusta; kartalla näkyvät sillä välin edelliset tiedot.
 - **Ilmoitukset:** epäonnistunut ajo avaa Metsakartan **Issues**-välilehdelle ilmoituksen "Metsakartan päivitys
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Uusi maakunta:** pyydä Claudea (*"Lisää metsätiloihin Pirkanmaa"*). Tiedostot vievät nyt noin 459 Mt
-  (Kanta-Häme 9 Mt, Uusimaa 16 Mt, Pirkanmaa 25 Mt, Päijät-Häme 10 Mt, Varsinais-Suomi 21 Mt, Satakunta 12 Mt,
-  Kymenlaakso 10 Mt, Etelä-Karjala 12 Mt, Keski-Suomi 27 Mt, Etelä-Savo 29 Mt, Pohjois-Savo 30 Mt,
-  Pohjois-Karjala 29 Mt, Pohjanmaa 20 Mt,
-  Etelä-Pohjanmaa 27 Mt, Keski-Pohjanmaa 8 Mt, Pohjois-Pohjanmaa 50 Mt, Kainuu 19 Mt, tietokortit 105 Mt); koko Suomi arviolta
-  0,5–0,6 Gt (raja 1 Gt). Uuden maakunnan ensimmäinen haku kestää 20–80 min (Uusimaa 58, Pirkanmaa 50, Päijät-Häme 22,
-  Varsinais-Suomi 56, Satakunta 41, Kymenlaakso 20, Etelä-Karjala 23, Keski-Suomi 51, Etelä-Savo 55,
-  Pohjois-Savo 63, Pohjois-Karjala 57, Pohjanmaa 41,
-  Etelä-Pohjanmaa 50, Keski-Pohjanmaa 20, Pohjois-Pohjanmaa 82, Kainuu 25).
+- **Koko:** tiedostot vievät noin 518 Mt sivuston 1 Gt:n rajasta (tilarajat 405 Mt, suurimmat Lappi 51 Mt ja
+  Pohjois-Pohjanmaa 50 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 114 Mt). Maakunnan ensimmäinen haku kesti
+  20–82 min (pisin Pohjois-Pohjanmaa 82, Lappi 69).
 - **Kuntaliitokset:** jos liitetyn kunnan kiinteistötunnukset alkavat yhä vanhalla numerolla (esim. Pertunmaa 588 →
   Mäntyharju, Valtimo 911 → Nurmes), Claude lisää sen asetukseen (kunta lasketaan silloin automaattisesti uudelleen); ajo varoittaa lokissa, jos se huomaa uuden tällaisen tapauksen.
 - **Jos yksittäisen kunnan haku katkeaa** (ilmoituksessa esim. "Connection reset"): muut kunnat jäävät talteen ja

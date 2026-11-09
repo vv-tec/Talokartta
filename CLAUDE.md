@@ -135,6 +135,11 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     **+ Pohjois-Pohjanmaa (9.11.2026)** 30 kuntaa 82 min (Oulu 639 s, Kuusamo 500 s), 73 276 tilaa, f 49,7 Mt (suurin);
     yhteensä 559 367 (263/292), f 334 Mt + kortit 100,5 Mt = 435 Mt, muisti 2,1 Gt.
     **+ Kainuu (9.11.2026)** 8 kuntaa 25 min, 23 184 tilaa, f 19,4 Mt; yhteensä 582 551 (271/292), 459 Mt.
+    **+ Lappi (9.11.2026) → koko Manner-Suomi valmis:** 21 kuntaa 69 min (Rovaniemi 6 987 tilaa 405 s), 49 953 tilaa,
+    f-lappi 50,8 Mt (suurin). Utsjoki: 9 kuviota → 0 tilaa (Metsäkeskuksen aineisto ~yksityismetsät). **Yhteensä
+    632 504 tilaa, 292/292 kuntaa, f 404,6 Mt + kortit 113,7 Mt ≈ 518 Mt / 1 Gt**, muisti ≤ 2,1 Gt. Kuukausipäivitys
+    kasautuu 6.–9.12. (85 kuntaa lisättiin 9.11.) → aikaraja jakaa sen muutamalle yölle (valmis = välimuistitiedosto
+    olemassa, joten julkaisu jatkuu vanhoilla tiedoilla).
     **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"], "541": ["911"]} (Pertunmaa, Valtimo) → palstat
     mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`); loki "tunnusalut …" näyttää määrät;
     paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus). Lisää epäilty liitos ennen ajoa.
@@ -285,5 +290,5 @@ Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist
    erikoisyksiköt näkyviin, hakkuutavan hinnat + hakkuurajoitus korttiin). **Seuraavaksi:** tuotantoajon suunnitelma
    omistajan hyväksyttäväksi (tallennuspaikka, yöajo, tiilet, piilotettu moodi `?moodi=metsa`).
    **Hyväksytty suunnitelma (6.11.2026):** 1 ✅ yöajo + tiedostot Kanta-Hämeelle Metsakartassa (esikatselu); 2 ✅ tiedostojen
-   karsinta + piilotettu moodi Talokartassa (`?moodi=metsa`); 3 laajennus maakunnittain; 4 julkistus omistajan
+   karsinta + piilotettu moodi Talokartassa (`?moodi=metsa`); 3 ✅ laajennus maakunnittain (koko Manner-Suomi 9.11.2026); 4 julkistus omistajan
    hyväksynnällä (tietosuojaseloste ennen; moodivalinnan näyttäminen kaikille = metsa.js:n `params.has("moodi")`-ehto pois).
