@@ -1,6 +1,6 @@
 """Nopeat tarkistukset ilman verkkoyhteyttä: python -m pipeline.selftest"""
-from . import build, mml
-from .tm35 import tm35_to_latlon
+from .talot import build, mml
+from .yhteiset.tm35 import tm35_to_latlon
 
 GML = """<?xml version="1.0" encoding="UTF-8"?>
 <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2"
@@ -123,7 +123,7 @@ def run():
     assert build.slug("Kanta-Häme") == "kanta-hame" and build.slug("Etelä-Pohjanmaa") == "etela-pohjanmaa"
     # GeoPackage-geometria: GP-otsake (ei kehystä) + WKB-polygon, pikkupäinen
     import struct
-    from . import mml_files
+    from .yhteiset import mml_files
     ring = [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0), (0.0, 0.0)]
     wkb = b"\x01" + struct.pack("<I", 3) + struct.pack("<I", 1) + struct.pack("<I", 5) + b"".join(struct.pack("<dd", *p) for p in ring)
     blob = b"GP\x00\x01" + struct.pack("<i", 3067) + wkb
@@ -142,10 +142,66 @@ def run():
         ps = mml_files.read_parcels(gp)
         assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
     ryhti_store_tests(parcels)
+    boundary_tests()
     shore_tests()
     vmi_tests()
     metsa_tests()
     print("selftest OK")
+
+
+def skipped(what):
+    """Ohitettu testiryhmä (kirjasto puuttuu). CI:ssä SELFTEST_STRICT=1 → virhe, jotta testit varmasti ajetaan."""
+    import os
+    if os.environ.get("SELFTEST_STRICT") == "1":
+        raise SystemExit(f"selftest: {what} ohitettiin, mutta SELFTEST_STRICT=1 vaatii sen (asenna riippuvuudet)")
+    print(f"  ({what} ohitettu: kirjasto puuttuu)")
+
+
+# Osien rajat: talot ja metsätilat ovat erotettavissa toisistaan. Kukin osa saa tuoda vain sallituista osista;
+# "config" = yhteinen asetustiedosto pipeline/config.py. Selvitykset (kokeilut) saavat käyttää kaikkea, mutta niitä ei
+# saa käyttää tuotannossa. Jos sääntö rikkoutuu, siirrä yhteinen koodi pipeline/yhteiset/-kansioon.
+ALLOWED_IMPORTS = {
+    "yhteiset": {"yhteiset", "config"},
+    "talot": {"talot", "yhteiset", "config"},
+    "metsa": {"metsa", "yhteiset", "config"},
+    "selvitykset": {"selvitykset", "talot", "metsa", "yhteiset", "config"},
+}
+
+
+def boundary_tests():
+    """RAJAT: talot ↛ metsa, metsa ↛ talot, yhteiset ↛ muut, tuotanto ↛ selvitykset (ast-jäsennys, ei tuo moduuleja)."""
+    import ast
+    import os
+    root = os.path.dirname(os.path.abspath(__file__))
+    bad = []
+    for part, allowed in ALLOWED_IMPORTS.items():
+        d = os.path.join(root, part)
+        for fn in sorted(os.listdir(d)):
+            if not fn.endswith(".py"):
+                continue
+            tree = ast.parse(open(os.path.join(d, fn), encoding="utf-8").read())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and node.level:
+                    pkg = ["pipeline", part]                       # tiedoston paketti
+                    mod = pkg[:len(pkg) - (node.level - 1)] + (node.module.split(".") if node.module else [])
+                    targets = [mod[1]] if len(mod) > 1 else [a.name for a in node.names]
+                elif isinstance(node, ast.ImportFrom) and (node.module or "").startswith("pipeline."):
+                    targets = [node.module.split(".")[1]]
+                elif isinstance(node, ast.Import):
+                    targets = [a.name.split(".")[1] for a in node.names if a.name.startswith("pipeline.")]
+                else:
+                    continue
+                for t in targets:
+                    if t not in allowed:
+                        bad.append(f"{part}/{fn}:{node.lineno} tuo osasta '{t}'")
+    assert not bad, "Osien rajat rikki (ks. ALLOWED_IMPORTS): " + "; ".join(bad)
+    assert boundary_parts() == set(ALLOWED_IMPORTS), "pipeline/-kansion osat ja ALLOWED_IMPORTS eroavat"
+
+
+def boundary_parts():
+    import os
+    root = os.path.dirname(os.path.abspath(__file__))
+    return {d for d in os.listdir(root) if os.path.isfile(os.path.join(root, d, "__init__.py"))}
 
 
 def vmi_tests():
@@ -155,11 +211,10 @@ def vmi_tests():
         import tifffile
         import PIL  # noqa: F401
     except ImportError:
-        print("  (metsäkuvatestit ohitettu: numpy, tifffile tai Pillow puuttuu)")
-        return
+        return skipped("metsäkuvatestit (numpy, tifffile, Pillow)")
     import os
     import tempfile
-    from . import vmi
+    from .metsa import vmi
     a = np.full((64, 48), vmi.NODATA, dtype=np.uint16)   # 4 × 3 ruutua à 16 × 16 pikseliä
     a[:16, :16] = 200                                    # ruutu (0,0): kokonaan metsää 200 m³/ha
     a[:16, 16:24] = 100                                  # ruutu (0,1): puolet metsää 100 m³/ha → 50 koko alasta
@@ -182,13 +237,12 @@ def metsa_tests():
     try:
         import shapely  # noqa: F401
     except ImportError:
-        print("  (metsätestit ohitettu: Shapely puuttuu)")
-        return
+        return skipped("metsätestit (Shapely)")
     import datetime as dt
     import json
     import os
     import tempfile
-    from . import metsa
+    from .metsa import ajo as metsa
     rec = {"k": "83440400030074", "ka": 20.0, "mm": 15.0, "kj": 1.0, "mk": 0.5, "v": 3000, "sp_kuusi": 2000,
            "sp_manty": 1000, "dc_04": 10, "dc_02": 5, "fc_3": 12, "hr": 15, "am_UUD|TUK_KU": 1000, "am_ENS|KUI_MA": 200}
     prices = {("PKAUP", "TUK_KU"): (80.0, "2026M09"), ("PKAUP", "KUI_MA"): (20.0, "2026M09"),
@@ -233,9 +287,8 @@ def shore_tests():
     try:
         from shapely.geometry import Polygon
     except ImportError:
-        print("  (rantatestit ohitettu: Shapely puuttuu)")
-        return
-    from . import shore
+        return skipped("rantatestit (Shapely)")
+    from .talot import shore
     sq = lambda x0, y0, x1, y1: [[[(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]]]
     lake = Polygon([(0, 0), (100, 0), (100, 100), (0, 100)])
     from shapely.geometry import LineString
@@ -283,7 +336,8 @@ def shore_tests():
 def ryhti_store_tests(parcels):
     """Rakennusten muutoshaku ja palstatulokset (verkkohaut korvattu testidatalla)."""
     import datetime as dt, os, tempfile
-    from . import ryhti, ryhti_store
+    from .talot import ryhti_store
+    from .yhteiset import ryhti
     U = "http://uri.suomi.fi/codelist/rytj/avoin_rakennusluokitus/code/"
 
     def b(key, muni, purpose="05", ts="2026-11-01T10:00:00Z", x=1050, **kw):

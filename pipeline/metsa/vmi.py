@@ -175,7 +175,7 @@ def render_tile(levels, x0, y0, cell, z, x, y):
     """Yksi 256×256 PNG-tiili (tai None, jos tyhjä)."""
     import io
     from PIL import Image
-    from .tm35 import latlon_to_tm35_np
+    from ..yhteiset.tm35 import latlon_to_tm35_np
     n = 2 ** z
     px = (np.arange(TILE) + 0.5) / TILE
     lon = (x + px) / n * 360 - 180

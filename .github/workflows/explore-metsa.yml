@@ -2,7 +2,7 @@ name: Selvitys – metsätilat
 
 # KOE (tiekartan kohta 6): metsätilat yhdelle kunnalle. Ei vaikuta julkaistuun sivuun eikä yölliseen ajoon.
 # Vaihe "rakenne" tulostaa aineistojen rakenteen lokiin; vaihe "laske" tekee tilakohtaisen Excelin (Artifacts).
-# Kumoaminen: poista tämä tiedosto ja pipeline/metsa_explore.py.
+# Kumoaminen: poista tämä tiedosto ja pipeline/selvitykset/metsa_explore.py.
 on:
   workflow_dispatch:
     inputs:
@@ -29,7 +29,7 @@ jobs:
       - name: Metsäkoe
         env:
           MML_API_KEY: ${{ secrets.MML_API_KEY }}
-        run: python -m pipeline.metsa_explore "${{ inputs.kunta }}" "${{ inputs.vaihe }}"
+        run: python -m pipeline.selvitykset.metsa_explore "${{ inputs.kunta }}" "${{ inputs.vaihe }}"
       - uses: actions/upload-artifact@v7
         if: inputs.vaihe == 'laske'
         with:

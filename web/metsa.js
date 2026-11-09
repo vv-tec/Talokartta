@@ -7,7 +7,7 @@
  * lähellä tilan puuston määrä m³/ha metsämaata.
  * Tiilen ominaisuudet: k tunnus, ka kokonaisala ha, e puuston arvo €, eh €/ha metsämaata, vh m³/ha metsämaata, tu turvemaata %,
  * kp yleisin kasvupaikka 1–8, da/dt/d2/d3/d4/d5 kehitysluokkien osuudet % metsämaasta.
- * Kortin kentät: ks. Talokartan pipeline/metsa.py (CARD_KEYS).
+ * Kortin kentät: ks. Talokartan pipeline/metsa/ajo.py (CARD_KEYS).
  * Käyttää app.js:n globaaleja: map, $, nf, esc, makeRange, setHouseLayers, applyFilters, closeCard, closePanel, toast.
  */
 "use strict";

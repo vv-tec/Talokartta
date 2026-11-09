@@ -1,6 +1,6 @@
 """Selvitysajo: mitä Maanmittauslaitoksen tiedostopalvelu palauttaa kiinteistörekisterikartasta.
 
-Käyttö: MML_API_KEY=... python -m pipeline.mml_explore 235
+Käyttö: MML_API_KEY=... python -m pipeline.selvitykset.mml_explore 235
 Tulostaa prosessien kuvaukset, työn tulokset ja ladattujen tiedostojen rakenteen. Ei muuta julkaistua sivua.
 """
 import json
@@ -9,7 +9,7 @@ import sys
 import time
 import zipfile
 
-from .mml_files import MMLFiles, describe_gpkg
+from ..yhteiset.mml_files import MMLFiles, describe_gpkg
 
 PROC = "kiinteistorekisterikartta_vektori_kunta"
 

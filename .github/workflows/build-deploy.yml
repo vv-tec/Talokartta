@@ -67,7 +67,7 @@ jobs:
           MML_API_KEY: ${{ secrets.MML_API_KEY }}   # MML:n tiedostopalvelu (palstat); ilman avainta käytetään WFS:ää
           SKIP_CHECKS: ${{ inputs.ohita_tarkistukset }}
         timeout-minutes: 210    # ohjelma lopettaa palstahaun itse jo 150 min kohdalla (config.PARCEL_TIME_BUDGET_MIN)
-        run: python -m pipeline.build --out dist --work work --cache cache
+        run: python -m pipeline.talot --out dist --work work --cache cache
 
       # Välimuisti tallennetaan myös epäonnistuneen ajon jälkeen, jotta jo haetut palstat eivät katoa.
       - name: Välimuistin tunniste

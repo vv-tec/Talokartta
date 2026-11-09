@@ -2,8 +2,8 @@
 import json
 from collections import Counter, defaultdict
 
-from .config import RYHTI_BASE
-from .net import get
+from ..config import RYHTI_BASE
+from ..yhteiset.net import get
 
 SCHEMES = [("rytj", "kantavanrakenteenrakennusaine"), ("rytj", "julkisivunrakennusaine"), ("rytj", "lammitystapa"),
            ("rytj", "lammitysenergianlahde"), ("vtj", "Rake_runkotapa"), ("vtj", "rake_kaytossaolotilanne"),

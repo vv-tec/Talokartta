@@ -6,7 +6,7 @@ Vaihe "rakenne": tulostaa aineistojen rakenteen, jotta laskenta voidaan kirjoitt
   - Luken kantohinnat (Teollisuuspuun kauppa hinta-alueittain kuukausittain, 0100_teokau)
   - MML:n kiinteistörekisterikartan kaikki taulut ja tilakohtaiset alat (kiinteistö = sen kaikki palstat yhteensä)
 
-Käyttö: MML_API_KEY=... python -m pipeline.metsa_explore 834 rakenne
+Käyttö: MML_API_KEY=... python -m pipeline.selvitykset.metsa_explore 834 rakenne
 """
 import collections
 import io
@@ -17,8 +17,8 @@ import sys
 import time
 import zipfile
 
-from . import net
-from .mml_files import MMLFiles, PARCEL_PROCESS, gpkg_polys
+from ..yhteiset import net
+from ..yhteiset.mml_files import MMLFiles, PARCEL_PROCESS, gpkg_polys
 
 MV_BASE = "https://avoin.metsakeskus.fi/aineistot/MV/Kunta/"
 MV_MODEL_XLSX = ("https://www.metsakeskus.fi/sites/default/files/document/"

@@ -25,4 +25,4 @@ jobs:
       - name: Koeajo
         env:
           MML_API_KEY: ${{ secrets.MML_API_KEY }}
-        run: python -m pipeline.mml_explore "${{ inputs.kunta }}" "${{ inputs.muoto }}"
+        run: python -m pipeline.selvitykset.mml_explore "${{ inputs.kunta }}" "${{ inputs.muoto }}"

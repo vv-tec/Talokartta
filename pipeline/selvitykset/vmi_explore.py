@@ -60,8 +60,8 @@ def full():
     import resource
     import numpy as np
     import tifffile
-    from . import vmi
-    from .tm35 import latlon_to_tm35_np
+    from ..metsa import vmi
+    from ..yhteiset.tm35 import latlon_to_tm35_np
     t0 = time.time()
     vmi.download("vmi.tif")
     with tifffile.TiffFile("vmi.tif") as t:

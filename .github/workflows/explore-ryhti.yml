@@ -19,5 +19,5 @@ jobs:
           python-version: "3.12"
       - run: pip install -r pipeline/requirements.txt
       - run: |
-          case "${{ inputs.kunta }}" in delta|maakunnat|puuttuu:*) ;; *) python -m pipeline.codes_explore ;; esac
-          python -m pipeline.ryhti_explore "${{ inputs.kunta }}"
+          case "${{ inputs.kunta }}" in delta|maakunnat|puuttuu:*) ;; *) python -m pipeline.selvitykset.codes_explore ;; esac
+          python -m pipeline.selvitykset.ryhti_explore "${{ inputs.kunta }}"

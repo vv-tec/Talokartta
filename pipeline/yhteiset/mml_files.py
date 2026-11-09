@@ -14,7 +14,7 @@ import time
 
 import requests
 
-from .config import USER_AGENT
+from ..config import USER_AGENT
 
 BASE = "https://avoin-paikkatieto.maanmittauslaitos.fi/tiedostopalvelu/ogcproc/v1"
 

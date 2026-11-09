@@ -1,5 +1,5 @@
 """Rakennukset ja osoitteet SYKE:n Ryhti-järjestelmän avoimesta OGC API Features -rajapinnasta."""
-from .config import RYHTI_BASE
+from ..config import EXCLUDED_STATUS, RESIDENTIAL, RYHTI_BASE
 from .net import get
 
 CRS_3067 = "http://www.opengis.net/def/crs/EPSG/0/3067"
@@ -68,3 +68,13 @@ def addresses_for(building_keys):
         ids = ",".join(f"'{k}'" for k in keys[i:i + 50])
         for f in _paged("open_address", {"filter": f"building_key IN ({ids})", "properties": ADDR_PROPS}, page=2000):
             yield f["properties"]
+
+
+def keep(p):
+    """Asuinrakennus, joka näytetään: luokka 01/05/06, ei purettu tai tuhoutunut (config.RESIDENTIAL, EXCLUDED_STATUS).
+    Käyttävät sekä talot (kartan rakennukset) että metsätilat (asuinrakennusten määrä tilalla)."""
+    return (
+        code(p.get("main_purpose")) in RESIDENTIAL
+        and code(p.get("usage_status")) not in EXCLUDED_STATUS
+        and not p.get("demolition_date")
+    )

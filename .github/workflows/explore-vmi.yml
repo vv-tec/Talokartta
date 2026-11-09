@@ -1,7 +1,7 @@
 name: Selvitys – VMI-metsäkuva
 
 # KOE (9.11.2026): Luken VMI 2023 -kartta-aineisto kaukonäkymän metsäkuvaa varten. Ei vaikuta sivuun eikä yöajoon.
-# Kumoaminen: poista tämä tiedosto ja pipeline/vmi_explore.py.
+# Kumoaminen: poista tämä tiedosto ja pipeline/selvitykset/vmi_explore.py.
 on:
   workflow_dispatch:
     inputs:
@@ -19,4 +19,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r pipeline/requirements.txt numpy tifffile imagecodecs
-      - run: python -m pipeline.vmi_explore "${{ inputs.vaihe }}"
+      - run: python -m pipeline.selvitykset.vmi_explore "${{ inputs.vaihe }}"

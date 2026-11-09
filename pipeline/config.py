@@ -1,4 +1,9 @@
-"""Data-ajon asetukset. Muuta tätä tiedostoa, kun kartan aluetta laajennetaan."""
+"""Data-ajojen asetukset (talot ja metsätilat). Muuta tätä tiedostoa, kun kartan aluetta laajennetaan.
+
+Osiot: YHTEISET (maakunnat ja kunnat, rekisterit), TALOT (pipeline/talot), METSAKARTTA (pipeline/metsa).
+Jos metsätilat joskus erotetaan omaksi palvelukseen, METSAKARTTA-osio ja YHTEISET kopioidaan sen mukaan."""
+
+# ---------- YHTEISET ----------
 
 # Alueet ja niiden kunnat (kuntanumerot). Uusi maakunta lisätään tähän.
 REGIONS = {
@@ -346,7 +351,9 @@ RYHTI_BASE = "https://paikkatiedot.ymparisto.fi/geoserver/ryhti_building/ogc/fea
 MML_CP_WFS = "https://inspire-wfs.maanmittauslaitos.fi/inspire-wfs/cp/ows"
 
 USER_AGENT = "talokartta-data/1.0 (+https://github.com/vv-tec/talokartta)"
+DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennus- tai metsätilamäärä ei saa pudota yli 5 % (ja yli 20 kpl) yhdessä ajossa
 
+# ---------- TALOT (pipeline/talot; ajetaan tässä repositoriossa, build-deploy.yml) ----------
 # Kiinteistöpalstojen haku tehdään ruuduittain (metreinä, ETRS-TM35FIN).
 PARCEL_TILE_M = 2000
 PARCEL_PAGE = 1000          # kuinka monta palstaa yhdellä pyynnöllä enintään (palvelun tuettu koko)
@@ -355,7 +362,6 @@ PARCEL_MAX_AGE_DAYS = 14    # kunnan palstat haetaan uudelleen kahden viikon vä
 NEW_BUILDINGS_MAX_PER_RUN = 500  # uusien rakennusten palstatieto heti pienillä aluehauilla (INSPIRE WFS), enintään näin monta per ajo
 RYHTI_FULL_DAYS = 30        # kunta haetaan Ryhtistä kokonaan kuukauden välein (1/30 kunnista per yö); muuten vain muutokset
 RYHTI_TIME_BUDGET_MIN = 60   # Ryhtin täysiä kuntahakuja tehdään enintään näin kauan ajon alusta; loput seuraavalla ajolla
-DROP_PCT, DROP_MIN = 5, 20  # turvatarkistus: kunnan rakennusmäärä ei saa pudota yli 5 % (ja yli 20 rakennusta) yhdessä ajossa
 # RANTA (irrotettava lisäosa): maakunnat, joille lasketaan "oma ranta" -tieto. Tyhjä lista = pois päältä kokonaan.
 # Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",
@@ -375,14 +381,14 @@ DENSITY_GRIDS = [
     {"size": 1000, "minzoom": 10, "maxzoom": BUILDING_MINZOOM - 1},
 ]
 
-# ---------- METSAKARTTA (metsätilat; ajetaan repositoriossa vv-tec/Metsakartta, koodi pipeline/metsa.py) ----------
+# ---------- METSAKARTTA (metsätilat; ajetaan repositoriossa vv-tec/Metsakartta, koodi pipeline/metsa/) ----------
 # Maakunnat, joiden metsätilat lasketaan. Lisätään maakunta kerrallaan (ensimmäinen ajo hakee kunnat heti).
 METSA_REGIONS = ["Kanta-Häme", "Uusimaa", "Pirkanmaa", "Päijät-Häme", "Varsinais-Suomi", "Satakunta", "Kymenlaakso", "Etelä-Karjala", "Keski-Suomi", "Etelä-Savo", "Pohjois-Savo", "Pohjois-Karjala", "Pohjanmaa", "Etelä-Pohjanmaa", "Keski-Pohjanmaa", "Pohjois-Pohjanmaa", "Kainuu", "Lappi"]
 METSA_MAX_AGE_DAYS = 30        # kunnan metsätiedot ja palstat haetaan uudelleen kuukauden välein (vanhimmasta alkaen)
 METSA_TIME_BUDGET_MIN = 150    # kuntahakuja tehdään enintään näin kauan; loput seuraavalla ajolla
 METSA_MIN_FOREST_HA = 2.0      # metsätila = metsämaata yli 2 ha (omistajan päätös 6.11.2026)
 METSA_SITE_URL = "https://vv-tec.github.io/Metsakartta/"   # julkaistut metsätiedostot (turvatarkistus vertaa tähän)
-METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa VMI-metsäkuva (pipeline/vmi.py)
+METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa VMI-metsäkuva (pipeline/metsa/vmi.py)
 # Kuntaliitokset, joissa kiinteistötunnukset alkavat yhä vanhalla kuntanumerolla (MML ei ole vielä numeroinut uudelleen):
 # nykyinen kunta → vanhat tunnusalut. Metsälaskenta ottaa nämä palstat mukaan ja tietokortit tallennetaan tunnusalun mukaan.
 # Pertunmaa → Mäntyharju 1.1.2025, Valtimo → Nurmes 1.1.2020 (8.11.2026: 4 661 palstaa yhä 911). Kesälahden (→ Kitee 2020)

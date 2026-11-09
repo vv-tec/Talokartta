@@ -7,8 +7,8 @@ import os
 import time
 import xml.etree.ElementTree as ET
 
-from .config import MML_CP_WFS, PARCEL_PAGE, PARCEL_TILE_M
-from .net import get
+from ..config import MML_CP_WFS, PARCEL_PAGE, PARCEL_TILE_M
+from ..yhteiset.net import get
 
 NS = {
     "wfs": "http://www.opengis.net/wfs/2.0",

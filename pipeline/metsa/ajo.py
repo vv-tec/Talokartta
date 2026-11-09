@@ -18,7 +18,6 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import time
 import traceback
@@ -29,13 +28,17 @@ import requests
 from shapely.ops import unary_union
 from shapely.strtree import STRtree
 
-from . import config, net, ryhti
-from .build import fail, fmt_kt, keep, slug
-from .metsa_laske import ASSORT, PRICE_AREA, PRICE_AREA_MUNI, luke_prices, price_group, read_stands, to_shape
-from .mml_files import MMLFiles, municipality_parcels
-from .tm35 import tm35_to_latlon
+from .. import config
+from ..yhteiset import net, ryhti
+from ..yhteiset.julkaisu import fail, fmt_kt, log, peak_memory, slug, tippecanoe
+from ..yhteiset.julkaisu import previous_meta as _previous_meta
+from ..yhteiset.mml_files import MMLFiles, municipality_parcels
+from ..yhteiset.ryhti import keep
+from ..yhteiset.tm35 import tm35_to_latlon
+from .hinnat import ASSORT, PRICE_AREA, PRICE_AREA_MUNI, luke_prices, price_group
+from .kuviot import read_stands, to_shape
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repositorion juuri
 VERSION = 1  # kunnan tuloksen laskentaversio; muutos → kunnat lasketaan uudelleen (vanhimmasta alkaen)
 MV_BASE = "https://avoin.metsakeskus.fi/aineistot/MV/Kunta/"
 DRAINED = {"3", "7", "8", "9"}        # ojitettu kangas, ojikko, muuttuma, turvekangas
@@ -51,10 +54,6 @@ CARD_KEYS = ("ka", "mm", "kj", "mu", "mt", "pn", "e", "eh", "eu", "et", "ek", "t
 POLY_MAXZOOM = 13  # rajat tallennetaan zoomiin 13 asti (tarkkuus ~0,6 m), lähempänä kartta suurentaa niitä
 
 
-def log(*a):
-    print(*a, flush=True)
-
-
 def trade_of(dc):
     """Kehitysluokka → kauppatapa, jonka hinnoin 'arvo hakkuutavan hinnoin' lasketaan."""
     if dc in ("04", "05", "ER", "S0", "Y1"):
@@ -68,7 +67,7 @@ def trade_of(dc):
 
 def muni_names():
     """Kuntien nimet config.py:n kommenteista ("834",  # Tammela)."""
-    src = open(os.path.join(ROOT, "pipeline", "config.py"), encoding="utf-8").read()
+    src = open(config.__file__, encoding="utf-8").read()
     # lisätiedot sulkeissa pois: "291",  # Kuhmoinen (Pirkanmaata vuodesta 2021) → Kuhmoinen
     return {m: n.split("(")[0].strip() for m, n in re.findall(r'"(\d{3})",\s*#\s*([^\n]+)', src)}
 
@@ -380,17 +379,6 @@ def write_features(path, feats):
             f.write(json.dumps(ft, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
-def tippecanoe(src, out, layer, zmin, zmax, extra=()):
-    cmd = ["tippecanoe", "-o", out, "--force", "--quiet", f"-Z{zmin}", f"-z{zmax}", "-l", layer,
-           "--no-tile-size-limit", "--no-feature-limit", *extra, src]
-    log(" ".join(cmd))
-    subprocess.run(cmd, check=True)
-    size = os.path.getsize(out) / 1e6
-    if size > 95:
-        fail(f"{os.path.basename(out)} on {size:.1f} Mt, yli GitHub Pagesin rajan")
-    return size
-
-
 def vmi_overview(cache, work, data_dir):
     """Kaukonäkymän metsäkuva (Luken VMI, puuta koko alaa kohden) → data/r.pmtiles.
     Valmis kuva säilyy välimuistissa (cache/vmi) ja tehdään uudelleen vain, kun VMI-vuosi tai väritys muuttuu.
@@ -438,11 +426,7 @@ def vmi_overview(cache, work, data_dir):
 
 
 def previous_meta():
-    try:
-        return net.get(config.METSA_SITE_URL + "data/meta.json", {"t": str(int(time.time()))}, tries=3, timeout=30).json()
-    except Exception as e:  # noqa: BLE001
-        log(f"  julkaistua meta.jsonia ei saatu ({e}); turvatarkistus ohitetaan")
-        return None
+    return _previous_meta(config.METSA_SITE_URL)
 
 
 def publish_problems(prev, regions_ready, muni_counts):
@@ -615,9 +599,7 @@ def main(argv=None):
         fail("Turvatarkistus esti julkaisun: " + "; ".join(problems))
     meta = build_site(args.cache, args.out, args.work, ready)
     log(f"Valmis: {meta['count']} metsätilaa, maakunnat {[r['name'] for r in meta['regions']]}, {time.time() - t0:.0f} s")
-    import resource
-    log(f"Muistin huippu: ohjelma {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024:.0f} Mt, "
-        f"aliprosessit {resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024:.0f} Mt")
+    log(peak_memory())
     if errors:
         fail(f"{len(errors)} kunnan haku epäonnistui (yritetään seuraavassa ajossa): " + "; ".join(errors))
 

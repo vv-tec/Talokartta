@@ -1,7 +1,7 @@
 """Data-ajo: hakee rekisteritiedot, yhdistää ne ja tekee karttatiilet sekä valmiin sivuston.
 
 Käyttö (repositorion juuresta):
-    python -m pipeline.build --out dist
+    python -m pipeline.talot --out dist
 """
 import argparse
 import datetime as dt
@@ -13,21 +13,14 @@ import sys
 import time
 from collections import Counter, defaultdict
 
-from . import config, mml, mml_files, net, ryhti, ryhti_store
-from .tm35 import tm35_to_latlon
+from .. import config
+from ..yhteiset import mml_files, ryhti
+from ..yhteiset.julkaisu import fail, fmt_kt, log, previous_meta as _previous_meta, slug
+from ..yhteiset.ryhti import keep
+from ..yhteiset.tm35 import tm35_to_latlon
+from . import mml, ryhti_store
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-def log(*a):
-    print(time.strftime("%H:%M:%S"), *a, flush=True)
-
-
-def fmt_kt(k):
-    """'83440400030064' -> '834-404-3-64'"""
-    if not k or len(k) != 14 or not k.isdigit():
-        return k or ""
-    return f"{int(k[0:3])}-{int(k[3:6])}-{int(k[6:10])}-{int(k[10:14])}"
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repositorion juuri
 
 
 def parcel_coverage(res, buildings):
@@ -40,14 +33,6 @@ def grown(entry, buildings):
     if "n" in entry:
         return len(buildings) > 1.1 * entry["n"]
     return parcel_coverage(entry["res"], buildings) < 0.9
-
-
-def keep(p):
-    return (
-        ryhti.code(p.get("main_purpose")) in config.RESIDENTIAL
-        and ryhti.code(p.get("usage_status")) not in config.EXCLUDED_STATUS
-        and not p.get("demolition_date")
-    )
 
 
 def known(uri):
@@ -144,12 +129,6 @@ def write_lines(path, feats):
 MAX_FILE_MB = 95  # GitHub Pagesin raja on 100 Mt tiedostoa kohden
 
 
-def slug(name):
-    """'Kanta-Häme' -> 'kanta-hame' (tiedostonimiin)."""
-    t = name.lower().translate(str.maketrans({"ä": "a", "ö": "o", "å": "a"}))
-    return "".join(c if c.isalnum() else "-" for c in t).strip("-")
-
-
 def run(cmd):
     log(" ".join(cmd))
     subprocess.run(cmd, check=True)
@@ -231,20 +210,8 @@ def migrate_parcel_cache(cache_dir, pres, by_muni):
     os.remove(old)
 
 
-def fail(msg):
-    """Lopettaa ajon ilman julkaisua. GitHub Actionsissa viesti näkyy virheenä, ja ilmoitus (issue) poimii sen."""
-    if os.environ.get("GITHUB_ACTIONS"):
-        print(f"::error title=Julkaisua ei tehty::{msg}", flush=True)
-    sys.exit(msg)
-
-
 def previous_meta():
-    """Julkaistun sivun meta.json vertailua varten (None, jos ei saatavilla, esim. ensimmäinen julkaisu)."""
-    try:
-        return net.get(config.SITE_URL + "data/meta.json", {"t": str(int(time.time()))}, tries=3, timeout=30).json()
-    except Exception as e:  # noqa: BLE001
-        log(f"  julkaistua meta.jsonia ei saatu ({e}); turvatarkistus ohitetaan")
-        return None
+    return _previous_meta(config.SITE_URL)
 
 
 def publish_problems(prev, regions_ready, muni_counts, region_counts):
@@ -288,7 +255,7 @@ def main(argv=None):
     os.makedirs(os.path.join(args.out, "data"), exist_ok=True)
 
     region_of = {m: r for r, ms in config.REGIONS.items() for m in ms}
-    # RANTA: maakunnat, joille rantatieto lasketaan (tyhjä = pois päältä; ks. pipeline/shore.py)
+    # RANTA: maakunnat, joille rantatieto lasketaan (tyhjä = pois päältä; ks. pipeline/talot/shore.py)
     shore_munis = [m for r in config.SHORE_REGIONS if r in config.REGIONS for m in config.REGIONS[r]]
     shore_store = None
 

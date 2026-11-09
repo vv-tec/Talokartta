@@ -3,7 +3,7 @@ import time
 
 import requests
 
-from .config import USER_AGENT
+from ..config import USER_AGENT
 
 _session = None
 

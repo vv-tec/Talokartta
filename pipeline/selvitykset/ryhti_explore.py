@@ -1,15 +1,15 @@
 """Selvitysajo: mitä tietoja Ryhtin avoimissa rakennusaineistoissa on.
 
 Tulostaa kokoelmat, kunkin kokoelman kentät ja esimerkkiarvot sekä koodikenttien arvojakauman yhdestä kunnasta.
-Käyttö: python -m pipeline.ryhti_explore 834
+Käyttö: python -m pipeline.selvitykset.ryhti_explore 834
 (tai "maakunnat": vertaa config.REGIONS Tilastokeskuksen kunta–maakunta-luokitukseen)
 """
 import json
 import sys
 from collections import Counter, defaultdict
 
-from .config import RYHTI_BASE
-from .net import get
+from ..config import RYHTI_BASE
+from ..yhteiset.net import get
 
 
 def delta():
@@ -65,7 +65,7 @@ def missing(muni):
 
 def regions_check():
     """Vertaa config.REGIONS-kuntalistoja Tilastokeskuksen viralliseen kunta–maakunta-luokitukseen."""
-    from .config import REGIONS
+    from ..config import REGIONS
     data, used = None, None
     for year in ("2026", "2025"):
         url = (f"https://data.stat.fi/api/classifications/v2/correspondenceTables/"

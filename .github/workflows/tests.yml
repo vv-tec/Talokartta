@@ -1,0 +1,38 @@
+name: Testit
+
+# Pikatestit jokaisesta muutoksesta (myös haaroissa): talot, metsätilat, metsäkuva ja osien rajat.
+# Ei hae rekistereistä eikä julkaise mitään; kesto noin 1 min. SELFTEST_STRICT=1: mikään testiryhmä ei saa jäädä
+# ohitetuksi puuttuvan kirjaston takia. Sivun koodi tarkistetaan Node.js:llä (kirjoitusvirheet).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Asenna riippuvuudet (talot, ranta, metsätilat)
+        run: pip install -r pipeline/requirements.txt -r pipeline/requirements-shore.txt -r pipeline/requirements-metsa.txt
+
+      - name: Pikatestit
+        env:
+          SELFTEST_STRICT: "1"
+        run: python -m pipeline.selftest
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Sivun koodin tarkistus
+        run: for f in web/*.js check/*.mjs; do node --check "$f" && echo "✓ $f"; done

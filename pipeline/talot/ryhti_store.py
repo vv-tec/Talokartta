@@ -14,7 +14,7 @@ import math
 import os
 import time
 
-from . import ryhti
+from ..yhteiset import ryhti
 
 FIELDS = ("building_key", "permanent_building_identifier", "property_identifier", "completion_date", "main_purpose",
           "usage_status", "gross_floor_area", "total_area", "number_of_storeys", "apartment_count",

@@ -1,6 +1,6 @@
 """Koeajo: rantatieto yhdelle kunnalle (oletus Tammela 834). Ei vaikuta julkaistuun sivuun.
 
-Käyttö: MML_API_KEY=... python -m pipeline.shore_explore 834 tulos/
+Käyttö: MML_API_KEY=... python -m pipeline.selvitykset.shore_explore 834 tulos/
 Tulostaa vesialueiden kokoelmat, ajoajat ja yhteenvedon sekä kirjoittaa CSV:n tarkistusta varten.
 """
 import csv
@@ -10,8 +10,10 @@ import sys
 import time
 from collections import Counter, defaultdict  # noqa: F401
 
-from . import build, mml, mml_files, ryhti, shore
-from .tm35 import tm35_to_latlon
+from ..talot import mml, shore
+from ..yhteiset import mml_files, ryhti
+from ..yhteiset.julkaisu import fmt_kt
+from ..yhteiset.tm35 import tm35_to_latlon
 
 
 def main():
@@ -29,7 +31,7 @@ def main():
     print("Käytetään:", water_cols)
 
     t = time.time()
-    blds = [b for b in ryhti.buildings(muni) if build.keep(b)]
+    blds = [b for b in ryhti.buildings(muni) if ryhti.keep(b)]
     addr = defaultdict(list)
     for a in ryhti.addresses(muni):
         if a.get("address_fin"):
@@ -80,7 +82,7 @@ def main():
         kt = b.get("property_identifier") or ""
         par = index.find(b["_x"], b["_y"], prefer_ref=kt)
         r = {"rakennustunnus": b.get("permanent_building_identifier"), "osoite": " / ".join(addr.get(b["building_key"], [])),
-             "kiinteistotunnus": build.fmt_kt(kt), "tyyppi": ryhti.code(b.get("main_purpose")),
+             "kiinteistotunnus": fmt_kt(kt), "tyyppi": ryhti.code(b.get("main_purpose")),
              "_key": b["building_key"]}
         if not par:
             r["tulos"] = "ei palstaa"
