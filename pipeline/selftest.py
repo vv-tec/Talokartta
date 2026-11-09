@@ -196,6 +196,10 @@ def metsa_tests():
     p = metsa.props(rec, prices, "MPKH01")
     assert p["e"] == 84000 and p["eu"] == 94000 and p["et"] == 80000 and p["eh"] == 5600, p
     assert p["mu"] == 3.5 and p["ps"] == "k" and p["d4"] == 67 and p["d2"] == 33 and p["kp"] == 3 and p["hr"] == 100
+    assert p["vk"] == 150 and p["vh"] == 200   # 3000 m³ / 20 ha koko alaa, / 15 ha metsämaata
+    assert metsa.nice(26000) == 25000 and metsa.nice(180000) == 100000 and metsa.e_stops([]) [0] == 0
+    st = metsa.e_stops([1000 * i for i in range(1, 1001)])
+    assert st[0] == 0 and st == sorted(set(st)) and len(st) >= 4, st
     assert metsa.props({"k": "83440400030074", "ka": 3.0, "mm": 3.0, "ih": 3.0}, prices, "MPKH01")["ik"] == 0
     assert metsa.trade_of("03") == "HAR" and metsa.trade_of("T2") == "PKAUP" and metsa.trade_of("04") == "UUD"
     names = metsa.muni_names()

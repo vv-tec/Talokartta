@@ -92,10 +92,11 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     Arvo lasketaan julkaisussa joka ajo Luken uusimmilla hinnoilla (`props`). Kunnan virhe → muut jatkavat, ajo päättyy
     virheeseen eikä julkaise. Turvatarkistus: maakunta ei putoa, kunnan tilamäärä ei pudota yli 5 %.
   - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z10–13 (`POLY_MAXZOOM`, ylizoomaus; minzoom 11 → 10 6.11.2026
-    omistajan toiveesta), `--detect-shared-borders`, **vain `TILE_KEYS`**: k, ka, e (100 €), eh (10 €), vh (m³/ha, 9.11.2026: f 404,6 → 420,6 Mt, +4 %), tu, kp, da–d5),
+    omistajan toiveesta), `--detect-shared-borders`, **vain `TILE_KEYS`**: k, ka, e (100 €), eh (10 €), vh (m³/ha, 9.11.2026: f 404,6 → 420,6 Mt, +4 %), vk (m³/ha koko alasta, väri), tu, kp, da–d5),
     `data/kortit/<kunta>.json` ({c: `CARD_KEYS`, r: {tunnus: [arvot]}}; tietokortti lataa klikatessa, kunta =
     tunnuksen 1. osa 3 numeroksi), `data/meta.json`
-    (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`),
+    (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`,
+    `e_stops` €-värityksen portaat = persentiilit 15/35/55/75/92 siistittyinä `nice`),
     `data/r.pmtiles` (**kaukonäkymän metsäkuva**, `vmi.py`, `metsa.vmi_overview`; omistajan päätös
     9.11.2026: liukuvat värit, **puuta koko alaa kohden** m³/ha (meri/järvet/pellot = 0 → vaalea/läpinäkyvä, alle `FADE`)):
     Luke MVMI 2023 `tilavuus_vmi1x_1923.tif` (koko Suomi, 16 m, 1,9 Gt, lataus ~1 min funetista, Atom
@@ -111,9 +112,11 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri m³/ha (9.11.2026, ennen €/ha), tietokortti, **suodattimet**: kokonaisala,
     puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
     nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). Kaukaa ei pisteitä (6.11.2026: peittivät taustakartan);
-    **9.11.2026 omistajan päätökset: kaukaa VMI-metsäkuva (puuta koko alaa kohden), tilat liukuvin värein puuston määrän
-    m³/ha metsämaata mukaan** (Talokartan metsätilanäkymässä; esikatselussa vain tilojen värit).
-    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 21 kohtaa (10 esikatselu + 11 Talokartta, mm. €/ha- ja m³/ha-liukusäätimet, metsäkuvan tiilet), mm. suodattimet ja
+    **9.11.2026 omistajan päätökset: kaukaa VMI-metsäkuva (puuta koko alaa kohden); tilat liukuvin värein samalla
+    mittarilla ja asteikolla (`vk` = m³ / kokonaisala, `grid.ramp`), jotta värit pysyvät synkronissa; paneelin valinta
+    "Tilojen väri": m³/ha tai puuston arvo yhteensä € (`e`, `e_stops`), muistetaan selaimessa (`metsaVari`)**
+    (Talokartan metsätilanäkymässä; esikatselussa yhä vh-väri).
+    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 22 kohtaa (10 esikatselu + 12 Talokartta, mm. €/ha- ja m³/ha-liukusäätimet, tilojen värin valinta, metsäkuvan tiilet), mm. suodattimet ja
     kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
     `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
     **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi

@@ -45,8 +45,8 @@ DEV_KEYS = {"A0": "da", "S0": "da", "T1": "dt", "T2": "dt", "Y1": "dt", "02": "d
 SPECIES_KEY = {"manty": "m", "kuusi": "k", "koivu": "b", "lehti": "l"}
 # Karttatiedostoon vain väritys- ja suodatinkentät (+ tunnus); muut tietokortin tiedot data/kortit/<kunta>.json
 # (ladataan vasta klikatessa). Pienentää tiedostoja ~puoleen (vaihe 2, 6.11.2026).
-TILE_KEYS = ("k", "ka", "e", "eh", "vh", "tu", "kp", "da", "dt", "d2", "d3", "d4", "d5")
-CARD_KEYS = ("ka", "mm", "kj", "mu", "mt", "pn", "e", "eh", "eu", "et", "ek", "t", "ku", "v", "vh", "sm", "sk", "sb", "sl",
+TILE_KEYS = ("k", "ka", "e", "eh", "vh", "vk", "tu", "kp", "da", "dt", "d2", "d3", "d4", "d5")
+CARD_KEYS = ("ka", "mm", "kj", "mu", "mt", "pn", "e", "eh", "eu", "et", "ek", "t", "ku", "v", "vh", "vk", "sm", "sk", "sb", "sl",
              "ps", "ik", "da", "dt", "d2", "d3", "d4", "d5", "de", "kp", "tu", "oj", "hr", "i0", "i1", "rb", "ab", "pa")
 POLY_MAXZOOM = 13  # rajat tallennetaan zoomiin 13 asti (tarkkuus ~0,6 m), lähempänä kartta suurentaa niitä
 
@@ -346,6 +346,7 @@ def props(rec, prices, area):
         "pn": rec.get("pn", 1), "e": round(e), "eh": round(e / mm) if mm else 0, "eu": round(e_h),
         "et": round(e_t), "ek": round(e_k), "t": round(saw), "ku": round(pulp),
         "v": round(v), "vh": round(v / mm) if mm else 0, "pa": area,
+        "vk": round(v / rec["ka"]) if rec.get("ka") else 0,   # m³/ha koko alaa kohden (väri, sama mittari kuin metsäkuva)
         "rb": rec.get("rb", 0), "ab": rec.get("ab", 0),
     }
     sp = {SPECIES_KEY[g]: rec.get("sp_" + g, 0) for g in SPECIES_KEY}
@@ -459,6 +460,26 @@ def publish_problems(prev, regions_ready, muni_counts):
     return out
 
 
+def nice(v):
+    """Pyöristys kahteen merkitsevään numeroon alaspäin 1–2–2,5–5-sarjaan (selitteen luvut)."""
+    if v <= 0:
+        return 0
+    mag = 10 ** int(np.floor(np.log10(v)))
+    return int(max(s for s in (1, 2, 2.5, 5, 10) if s * mag <= v) * mag)
+
+
+def e_stops(values):
+    """Tilojen €-värityksen portaat: 0 ja persentiilit 15/35/55/75/92 siistittyinä (omistajan toive 9.11.2026)."""
+    if not values:
+        return [0, 25000, 50000, 100000, 200000, 400000]
+    out = [0]
+    for q in np.percentile(np.asarray(values, dtype=float), [15, 35, 55, 75, 92]):
+        n = nice(q)
+        if n > out[-1]:
+            out.append(n)
+    return out
+
+
 def build_site(cache, out, work, regions_ready):
     data_dir = os.path.join(out, "data")
     os.makedirs(data_dir, exist_ok=True)
@@ -473,6 +494,7 @@ def build_site(cache, out, work, regions_ready):
 
     regions_meta, muni_counts, munis_meta = [], {}, {}
     kp_counts, ka_max, e_max = collections.Counter(), 0.0, 0
+    e_all = []   # puuston arvot (€) väriasteikon portaita varten
     card_dir = os.path.join(data_dir, "kortit")
     os.makedirs(card_dir, exist_ok=True)
     card_bytes = 0
@@ -492,7 +514,7 @@ def build_site(cache, out, work, regions_ready):
                     if not rec["g"]:
                         continue
                     all_cards[card_prefix(p["k"])][p["k"]] = [p.get(c) for c in CARD_KEYS]
-                    tp = {c: p[c] for c in TILE_KEYS if p.get(c) not in (None, 0) or c in ("k", "ka", "e", "eh", "vh")}
+                    tp = {c: p[c] for c in TILE_KEYS if p.get(c) not in (None, 0) or c in ("k", "ka", "e", "eh", "vh", "vk")}
                     tp["e"] = int(round(p["e"], -2))      # pyöristys parantaa tiedoston pakkautumista
                     tp["eh"] = int(round(p["eh"], -1))
                     fpoly.write(json.dumps({"type": "Feature", "properties": tp, "geometry":
@@ -501,6 +523,7 @@ def build_site(cache, out, work, regions_ready):
                     lons.append(rec["pt"][0])
                     lats.append(rec["pt"][1])
                     kp_counts[p.get("kp", 0)] += 1
+                    e_all.append(p["e"])
                     ka_max, e_max = max(ka_max, p["ka"]), max(e_max, p["e"])
                     n += 1
         fname = f"f-{slug(r)}.pmtiles"
@@ -528,6 +551,7 @@ def build_site(cache, out, work, regions_ready):
         "prices": used, "poly_minzoom": config.METSA_POLY_MINZOOM, "min_forest_ha": config.METSA_MIN_FOREST_HA,
         "version": VERSION, "kp": {str(k): v for k, v in sorted(kp_counts.items())},
         "max": {"ka": round(ka_max), "e": e_max}, "poly_maxzoom": POLY_MAXZOOM, "cards": "kortit/",
+        "e_stops": e_stops(e_all),
         "grid": grid_meta,
     }
     with open(os.path.join(data_dir, "meta.json"), "w", encoding="utf-8") as f:
