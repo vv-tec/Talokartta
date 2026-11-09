@@ -207,6 +207,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   haut peräkkäin, harvoin muuttuva tieto kiertävästi (palstat 14 pv, Ryhti täysi 30 pv).
 - Mukana vain asuinrakennukset (01, 05, 06); purettu/tuhoutunut (06, 07, 08) ja purkupäivälliset pois.
 - Omistajatietoja ei käsitellä eikä näytetä.
+- Kiinteistön nimeä ei näytetä (selvitetty 9.11.2026: ei avoimissa aineistoissa, vain MML:n maksullisessa
+  Kiinteistötietojen kyselypalvelussa käyttöluvalla; omistaja päätti jättää pois).
 - Lähdemaininnat (CC BY 4.0) ja päivitysaika näkyvät sivulla.
 - Sivuilla ei luetella maakuntia (omistajan päätös 9.11.2026: kattaa koko Suomen): alaotsikko `config.REGION_TITLE`,
   metsäpaneeli ja esikatselu näyttävät vain määrän ja päivitysajan, rantahuomautus ilman luetteloa.
