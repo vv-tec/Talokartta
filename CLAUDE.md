@@ -100,7 +100,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
     nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). **Kaukaa ei näytetä mitään** (omistajan päätös 6.11.2026:
     pisteet peittivät taustakartan) → pistetaso fp poistettu; paneeli kehottaa zoomaamaan. Talokartan sivua ei vielä muutettu.
-    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 10 kohtaa, mm. suodattimet ja
+    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 20 kohtaa (10 esikatselu + 10 Talokartta, mm. €/ha- ja m³/ha-liukusäätimet), mm. suodattimet ja
     kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
     `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
     **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
