@@ -58,10 +58,11 @@ def clip_box(pts, x0, y0, x1, y1):
 
 
 class ForestGrid:
-    """Kerää tilat ruutuihin. sizes: ruutukoot metreinä, pienin ensin (suuremmat ovat sen monikertoja)."""
+    """Kerää tilat ruutuihin. sizes: ruutukoot metreinä missä järjestyksessä tahansa (suuremmat pienimmän monikertoja)."""
 
     def __init__(self, sizes=(1000, 5000), min_share=MIN_SHARE):
-        self.sizes = tuple(sizes)
+        self.sizes = tuple(sorted(sizes))   # pienin ensin: palstat leikataan pienimpään, suuremmat summataan
+        assert all(s % self.sizes[0] == 0 for s in self.sizes), sizes
         self.min_share = min_share
         self.v = collections.defaultdict(float)    # (koko, i, j) -> m³
         self.mm = collections.defaultdict(float)   # (koko, i, j) -> metsämaata ha

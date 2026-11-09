@@ -170,7 +170,7 @@ def grid_tests():
             return out
         return [ring(x0, y0, x1, y1)] + ([ring(*hole)] if hole else [])
 
-    g = ForestGrid(sizes=(1000, 5000), min_share=0.01)   # näytetään, jos metsämaata ≥ 1 % ruudusta
+    g = ForestGrid(sizes=(5000, 1000), min_share=0.01)   # järjestys kuten config.METSA_GRIDS   # näytetään, jos metsämaata ≥ 1 % ruudusta
     # tila A: 300 m × 200 m palsta yhden 1 km ruudun sisällä, 6 ha metsämaata, 900 m³ → 150 m³/ha
     g.add([square(332100, 6748100, 332400, 6748300)], 900, 6.0)
     # tila B: 2 km × 1 km palsta kahdessa 1 km ruudussa (332000–334000), 100 ha, 20 000 m³ (200 m³/ha)
