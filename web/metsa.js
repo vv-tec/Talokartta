@@ -48,6 +48,7 @@
   // haalistuu XFADE zoomausaskeleen aikana ja tilat vahvistuvat FADE_IN askeleen aikana.
   const XFADE = 0.7, FADE_IN = 0.6;
   const fade = (z0, from, to, len) => ["interpolate", ["linear"], ["zoom"], z0, from, z0 + len, to];
+  const LINE_FOREST = { color: "#24382b", op: 0.7 }, LINE_HOUSE = { color: "#5f7466", op: 0.4 };  // rajaviivat moodeittain
   // even = portaat tasavälein (€-asteikko on epälineaarinen; väri muuttuu portaiden välillä lineaarisesti)
   const pos = (stops, i, even) => (even ? 100 * i / (stops.length - 1) : 100 * stops[i][0] / stops[stops.length - 1][0]);
   const gradient = (stops, even) => `linear-gradient(to right, ${stops.map(([, c], i) => `${c} ${pos(stops, i, even).toFixed(1)}%`).join(", ")})`;
@@ -104,7 +105,9 @@
     $("sub").textContent = M.active ? "Metsätilat avoimista aineistoista (esikatselu)" : (META?.title || "Asuinrakennukset avoimista rekistereistä");
     setHouseLayers(!M.active);
     $("hint").textContent = M.active ? "Lähennä nähdäksesi yksittäiset metsätilat" : HOUSE_HINT;
-    for (const l of allLayers()) if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", M.active ? "visible" : "none");
+    // tilojen rajat näkyvät myös talonäkymässä (vaaleampina, omistajan toive 9.11.2026); muut metsätasot vain metsätiloissa
+    for (const l of allLayers()) if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", M.active || l.endsWith("-line") ? "visible" : "none");
+    lineStyle();
     if (fly) map.flyTo(fly);
     if (M.active) apply(); else applyFilters();
     updateCountSoon();
@@ -208,6 +211,17 @@
   }
 
   /* ---------- tasot ---------- */
+  function lineStyle() {
+    const st = M.active ? LINE_FOREST : LINE_HOUSE;
+    const minz = FM?.poly_minzoom || 10;
+    for (const id of ids) {
+      const l = id + "-line";
+      if (!map.getLayer(l)) continue;
+      map.setPaintProperty(l, "line-color", st.color);
+      map.setPaintProperty(l, "line-opacity", fade(minz, 0, st.op, FADE_IN));
+      if (!M.active) map.setFilter(l, null);   // metsäsuodattimet eivät koske talonäkymää
+    }
+  }
   const allLayers = () => [...ids.flatMap((id) => [id + "-fill", id + "-line", id + "-sel"]), GRID];
   const fillLayers = () => ids.map((i) => i + "-fill").filter((l) => map.getLayer(l));
   const gridOn = () => map.getLayer(GRID) && map.getZoom() < (FM.poly_minzoom || 10);
@@ -232,12 +246,13 @@
       if (!map.getSource(id)) map.addSource(id, { type: "vector", url: "pmtiles://" + METSA_BASE + r.file });
       map.addLayer({ id: id + "-fill", type: "fill", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
         paint: { "fill-color": colorExpr(), "fill-opacity": fade(minz, 0, TILE_OPACITY, FADE_IN) } }, before);
-      map.addLayer({ id: id + "-line", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
+      map.addLayer({ id: id + "-line", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: "visible" },
         paint: { "line-color": "#24382b", "line-opacity": fade(minz, 0, 0.7, FADE_IN), "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 15, 1.2] } }, before);
       map.addLayer({ id: id + "-sel", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
         filter: ["==", ["get", "k"], selected ?? "__none__"], paint: { "line-color": "#d1495b", "line-width": 3 } });
       ids.push(id);
     }
+    lineStyle();
     apply();
   };
 

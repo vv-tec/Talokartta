@@ -116,7 +116,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     mittarilla ja asteikolla (`vk` = m³ / kokonaisala, `grid.ramp`), jotta värit pysyvät synkronissa; paneelin valinta
     "Tilojen väri": m³/ha tai puuston arvo yhteensä € (`e`, `e_stops`), muistetaan selaimessa (`metsaVari`)**
     (Talokartan metsätilanäkymässä; esikatselussa yhä vh-väri).
-    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 22 kohtaa (10 esikatselu + 12 Talokartta, mm. €/ha- ja m³/ha-liukusäätimet, tilojen värin valinta, metsäkuvan tiilet), mm. suodattimet ja
+    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 23 kohtaa (10 esikatselu + 13 Talokartta, mm. rajat talonäkymässä, mm. €/ha- ja m³/ha-liukusäätimet, tilojen värin valinta, metsäkuvan tiilet), mm. suodattimet ja
     kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
     `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
     **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
@@ -169,7 +169,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     (näkyy, jos kiinteistö on metsätila), fitBounds/alaotsikko vain talonäkymässä. Tasot `metsa-f-<maakunta>-fill/-line/-sel`
     taustakartan nimien alla; metsäkuva rasteritaso `metsa-r` (maxzoom = poly_minzoom + 1; klikkaus kaukaa sulkee kortin). **Ristihäivytys**
     (omistajan valinta 9.11.2026): zoomista poly_minzoom kuva haalistuu `XFADE` 0,7 askeleessa ja tilojen täyttö/rajat
-    vahvistuvat `FADE_IN` 0,6 askeleessa (`fade()`-lauseke; tilatiilet alkavat z10, joten häivytys ei voi alkaa aiemmin). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
+    vahvistuvat `FADE_IN` 0,6 askeleessa (`fade()`-lauseke; tilatiilet alkavat z10, joten häivytys ei voi alkaa aiemmin). Tilojen rajat (`-line`) näkyvät
+    myös talonäkymässä vaaleampina (`LINE_HOUSE`, ilman metsäsuodattimia; `lineStyle()`; omistajan toive 9.11.2026). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
     Tarkistus: `check/metsa_tarkistus.mjs` `runTalo` (TALO_URL, oletus julkaistu Talokartta; ajetaan Metsakartan jobissa).
   - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
     peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit

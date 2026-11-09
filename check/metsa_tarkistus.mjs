@@ -190,6 +190,9 @@ async function runTalo(browser, ok) {
     await idle(page);
     const back = await page.evaluate(() => new Set(map.queryRenderedFeatures({ layers: B_LAYERS }).map((f) => f.properties.id)).size);
     ok("Talokartta: takaisin taloihin – rakennukset näkyvät", back > 0, `${back} rakennusta`);
+    const lines = await page.evaluate(() => (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-line$/.test(l.id))
+      .filter((l) => map.getLayoutProperty(l.id, "visibility") !== "none").length);
+    ok("Talokartta: tilojen rajat näkyvät myös talonäkymässä", lines > 0, `${lines} rajatasoa`);
   } catch (e) {
     ok("Talokartta: metsätilanäkymä toimii", false, String(e.message || e).slice(0, 200));
   }

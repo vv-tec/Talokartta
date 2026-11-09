@@ -266,7 +266,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   9.11.2026; kaukonäkymässä ei ole tietoruutua). Lähempänä (zoomista 10) näkyvät yksittäiset metsätilat samalla väriasteikolla: puuta tilan koko alaa kohden
   (Metsäkeskuksen aineisto), joten värit jatkuvat kaukonäkymästä tiloihin. Paneelin kohdasta **Tilojen väri** voi vaihtaa
   tilat väritettäväksi **puuston arvon yhteensä (€)** mukaan; valinta muistetaan selaimessa (9.11.2026).
-  Siirtymä kaukonäkymästä tiloihin on häivytetty: zoomatessa metsäkuva haalistuu vähitellen ja tilat tulevat esiin
+  Metsätilojen rajat näkyvät vaaleampina myös Talot-näkymässä (vain metsätilojen eli yli 2 ha metsämaan kiinteistöjen
+  rajat; pienten tonttien rajoja aineistossa ei ole; 9.11.2026). Siirtymä kaukonäkymästä tiloihin on häivytetty: zoomatessa metsäkuva haalistuu vähitellen ja tilat tulevat esiin
   (9.11.2026). Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
   vaihtamaan vuosi (asetus `pipeline/vmi.py`).
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
