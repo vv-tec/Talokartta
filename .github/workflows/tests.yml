@@ -36,3 +36,54 @@ jobs:
 
       - name: Sivun koodin tarkistus
         run: for f in web/*.js check/*.mjs; do node --check "$f" && echo "✓ $f"; done
+
+  # Sivu oikeassa selaimessa ennen julkaisua: tämän muutoksen web/-kansio tarjoillaan paikallisesti ja karttatiedostot
+  # luetaan julkaistulta Talokartalta. Metsätilanäkymä lukee Metsakartan julkaistut tiedostot. Huom.: jos muutos
+  # tarvitsee uudenmuotoiset tiedostot, ne pitää julkaista ensin (tiedostojen muoto pidetään taaksepäin yhteensopivana).
+  sivu:
+    needs: testit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Asenna selain
+        working-directory: check
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Käynnistä paikallinen sivu
+        run: |
+          nohup node check/paikallinen.mjs web 8080 https://vv-tec.github.io/Talokartta/ > palvelin.log 2>&1 &
+          for i in $(seq 30); do curl -sf -o /dev/null http://localhost:8080/ && break; sleep 1; done
+          cat palvelin.log
+
+      - name: Tarkista talot
+        working-directory: check
+        env:
+          SITE_URL: http://localhost:8080/
+          ATTEMPTS: "1"
+          OUT_DIR: ${{ github.workspace }}/sivutarkistus
+        run: node sivutarkistus.mjs
+
+      - name: Tarkista metsätilanäkymä
+        if: always()
+        working-directory: check
+        env:
+          TALO_URL: http://localhost:8080/
+          ATTEMPTS: "1"
+        run: node metsa_tarkistus.mjs
+
+      - name: Tallenna kuvakaappaukset
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: sivutarkistus-paikallinen
+          path: sivutarkistus
+          retention-days: 7
+          if-no-files-found: ignore
