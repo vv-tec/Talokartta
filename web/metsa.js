@@ -1,7 +1,9 @@
 /* Talokartta – METSÄTILAT-näkymä (tiekartan kohta 6, vaihe 2).
  * Piilossa, kunnes omistaja hyväksyy: moodivalinta näkyy vain osoitteella ?moodi=metsa (tai ?moodi=talot).
  * Data tulee Metsakartta-repositorion sivulta (METSA_BASE): meta.json, f-<maakunta>.pmtiles (taso "f", zoomista
- * meta.poly_minzoom alkaen) ja kortit/<kunta>.json (tietokortin tiedot, ladataan klikatessa).
+ * meta.poly_minzoom alkaen), r.pmtiles (metsäruudut kaukaa: taso "r", vh m³/ha metsämaata, mm ha, n tiloja, s km,
+ * c tunniste; meta.grid) ja kortit/<kunta>.json (tietokortin tiedot, ladataan klikatessa).
+ * Väri (omistajan päätös 9.11.2026): puuston määrä m³/ha metsämaata sekä ruuduissa että tiloissa.
  * Tiilen ominaisuudet: k tunnus, ka kokonaisala ha, e puuston arvo €, eh €/ha metsämaata, vh m³/ha metsämaata, tu turvemaata %,
  * kp yleisin kasvupaikka 1–8, da/dt/d2/d3/d4/d5 kehitysluokkien osuudet % metsämaasta.
  * Kortin kentät: ks. Talokartan pipeline/metsa.py (CARD_KEYS).
@@ -24,8 +26,9 @@
     ["de", "Eri-ikäisrakenteinen", "#6a8caf"]];
   const AGES = [["a", "Aukea ja taimikko", ["da", "dt"]], ["n", "Nuori kasvatusmetsä", ["d2"]],
     ["v", "Varttunut kasvatusmetsä", ["d3"]], ["u", "Uudistuskypsä", ["d4", "d5"]]];
-  const STEPS = [[0, "#f1eadb"], [3000, "#d6e5b9"], [6000, "#a8cf8e"], [9000, "#6fae6b"], [12000, "#3c8a4f"], [15000, "#1d5e34"]];
-  const COLOR = ["step", ["get", "eh"], STEPS[0][1], ...STEPS.slice(1).flat()];
+  const STEPS = [[0, "#f1eadb"], [50, "#d6e5b9"], [100, "#a8cf8e"], [150, "#6fae6b"], [200, "#3c8a4f"], [250, "#1d5e34"]];
+  const COLOR = ["step", ["coalesce", ["get", "vh"], 0], STEPS[0][1], ...STEPS.slice(1).flat()];
+  const GRID = "metsa-r";     // metsäruutujen lähde ja tasot (GRID-fill, GRID-sel)
   const eur = (n) => nf.format(Math.round((n ?? 0) / 100) * 100) + " €";
   const ha = (n) => nf.format(Math.round((n ?? 0) * 10) / 10) + " ha";
   // Liukusäätimien portaat (viimeinen = ei ylärajaa)
@@ -62,10 +65,8 @@
     $("fpanel").hidden = !M.active;
     $("sub").textContent = M.active ? "Metsätilat avoimista aineistoista (esikatselu)" : (META?.title || "Asuinrakennukset avoimista rekistereistä");
     setHouseLayers(!M.active);
-    $("hint").textContent = M.active ? "Lähennä nähdäksesi metsätilat" : HOUSE_HINT;
-    for (const id of ids) for (const l of [id + "-fill", id + "-line", id + "-sel"]) {
-      if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", M.active ? "visible" : "none");
-    }
+    $("hint").textContent = M.active ? "Lähennä nähdäksesi yksittäiset metsätilat" : HOUSE_HINT;
+    for (const l of allLayers()) if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", M.active ? "visible" : "none");
     if (fly) map.flyTo(fly);
     if (M.active) apply(); else applyFilters();
     updateCountSoon();
@@ -97,8 +98,10 @@
       <section><h3>Ikäjakauma</h3><div class="muted" style="font-size:13px">Osuus metsämaasta vähintään</div>
         ${AGES.map(([id, lab]) => `<div class="fage"><label for="fAge-${id}"><span>${lab}</span><span id="fAge-${id}-v">0 %</span></label>
           <input type="range" id="fAge-${id}" min="0" max="100" step="10" value="0"></div>`).join("")}</section>
-      <section><h3>Värit: puuston arvo €/ha</h3><div class="flegend">${STEPS.map(([v, c], i) =>
-        `<i style="background:${c}"></i><span>${i < STEPS.length - 1 ? `${nf.format(v)}–${nf.format(STEPS[i + 1][0])}` : `yli ${nf.format(v)}`} €/ha</span>`).join("")}</div></section>
+      <section><h3>Värit: puuston määrä (m³/ha metsämaata)</h3><div class="flegend">${STEPS.map(([v, c], i) =>
+        `<i style="background:${c}"></i><span>${i < STEPS.length - 1 ? `${nf.format(v)}–${nf.format(STEPS[i + 1][0])}` : `yli ${nf.format(v)}`} m³/ha</span>`).join("")}</div>
+        <p class="muted" style="font-size:13px;margin:6px 0 0">Kaukaa kartalla on ruudut (5 km ja 1 km), lähempänä yksittäiset metsätilat.
+          Ruutu näytetään, jos siinä on metsätilojen metsämaata vähintään 5 % ruudun alasta. Valtion metsät puuttuvat aineistosta.</p></section>
       <button type="button" id="fReset" class="btn wide">Tyhjennä suodattimet</button>
       <p class="src">Metsätila = kiinteistö, jolla metsämaata yli 2 ha. Puuston arvo on laskennallinen (tukki- ja kuitupuu ×
         Luken kantohinnat), ei kauppahinta. Metsävaratieto: <a href="https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto" target="_blank" rel="noopener">Suomen metsäkeskus</a>,
@@ -157,6 +160,9 @@
   }
 
   /* ---------- tasot ---------- */
+  const allLayers = () => [...ids.flatMap((id) => [id + "-fill", id + "-line", id + "-sel"]), GRID + "-fill", GRID + "-sel"];
+  const fillLayers = () => ids.map((i) => i + "-fill").filter((l) => map.getLayer(l));
+  const gridOn = () => map.getLayer(GRID + "-fill") && map.getZoom() < (FM.poly_minzoom || 10);
   M.addLayers = () => {
     if (!FM || !styleReady || (ids.length && map.getLayer(ids[0] + "-fill"))) return;  // styleReady: app.js
     // tilat taustakartan nimien alle, jotta paikannimet erottuvat
@@ -167,6 +173,13 @@
     const minz = FM.poly_minzoom || 10;
     const vis = M.active ? "visible" : "none";
     ids = [];
+    if (FM.grid && !map.getLayer(GRID + "-fill")) {
+      if (!map.getSource(GRID)) map.addSource(GRID, { type: "vector", url: "pmtiles://" + METSA_BASE + FM.grid.file });
+      map.addLayer({ id: GRID + "-fill", type: "fill", source: GRID, "source-layer": FM.grid.layer || "r", maxzoom: minz,
+        layout: { visibility: vis }, paint: { "fill-color": COLOR, "fill-opacity": 0.6, "fill-antialias": false } }, before);
+      map.addLayer({ id: GRID + "-sel", type: "line", source: GRID, "source-layer": FM.grid.layer || "r", maxzoom: minz,
+        layout: { visibility: vis }, filter: ["==", ["get", "c"], -1], paint: { "line-color": "#d1495b", "line-width": 2.5 } });
+    }
     for (const r of FM.regions) {
       const id = "metsa-" + r.file.replace(/\.pmtiles$/, "");
       if (!map.getSource(id)) map.addSource(id, { type: "vector", url: "pmtiles://" + METSA_BASE + r.file });
@@ -190,7 +203,8 @@
     $("hint").hidden = close;
     if (!close) {
       $("fCount").textContent = nf.format(FM.count);
-      $("fLabel").textContent = "metsätilaa. Lähennä nähdäksesi ne kartalla.";
+      $("fLabel").textContent = FM.grid ? "metsätilaa. Ruudut näyttävät puuston määrän; lähennä nähdäksesi yksittäiset tilat."
+        : "metsätilaa. Lähennä nähdäksesi ne kartalla.";
       return;
     }
     const seen = new Set(map.queryRenderedFeatures({ layers: ids.map((i) => i + "-fill").filter((l) => map.getLayer(l)) }).map((f) => f.properties.k));
@@ -200,18 +214,53 @@
 
   /* ---------- valinta ja kortti ---------- */
   M.hover = (e) => {
-    const layers = ids.map((i) => i + "-fill").filter((l) => map.getLayer(l));
+    const layers = gridOn() ? [GRID + "-fill"] : fillLayers();
     map.getCanvas().style.cursor = layers.length && map.queryRenderedFeatures(e.point, { layers }).length ? "pointer" : "";
   };
   M.click = (e) => {
-    const layers = ids.map((i) => i + "-fill").filter((l) => map.getLayer(l));
+    if (gridOn()) {
+      const g = map.queryRenderedFeatures(e.point, { layers: [GRID + "-fill"] })[0];
+      if (g) selectCell(g, e.lngLat); else closeCard();
+      return;
+    }
+    const layers = fillLayers();
     const f = layers.length && map.queryRenderedFeatures(e.point, { layers })[0];
     if (f) select(f, e.lngLat); else closeCard();
   };
   M.clearSelection = () => {
     selected = null;
     for (const id of ids) if (map.getLayer(id + "-sel")) map.setFilter(id + "-sel", ["==", ["get", "k"], "__none__"]);
+    if (map.getLayer(GRID + "-sel")) map.setFilter(GRID + "-sel", ["==", ["get", "c"], -1]);
   };
+
+  // Metsäruudun tietoruutu
+  function selectCell(f, ll) {
+    const p = f.properties;
+    M.clearSelection();
+    map.setFilter(GRID + "-sel", ["all", ["==", ["get", "c"], p.c], ["==", ["get", "s"], p.s]]);
+    const card = $("card");
+    card.innerHTML = `
+      <div class="card-h"><h2>Alue ${p.s} km × ${p.s} km</h2><div class="place">Metsäruutu</div>
+        <button type="button" class="x" id="closeCard" aria-label="Sulje tiedot">×</button></div>
+      <div class="card-b">
+        <div class="year"><span class="big">${nf.format(p.vh)} m³/ha</span><span class="sub">puuston määrä keskimäärin<br>metsämaan hehtaaria kohden</span></div>
+        <div class="sect"><dl class="kv">
+          <dt>Metsätilojen metsämaata</dt><dd>${nf.format(p.mm)} ha (${nf.format(Math.round(p.mm / (p.s * p.s)))} % ruudusta)</dd>
+          <dt>Metsätiloja</dt><dd>${nf.format(p.n)}</dd>
+        </dl><p class="fine">Laskettu ruudun metsätiloista (metsämaata yli 2 ha); tila on mukana sillä osuudella, joka sen alasta on
+          ruudussa. Aineisto kattaa lähinnä yksityismetsät: valtion metsät puuttuvat. Metsävaratieto: Suomen metsäkeskus.</p></div>
+        <div class="sect"><div class="links"><a href="#" id="zoomCell">Lähennä alueeseen <small>näytä yksittäiset metsätilat</small></a></div></div>
+      </div>`;
+    card.hidden = false;
+    card.scrollTop = 0;
+    $("closeCard").addEventListener("click", closeCard);
+    $("zoomCell").addEventListener("click", (ev) => {
+      ev.preventDefault();
+      closeCard();
+      map.flyTo({ center: ll, zoom: (FM.poly_minzoom || 10) + 1 });
+    });
+    closePanel();
+  }
 
   function cardData(k) {
     const muni = k.split("-")[0].padStart(3, "0");

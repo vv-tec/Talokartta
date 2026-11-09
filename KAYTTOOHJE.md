@@ -247,7 +247,7 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 Metsätilat (kiinteistöt, joilla metsämaata yli 2 ha) lasketaan ja julkaistaan omassa repositoriossa **Metsakartta**,
 koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelmakoodi on silti Talokartassa.
 
-- **Esikatselu:** https://vv-tec.github.io/Metsakartta/ – kartta, jossa metsätilat on väritetty puuston arvon (€/ha) mukaan.
+- **Esikatselu:** https://vv-tec.github.io/Metsakartta/ – kartta, jossa metsätilat on väritetty puuston määrän (m³/ha metsämaata) mukaan.
   Tilat näkyvät vasta lähellä (noin kunnan osan kokoinen alue ruudulla); kaukaa kartta on tyhjä, jotta taustakartta erottuu.
   Vasemmalla **suodattimet**: kokonaisala, puuston arvo yhteensä, metsäpohja (kivennäis-/turvemaa ja yleisin kasvupaikka)
   ja ikäjakauma (esim. "uudistuskypsää vähintään 50 %"); alla näkyy, montako tilaa kartalla on näkyvissä. Puhelimessa
@@ -258,6 +258,12 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   liukusäätimet **puuston arvo €/ha** ja **puuston määrä m³/ha** metsämaata, ala- ja yläraja; 9.11.2026) ja tietokortti; kortista pääsee
   talonäkymään, jos tilalla on asuinrakennus, ja talon kortista metsätilaan, jos kiinteistö on metsätila. Ilman
   `?moodi=metsa`-loppua Talokartta näyttää vain talot kuten ennenkin. Näkymä avataan kaikille, kun hyväksyt sen.
+  **Värit ja kaukonäkymä (9.11.2026):** väri kertoo puuston määrän metsämaan hehtaaria kohden (vaalea vähän, tumma paljon).
+  Kaukaa katsottaessa kartalla on ruudut (ensin 5 km, lähempänä 1 km), jotka näyttävät alueen metsätilojen keskimääräisen
+  puuston määrän; lähempänä ruudut vaihtuvat yksittäisiin tiloihin. Ruutua klikkaamalla aukeaa tietoruutu (m³/ha,
+  metsätilojen metsämaa, tilojen määrä, "Lähennä alueeseen"). Ruutu näytetään vain, jos siinä on metsätilojen metsämaata
+  vähintään 5 % ruudun alasta; tyhjä kohta tarkoittaa "ei tietoa" (esim. valtion metsät, pellot, järvet). Suodattimet
+  koskevat vain tiloja, eivät ruutuja.
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
   kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
   epäonnistuneesta ajosta.

@@ -164,6 +164,26 @@ async function runTalo(browser, ok) {
       const card = (await page.textContent("#card")) || "";
       ok("Talokartta: metsätilan kortti aukeaa", /Puuston arvo/.test(card) && /Hakkuutavan hinnoin/.test(card), card.replace(/\s+/g, " ").slice(0, 100));
     } else ok("Talokartta: metsätilan kortti aukeaa", false, "klikattavaa tilaa ei löytynyt");
+    // Kaukaa metsäruudut (m³/ha) ja ruudun tietoruutu
+    await page.evaluate(() => { closeCard(); map.jumpTo({ center: [23.85, 60.75], zoom: 8.5 }); });
+    await idle(page);
+    const cells = await page.evaluate(() => (map.getLayer("metsa-r-fill") ? map.queryRenderedFeatures({ layers: ["metsa-r-fill"] }).length : -1));
+    ok("Talokartta: kaukaa näkyvät metsäruudut", cells > 20, cells < 0 ? "ruututaso puuttuu" : `${cells} ruutua`);
+    const cpt = await page.evaluate(() => {
+      if (!map.getLayer("metsa-r-fill")) return null;
+      const { width, height } = map.getCanvas().getBoundingClientRect();
+      for (let y = height / 2; y < height; y += 20) for (let x = width / 2; x < width; x += 20) {
+        if (map.queryRenderedFeatures([x, y], { layers: ["metsa-r-fill"] }).length) return { x, y };
+      }
+      return null;
+    });
+    if (cpt) {
+      const box = await page.locator("#map").boundingBox();
+      await page.mouse.click(box.x + cpt.x, box.y + cpt.y);
+      await page.waitForFunction(() => /Metsäruutu/.test(document.querySelector("#card")?.textContent || ""), null, { timeout: 10_000 }).catch(() => {});
+      const card = (await page.textContent("#card")) || "";
+      ok("Talokartta: metsäruudun tietoruutu aukeaa", /Metsäruutu/.test(card) && /m³\/ha/.test(card), card.replace(/\s+/g, " ").slice(0, 100));
+    } else ok("Talokartta: metsäruudun tietoruutu aukeaa", false, "klikattavaa ruutua ei löytynyt");
     await page.click('#modeSwitch button[data-m="talot"]');
     await page.evaluate(() => map.jumpTo({ center: [23.763, 60.8095], zoom: 14 }));
     await idle(page);

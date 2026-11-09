@@ -31,6 +31,7 @@ from shapely.strtree import STRtree
 from . import config, net, ryhti
 from .build import fail, fmt_kt, keep, slug
 from .metsa_laske import ASSORT, PRICE_AREA, PRICE_AREA_MUNI, luke_prices, price_group, read_stands, to_shape
+from .metsa_grid import ForestGrid
 from .mml_files import MMLFiles, municipality_parcels
 from .tm35 import tm35_to_latlon
 
@@ -389,6 +390,31 @@ def tippecanoe(src, out, layer, zmin, zmax, extra=()):
     return size
 
 
+def write_grid(grid, work, data_dir, t_grid):
+    """Metsäruudut (taso "r") → data/r.pmtiles: 5 km kaukaa, 1 km lähempää, kunnes tilojen rajat tulevat näkyviin."""
+    t0 = time.time()
+    parts, counts = [], {}
+    for c in config.METSA_GRIDS:
+        src = os.path.join(work, f"r{c['size']}.geojsonl")
+        feats = list(grid.features(c["size"]))
+        counts[c["size"]] = len(feats)
+        write_features(src, feats)
+        mbt = src.replace(".geojsonl", ".mbtiles")
+        tippecanoe(src, mbt, "r", c["minzoom"], c["maxzoom"], ["--no-tiny-polygon-reduction", "--no-line-simplification"])
+        parts.append(mbt)
+    out = os.path.join(data_dir, "r.pmtiles")
+    cmd = ["tile-join", "-o", out, "--force", "--quiet", "--no-tile-size-limit", *parts]
+    log(" ".join(cmd))
+    subprocess.run(cmd, check=True)
+    size = os.path.getsize(out) / 1e6
+    log(f"Metsäruudut: " + ", ".join(f"{s // 1000} km {n} ruutua" for s, n in counts.items())
+        + f", r.pmtiles {size:.1f} Mt; jako ruutuihin {t_grid:.0f} s, tiedosto {time.time() - t0:.0f} s")
+    if size > 95:
+        fail(f"r.pmtiles on {size:.1f} Mt, yli GitHub Pagesin rajan")
+    return {"file": "r.pmtiles", "layer": "r", "min_share": grid.min_share,
+            "maxzoom": max(c["maxzoom"] for c in config.METSA_GRIDS)}
+
+
 def previous_meta():
     try:
         return net.get(config.METSA_SITE_URL + "data/meta.json", {"t": str(int(time.time()))}, tries=3, timeout=30).json()
@@ -431,6 +457,8 @@ def build_site(cache, out, work, regions_ready):
     card_bytes = 0
     all_cards = collections.defaultdict(dict)
     total = 0
+    grid = ForestGrid(sizes=[c["size"] for c in config.METSA_GRIDS])   # kaukaa näytettävät ruudut (m³/ha)
+    t_grid = 0.0
     for r in regions_ready:
         src = os.path.join(work, f"f-{slug(r)}.geojsonl")
         n = 0
@@ -454,6 +482,9 @@ def build_site(cache, out, work, regions_ready):
                     lons.append(rec["pt"][0])
                     lats.append(rec["pt"][1])
                     kp_counts[p.get("kp", 0)] += 1
+                    t1 = time.time()
+                    grid.add(rec["g"], p.get("v", 0), p.get("mm", 0))
+                    t_grid += time.time() - t1
                     ka_max, e_max = max(ka_max, p["ka"]), max(e_max, p["e"])
                     n += 1
         fname = f"f-{slug(r)}.pmtiles"
@@ -470,6 +501,7 @@ def build_site(cache, out, work, regions_ready):
             json.dump({"c": CARD_KEYS, "r": cards}, f, ensure_ascii=False, separators=(",", ":"))
         card_bytes += os.path.getsize(cpath)
     log(f"Tietokortit: {len(all_cards)} tiedostoa ({len(muni_counts)} kuntaa), {card_bytes / 1e6:.1f} Mt")
+    grid_meta = write_grid(grid, work, data_dir, t_grid)
 
     used = {}
     for a, tab in prices.items():
@@ -480,6 +512,7 @@ def build_site(cache, out, work, regions_ready):
         "prices": used, "poly_minzoom": config.METSA_POLY_MINZOOM, "min_forest_ha": config.METSA_MIN_FOREST_HA,
         "version": VERSION, "kp": {str(k): v for k, v in sorted(kp_counts.items())},
         "max": {"ka": round(ka_max), "e": e_max}, "poly_maxzoom": POLY_MAXZOOM, "cards": "kortit/",
+        "grid": grid_meta,
     }
     with open(os.path.join(data_dir, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False)

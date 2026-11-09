@@ -10,8 +10,8 @@ const SITES = { 1: "Lehto", 2: "Lehtomainen kangas", 3: "Tuore kangas", 4: "Kuiv
 const DEV = [["da", "Aukea / siemenpuu", "#e9d8a6"], ["dt", "Taimikko", "#b5d99c"], ["d2", "Nuori kasvatus", "#7fbf7b"],
   ["d3", "Varttunut kasvatus", "#3f9a5a"], ["d4", "Uudistuskypsä", "#1b5e34"], ["d5", "Suojuspuu", "#8c6d46"],
   ["de", "Eri-ikäisrakenteinen", "#6a8caf"]];
-const STEPS = [[0, "#f1eadb"], [3000, "#d6e5b9"], [6000, "#a8cf8e"], [9000, "#6fae6b"], [12000, "#3c8a4f"], [15000, "#1d5e34"]];
-const color = ["step", ["get", "eh"], STEPS[0][1], ...STEPS.slice(1).flat()];
+const STEPS = [[0, "#f1eadb"], [50, "#d6e5b9"], [100, "#a8cf8e"], [150, "#6fae6b"], [200, "#3c8a4f"], [250, "#1d5e34"]];  // m³/ha (9.11.2026)
+const color = ["step", ["coalesce", ["get", "vh"], 0], STEPS[0][1], ...STEPS.slice(1).flat()];
 
 const fmt = (n, d = 0) => (n ?? 0).toLocaleString("fi-FI", { maximumFractionDigits: d, minimumFractionDigits: d });
 const eur = (n) => fmt(Math.round((n ?? 0) / 100) * 100) + " €";
@@ -42,7 +42,7 @@ map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribut
 
 let META = null;
 document.getElementById("legend").innerHTML = STEPS.map(([v, c], i) =>
-  `<i style="background:${c}"></i><span>${i < STEPS.length - 1 ? `${fmt(v)}–${fmt(STEPS[i + 1][0])}` : `yli ${fmt(v)}`} €/ha</span>`).join("");
+  `<i style="background:${c}"></i><span>${i < STEPS.length - 1 ? `${fmt(v)}–${fmt(STEPS[i + 1][0])}` : `yli ${fmt(v)}`} m³/ha</span>`).join("");
 
 const AGES = [["a", "Aukea ja taimikko", ["da", "dt"]], ["n", "Nuori kasvatusmetsä", ["d2"]],
   ["v", "Varttunut kasvatusmetsä", ["d3"]], ["u", "Uudistuskypsä", ["d4", "d5"]]];

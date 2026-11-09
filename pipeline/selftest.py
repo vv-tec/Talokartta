@@ -143,8 +143,50 @@ def run():
         assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
     ryhti_store_tests(parcels)
     shore_tests()
+    grid_tests()
     metsa_tests()
     print("selftest OK")
+
+
+def grid_tests():
+    """METSARUUDUT: palstan jako ruutuihin ja m³/ha (ei vaadi Shapelya; numpy tulee Shapelyn mukana)."""
+    try:
+        import numpy  # noqa: F401
+    except ImportError:
+        print("  (ruututestit ohitettu: numpy puuttuu)")
+        return
+    from .metsa_grid import ForestGrid, clip_box, ring_area
+    assert ring_area([0, 10, 10, 0], [0, 0, 10, 10]) == 100
+    c = clip_box([(-5, 0), (5, 0), (5, 10), (-5, 10)], 0, 0, 100, 100)
+    assert abs(ring_area([p[0] for p in c], [p[1] for p in c]) - 50) < 1e-9
+
+    def square(x0, y0, x1, y1, hole=None):  # TM35-suorakulmio → lon/lat-rengas(+reikä)
+        def ring(a, b, c, d):
+            pts = [(a, b), (c, b), (c, d), (a, d), (a, b)]
+            out = []
+            for x, y in pts:
+                lat, lon = tm35_to_latlon(x, y)
+                out.append([lon, lat])
+            return out
+        return [ring(x0, y0, x1, y1)] + ([ring(*hole)] if hole else [])
+
+    g = ForestGrid(sizes=(1000, 5000), min_share=0.01)   # näytetään, jos metsämaata ≥ 1 % ruudusta
+    # tila A: 300 m × 200 m palsta yhden 1 km ruudun sisällä, 6 ha metsämaata, 900 m³ → 150 m³/ha
+    g.add([square(332100, 6748100, 332400, 6748300)], 900, 6.0)
+    # tila B: 2 km × 1 km palsta kahdessa 1 km ruudussa (332000–334000), 100 ha, 20 000 m³ (200 m³/ha)
+    g.add([square(332000, 6747000, 334000, 6748000)], 20000, 100.0)
+    # tila C: reiällinen palsta; reikä pienentää alaa mutta suhde säilyy
+    g.add([square(336000, 6747000, 337000, 6748000, hole=(336200, 6747200, 336400, 6747400))], 1000, 10.0)
+    one = {f["properties"]["c"]: f["properties"] for f in g.features(1000)}
+    assert one[332 * 10000 + 6748]["vh"] == 150 and one[332 * 10000 + 6748]["n"] == 1      # vain A
+    assert one[332 * 10000 + 6747]["mm"] == 50 and one[333 * 10000 + 6747]["vh"] == 200    # B puoliksi kummassakin
+    assert one[336 * 10000 + 6747]["vh"] == 100 and one[336 * 10000 + 6747]["mm"] == 10
+    five = {f["properties"]["c"]: f["properties"] for f in g.features(5000)}   # 5 km: A ja B ruudussa 66, C ruudussa 67
+    assert five[66 * 10000 + 1349]["n"] == 2 and five[66 * 10000 + 1349]["mm"] == 106
+    assert five[66 * 10000 + 1349]["vh"] == round((900 + 20000) / 106) and 67 * 10000 + 1349 not in five  # C: 10 < 25 ha
+    g2 = ForestGrid(sizes=(1000,))
+    g2.add([square(332100, 6748100, 332200, 6748200)], 100, 1.0)   # 1 ha < 5 % ruudusta (oletus) → ei näytetä
+    assert list(g2.features(1000)) == []
 
 
 def metsa_tests():

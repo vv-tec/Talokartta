@@ -96,11 +96,15 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     `data/kortit/<kunta>.json` ({c: `CARD_KEYS`, r: {tunnus: [arvot]}}; tietokortti lataa klikatessa, kunta =
     tunnuksen 1. osa 3 numeroksi), `data/meta.json`
     (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`),
-    esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri €/ha, tietokortti, **suodattimet**: kokonaisala,
+    `data/r.pmtiles` (**metsäruudut**, taso "r", `metsa_grid.py` `ForestGrid` + `write_grid`, `config.METSA_GRIDS` 5 km z0–7,
+    1 km z8–9; tilan m³ ja metsämaa jaetaan ruuduille alaosuuksin, oma leikkaus ilman Shapelya; näytetään, jos metsämaata
+    ≥ `MIN_SHARE` 5 % ruudusta; ominaisuudet vh, mm, n, s (km), c = i·10000+j; meta `grid`),
+    esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri m³/ha (9.11.2026, ennen €/ha), tietokortti, **suodattimet**: kokonaisala,
     puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
-    nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). **Kaukaa ei näytetä mitään** (omistajan päätös 6.11.2026:
-    pisteet peittivät taustakartan) → pistetaso fp poistettu; paneeli kehottaa zoomaamaan. Talokartan sivua ei vielä muutettu.
-    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 20 kohtaa (10 esikatselu + 10 Talokartta, mm. €/ha- ja m³/ha-liukusäätimet), mm. suodattimet ja
+    nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). Kaukaa ei pisteitä (6.11.2026: peittivät taustakartan);
+    **9.11.2026 omistajan päätös: kaukaa metsäruudut, väri puuston määrä m³/ha metsämaata sekä ruuduissa että tiloissa,
+    ruudun tietoruutu** (Talokartan metsätilanäkymässä; esikatselussa vain värit).
+    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 22 kohtaa (10 esikatselu + 12 Talokartta, mm. €/ha- ja m³/ha-liukusäätimet, metsäruudut + tietoruutu), mm. suodattimet ja
     kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
     `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
     **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
@@ -151,7 +155,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     `#fKaMin/Max`, `#fEMin/Max`, liukusäätimet `#fEhR`/`#fVhR` (app.js `makeRange`), `#fPeat`, `#fSites`, `#fAge-a/n/v/u`, `#fReset`). `app.js`-koukut: `setHouseLayers`,
     updateCount/click/mousemove ohjataan Metsalle, `curPanel()`, closeCard → clearSelection, talon kortissa `#forestLink`
     (näkyy, jos kiinteistö on metsätila), fitBounds/alaotsikko vain talonäkymässä. Tasot `metsa-f-<maakunta>-fill/-line/-sel`
-    taustakartan nimien alla. Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
+    taustakartan nimien alla; metsäruudut `metsa-r-fill/-sel` (maxzoom = poly_minzoom, klikkaus → `selectCell`). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
     Tarkistus: `check/metsa_tarkistus.mjs` `runTalo` (TALO_URL, oletus julkaistu Talokartta; ajetaan Metsakartan jobissa).
   - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
     peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit
