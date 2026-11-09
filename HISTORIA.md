@@ -320,4 +320,6 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Nauvo 50, Korppoo 76, Tammela 42, Helsinki 3, Kuhmo 52, Rovaniemi 22, Pallas 40, Seinäjoki 18, Puumala 50, Inari 50.
     9.11.2026 Talokartan julkaisu jumittui kahdesti ("Timeout reached", syncing_files); käsiajo samalla commitilla ei
     auttanut → uusi commit. VMI-kuva Metsakartan ajossa: lataus 81 s, kuva 122 s, 575 tiiltä, r.pmtiles 7,7 Mt, r-info 0,8 Mt.
+    Omistaja 9.11.2026 iltapäivällä: 1 km ruudun tietoruutu pois (epärelevantti), metsäkuva läpinäkyvämmäksi
+    (raster-opacity 0,6 → peitto ~0,47).
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.

@@ -149,11 +149,11 @@ def run():
 
 
 def vmi_tests():
-    """METSÄKUVA (VMI): kokoaminen, koko alaa kohden -luku, väritys ja tietokuva (ohitetaan ilman numpy/tifffile/Pillow)."""
+    """METSÄKUVA (VMI): kokoaminen, koko alaa kohden -luku ja väritys (ohitetaan ilman numpy/tifffile/Pillow)."""
     try:
         import numpy as np
         import tifffile
-        from PIL import Image
+        import PIL  # noqa: F401
     except ImportError:
         print("  (metsäkuvatestit ohitettu: numpy, tifffile tai Pillow puuttuu)")
         return
@@ -172,10 +172,6 @@ def vmi_tests():
         tot = vmi.total_per_ha(agg)
         assert agg["cell"] == 256 and agg["x0"] == 300000 and agg["y0"] == 7000000
         assert tot[0, 0] == 200 and tot[0, 1] == 50 and np.isnan(tot[1, 0]) and tot[2, 2] == 0, tot
-        info = os.path.join(d, "i.png")
-        assert vmi.info_png(agg, info, k=2) == 512
-        px = np.asarray(Image.open(info))
-        assert px.shape == (2, 2, 3) and tuple(px[0, 0]) == (83, 50, 83), px[0, 0]   # 64 000/768, 384/768 = 50 %, 64 000/384/2
     rgba = vmi.colorize(np.array([np.nan, 0.0, vmi.FADE / 2, 1000.0]))
     assert rgba[0, 3] == 0 and rgba[1, 3] == 0 and 0 < rgba[2, 3] < rgba[3, 3]
     assert tuple(rgba[3, :3]) == tuple(int(vmi.RAMP[-1][1][i:i + 2], 16) for i in (1, 3, 5))

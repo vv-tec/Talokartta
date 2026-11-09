@@ -391,16 +391,16 @@ def tippecanoe(src, out, layer, zmin, zmax, extra=()):
 
 
 def vmi_overview(cache, work, data_dir):
-    """Kaukonäkymän metsäkuva (Luken VMI, puuta koko alaa kohden) → data/r.pmtiles + data/r-info.png.
+    """Kaukonäkymän metsäkuva (Luken VMI, puuta koko alaa kohden) → data/r.pmtiles.
     Valmis kuva säilyy välimuistissa (cache/vmi) ja tehdään uudelleen vain, kun VMI-vuosi tai väritys muuttuu.
     Virhe ei kaada ajoa: metsätilat julkaistaan ilman kaukonäkymää (::warning)."""
     from . import vmi
     vdir = os.path.join(cache, "vmi")
     os.makedirs(vdir, exist_ok=True)
     ver = f"{vmi.YEAR}-{vmi.RENDER_VERSION}"
-    tiles, info, mfile = (os.path.join(vdir, f"{n}-{ver}{e}") for n, e in (("r", ".pmtiles"), ("r-info", ".png"), ("meta", ".json")))
+    tiles, mfile = (os.path.join(vdir, f"{n}-{ver}{e}") for n, e in (("r", ".pmtiles"), ("meta", ".json")))
     try:
-        if not all(os.path.exists(f) for f in (tiles, info, mfile)):
+        if not all(os.path.exists(f) for f in (tiles, mfile)):
             t0 = time.time()
             npz = os.path.join(vdir, f"vmi{vmi.YEAR}_256.npz")
             if os.path.exists(npz):
@@ -416,20 +416,20 @@ def vmi_overview(cache, work, data_dir):
                                     nocalc=agg["nocalc"].astype(np.uint16),
                                     meta=np.array([agg["x0"], agg["y0"], agg["cell"], agg["block"]]))
             for f in os.listdir(vdir):   # vanhat versiot pois
-                if f.startswith(("r-", "r-info-", "meta-")) and ver not in f:
+                if f.startswith(("r-", "meta-")) and ver not in f:
                     os.remove(os.path.join(vdir, f))
             n = vmi.render_pmtiles(agg, tiles)
-            cell = vmi.info_png(agg, info)
-            meta = {"type": "raster", "file": "r.pmtiles", "maxzoom": vmi.ZMAX, "info": "r-info.png",
-                    "x0": agg["x0"], "y0": agg["y0"], "cell": cell, "year": vmi.YEAR, "ramp": vmi.RAMP,
+            meta = {"type": "raster", "file": "r.pmtiles", "maxzoom": vmi.ZMAX, "year": vmi.YEAR, "ramp": vmi.RAMP,
                     "fade": vmi.FADE, "opacity": vmi.OPACITY}
             with open(mfile, "w") as f:
                 json.dump(meta, f)
             log(f"Metsäkuva (VMI {vmi.YEAR}) tehty: {n} tiiltä, {time.time() - t0:.0f} s")
         shutil.copy(tiles, os.path.join(data_dir, "r.pmtiles"))
-        shutil.copy(info, os.path.join(data_dir, "r-info.png"))
-        log(f"Metsäkuva: r.pmtiles {os.path.getsize(tiles) / 1e6:.1f} Mt, r-info.png {os.path.getsize(info) / 1e6:.1f} Mt")
-        return json.load(open(mfile))
+        log(f"Metsäkuva: r.pmtiles {os.path.getsize(tiles) / 1e6:.1f} Mt")
+        meta = json.load(open(mfile))
+        for k in ("info", "x0", "y0", "cell"):   # tietoruutu poistettu 9.11.2026 (vanha välimuistin meta)
+            meta.pop(k, None)
+        return meta
     except Exception as e:  # noqa: BLE001
         traceback.print_exc()
         print(f"::warning title=Metsäkuva puuttuu::Kaukonäkymän metsäkuvaa (VMI) ei saatu tehtyä: {e}", flush=True)

@@ -220,26 +220,3 @@ def render_pmtiles(agg, out):
                     "center_lon_e7": e7(25.5), "center_lat_e7": e7(64.5)},
                    {"attribution": f"© Luonnonvarakeskus, monilähteisen VMI:n kartta-aineisto {YEAR} (CC BY 4.0)"})
     return count
-
-
-def info_png(agg, out, k=4):
-    """Tietoruudun luvut noin 1 km ruuduittain kuvana (selain lukee pikselit): R = puuta koko alaa kohden m³/ha,
-    G = metsä-, kitu- ja joutomaan osuus %, B = metsämaan puusto m³/ha / 2. Palauttaa solukoon (m)."""
-    from PIL import Image
-    h, w = agg["vol"].shape
-    H, W = -(-h // k), -(-w // k)
-
-    def blocksum(a):
-        p = np.zeros((H * k, W * k))
-        p[:h, :w] = a
-        return p.reshape(H, k, W, k).sum(axis=(1, 3))
-    vol = blocksum(agg["vol"])
-    forest = blocksum(agg["forest"])
-    valid = blocksum(agg["block"] ** 2 - agg["nocalc"].astype(np.float64))
-    with np.errstate(invalid="ignore", divide="ignore"):
-        r = np.where(valid > 0, vol / valid, 0)
-        g = np.where(valid > 0, 100 * forest / valid, 0)
-        b = np.where(forest > 0, vol / forest / 2, 0)
-    rgb = np.stack([np.clip(np.round(c), 0, 255) for c in (r, g, b)], axis=-1).astype(np.uint8)
-    Image.fromarray(rgb, "RGB").save(out, "PNG", optimize=True)
-    return agg["cell"] * k

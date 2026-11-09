@@ -2,8 +2,7 @@
  * Piilossa, kunnes omistaja hyväksyy: moodivalinta näkyy vain osoitteella ?moodi=metsa (tai ?moodi=talot).
  * Data tulee Metsakartta-repositorion sivulta (METSA_BASE): meta.json, f-<maakunta>.pmtiles (taso "f", zoomista
  * meta.poly_minzoom alkaen), r.pmtiles (kaukonäkymän metsäkuva: PNG-tiilet Luken VMI:stä, puuta koko alaa kohden
- * m³/ha; meta.grid), r-info.png (tietoruudun luvut ~1 km ruuduittain: R m³/ha koko alasta, G metsää %, B metsämaan
- * m³/ha / 2) ja kortit/<kunta>.json (tietokortin tiedot, ladataan klikatessa).
+ * m³/ha; meta.grid; ei tietoruutua, omistajan päätös 9.11.2026) ja kortit/<kunta>.json (tietokortin tiedot).
  * Värit (omistajan päätökset 9.11.2026): liukuvat; kaukaa puuta koko alaa kohden (meri ja järvet vaalentavat),
  * lähellä tilan puuston määrä m³/ha metsämaata.
  * Tiilen ominaisuudet: k tunnus, ka kokonaisala ha, e puuston arvo €, eh €/ha metsämaata, vh m³/ha metsämaata, tu turvemaata %,
@@ -30,9 +29,10 @@
     ["v", "Varttunut kasvatusmetsä", ["d3"]], ["u", "Uudistuskypsä", ["d4", "d5"]]];
   const STEPS = [[0, "#f1eadb"], [50, "#d6e5b9"], [100, "#a8cf8e"], [150, "#6fae6b"], [200, "#3c8a4f"], [250, "#1d5e34"]];
   const COLOR = ["interpolate", ["linear"], ["coalesce", ["get", "vh"], 0], ...STEPS.flat()];   // liukuva väri
-  const GRID = "metsa-r";     // kaukonäkymän metsäkuva (rasteri) ja valitun ruudun reunus (GRID-sel)
+  const GRID = "metsa-r";     // kaukonäkymän metsäkuva (rasteri)
+  const RASTER_OPACITY = 0.6; // metsäkuvan läpinäkyvyys (omistajan toive 9.11.2026: läpinäkyvämpi; kuvan oma peitto 0,78 → yht. ~0,47)
   const gradient = (stops) => `linear-gradient(to right, ${stops.map(([v, c]) => `${c} ${(100 * v / stops[stops.length - 1][0]).toFixed(1)}%`).join(", ")})`;
-  const legend = (stops, unit) => `<div class="fgrad" style="background:${gradient(stops)}"></div>
+  const legend = (stops, unit, op = 1) => `<div class="fgrad" style="background:${gradient(stops)};opacity:${op}"></div>
     <div class="fgrad-l">${stops.map(([v], i) => `<span style="left:${(100 * v / stops[stops.length - 1][0]).toFixed(1)}%">${nf.format(v)}${i === stops.length - 1 ? "+" : ""}</span>`).join("")}</div>
     <div class="muted" style="font-size:12px;text-align:right">${unit}</div>`;
   const eur = (n) => nf.format(Math.round((n ?? 0) / 100) * 100) + " €";
@@ -106,11 +106,11 @@
           <input type="range" id="fAge-${id}" min="0" max="100" step="10" value="0"></div>`).join("")}</section>
       <section><h3>Värit</h3>
         ${FM?.grid?.ramp ? `<div class="muted" style="font-size:13px">Kaukaa: puuta koko alaa kohden – meri, järvet ja pellot vaalentavat</div>
-        ${legend(FM.grid.ramp, "m³/ha")}` : ""}
+        ${legend(FM.grid.ramp, "m³/ha", (FM.grid.opacity || 1) * RASTER_OPACITY)}` : ""}
         <div class="muted" style="font-size:13px;margin-top:8px">Lähellä: metsätilan puusto metsämaan hehtaaria kohden</div>
-        ${legend(STEPS, "m³/ha metsämaata")}
+        ${legend(STEPS, "m³/ha metsämaata", 0.55)}
         ${FM?.grid ? `<p class="muted" style="font-size:12px;margin:6px 0 0">Kaukonäkymä: Luonnonvarakeskus, monilähteisen VMI:n
-          kartta-aineisto ${FM.grid.year} (kaikki metsät, myös valtion). Klikkaa karttaa nähdäksesi alueen luvut.</p>` : ""}</section>
+          kartta-aineisto ${FM.grid.year} (kaikki metsät, myös valtion).</p>` : ""}</section>
       <button type="button" id="fReset" class="btn wide">Tyhjennä suodattimet</button>
       <p class="src">Metsätila = kiinteistö, jolla metsämaata yli 2 ha. Puuston arvo on laskennallinen (tukki- ja kuitupuu ×
         Luken kantohinnat), ei kauppahinta. Metsävaratieto: <a href="https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto" target="_blank" rel="noopener">Suomen metsäkeskus</a>,
@@ -169,7 +169,7 @@
   }
 
   /* ---------- tasot ---------- */
-  const allLayers = () => [...ids.flatMap((id) => [id + "-fill", id + "-line", id + "-sel"]), GRID, GRID + "-sel"];
+  const allLayers = () => [...ids.flatMap((id) => [id + "-fill", id + "-line", id + "-sel"]), GRID];
   const fillLayers = () => ids.map((i) => i + "-fill").filter((l) => map.getLayer(l));
   const gridOn = () => map.getLayer(GRID) && map.getZoom() < (FM.poly_minzoom || 10);
   M.addLayers = () => {
@@ -185,10 +185,7 @@
     if (FM.grid?.type === "raster" && !map.getLayer(GRID)) {
       if (!map.getSource(GRID)) map.addSource(GRID, { type: "raster", url: "pmtiles://" + METSA_BASE + FM.grid.file, tileSize: 256 });
       map.addLayer({ id: GRID, type: "raster", source: GRID, maxzoom: minz, layout: { visibility: vis },
-        paint: { "raster-resampling": "linear", "raster-fade-duration": 0 } }, before);
-      if (!map.getSource(GRID + "-sel")) map.addSource(GRID + "-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      map.addLayer({ id: GRID + "-sel", type: "line", source: GRID + "-sel", maxzoom: minz, layout: { visibility: vis },
-        paint: { "line-color": "#d1495b", "line-width": 2.5 } });
+        paint: { "raster-resampling": "linear", "raster-fade-duration": 0, "raster-opacity": RASTER_OPACITY } }, before);
     }
     for (const r of FM.regions) {
       const id = "metsa-" + r.file.replace(/\.pmtiles$/, "");
@@ -229,7 +226,7 @@
     map.getCanvas().style.cursor = layers.length && map.queryRenderedFeatures(e.point, { layers }).length ? "pointer" : "";
   };
   M.click = (e) => {
-    if (gridOn()) { selectCell(e.lngLat); return; }
+    if (gridOn()) { closeCard(); return; }   // kaukonäkymässä ei tietoruutua
     const layers = fillLayers();
     const f = layers.length && map.queryRenderedFeatures(e.point, { layers })[0];
     if (f) select(f, e.lngLat); else closeCard();
@@ -237,61 +234,7 @@
   M.clearSelection = () => {
     selected = null;
     for (const id of ids) if (map.getLayer(id + "-sel")) map.setFilter(id + "-sel", ["==", ["get", "k"], "__none__"]);
-    map.getSource(GRID + "-sel")?.setData({ type: "FeatureCollection", features: [] });
   };
-
-  // Kaukonäkymän tietoruutu: luvut r-info.png:stä (~1 km ruudut; selain lukee kuvan pikselit kerran)
-  let INFO = null;
-  function infoData() {
-    INFO ??= fetch(METSA_BASE + FM.grid.info + "?v=" + encodeURIComponent(FM.updated))
-      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.status))))
-      .then((b) => createImageBitmap(b, { colorSpaceConversion: "none", premultiplyAlpha: "none" }))
-      .then((bmp) => {
-        const c = document.createElement("canvas");
-        c.width = bmp.width; c.height = bmp.height;
-        const ctx = c.getContext("2d", { willReadFrequently: true });
-        ctx.drawImage(bmp, 0, 0);
-        return { w: bmp.width, h: bmp.height, px: ctx.getImageData(0, 0, bmp.width, bmp.height).data };
-      }).catch(() => { INFO = null; return null; });
-    return INFO;
-  }
-  async function selectCell(ll) {
-    const g = FM.grid;
-    const xy = tm35(ll.lat, ll.lng);
-    const i = Math.floor((xy.e - g.x0) / g.cell), j = Math.floor((g.y0 - xy.n) / g.cell);
-    const d = await infoData();
-    if (!d || i < 0 || j < 0 || i >= d.w || j >= d.h) { closeCard(); return; }
-    const o = (j * d.w + i) * 4;
-    const [tot, pct, fh2] = [d.px[o], d.px[o + 1], d.px[o + 2]];
-    if (!tot && !pct) { closeCard(); return; }   // vesi, pelto, taajama tai Suomen ulkopuoli: ei puuta
-    M.clearSelection();
-    const x0 = g.x0 + i * g.cell, y1 = g.y0 - j * g.cell;
-    const ring = [[x0, y1], [x0 + g.cell, y1], [x0 + g.cell, y1 - g.cell], [x0, y1 - g.cell], [x0, y1]].map(([e, n]) => tm35inv(e, n));
-    map.getSource(GRID + "-sel")?.setData({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } });
-    const card = $("card");
-    card.innerHTML = `
-      <div class="card-h"><h2>Alue noin 1 km × 1 km</h2><div class="place">Metsäkuva</div>
-        <button type="button" class="x" id="closeCard" aria-label="Sulje tiedot">×</button></div>
-      <div class="card-b">
-        <div class="year"><span class="big">${nf.format(tot)} m³/ha</span><span class="sub">puuta keskimäärin koko alaa kohden<br>(vesistöt ja pellot mukana)</span></div>
-        <div class="sect"><dl class="kv">
-          <dt>Metsää (myös kitu- ja joutomaa)</dt><dd>${nf.format(pct)} % alasta</dd>
-          <dt>Metsän puusto keskimäärin</dt><dd>${pct ? nf.format(fh2 * 2) + " m³/ha" : "–"}</dd>
-        </dl><p class="fine">Lähde: Luonnonvarakeskus, monilähteisen valtakunnan metsien inventoinnin (VMI) kartta-aineisto ${g.year}
-          (CC BY 4.0). Kattaa kaikki metsät omistajasta riippumatta. Satelliittikuviin perustuva arvio, joka on luotettavin
-          laajoilla alueilla; yksittäisen kohdan arvo voi poiketa todellisesta.</p></div>
-        <div class="sect"><div class="links"><a href="#" id="zoomCell">Lähennä alueeseen <small>näytä yksittäiset metsätilat</small></a></div></div>
-      </div>`;
-    card.hidden = false;
-    card.scrollTop = 0;
-    $("closeCard").addEventListener("click", closeCard);
-    $("zoomCell").addEventListener("click", (ev) => {
-      ev.preventDefault();
-      closeCard();
-      map.flyTo({ center: ll, zoom: (FM.poly_minzoom || 10) + 1 });
-    });
-    closePanel();
-  }
 
   function cardData(k) {
     const muni = k.split("-")[0].padStart(3, "0");
@@ -400,20 +343,6 @@
     let x = eta, y = xi;
     for (let j = 1; j <= 3; j++) { x += h[j - 1] * Math.cos(2 * j * xi) * Math.sinh(2 * j * eta); y += h[j - 1] * Math.sin(2 * j * xi) * Math.cosh(2 * j * eta); }
     return { e: Math.round(500000 + k0 * A * x), n: Math.round(k0 * A * y) };
-  }
-
-  // ETRS-TM35FIN → [lon, lat] (valitun ruudun reunus)
-  function tm35inv(E, N) {
-    const a = 6378137, f = 1 / 298.257222101, k0 = 0.9996, lon0 = 27 * Math.PI / 180, n = f / (2 - f), e2 = f * (2 - f);
-    const A = a / (1 + n) * (1 + n * n / 4 + n ** 4 / 64);
-    const xi = N / (k0 * A), eta = (E - 500000) / (k0 * A);
-    const d = [n / 2 - 2 * n * n / 3 + 37 * n ** 3 / 96, n * n / 48 + n ** 3 / 15, 17 * n ** 3 / 480];
-    let xp = xi, ep = eta;
-    for (let j = 1; j <= 3; j++) { xp -= d[j - 1] * Math.sin(2 * j * xi) * Math.cosh(2 * j * eta); ep -= d[j - 1] * Math.cos(2 * j * xi) * Math.sinh(2 * j * eta); }
-    const chi = Math.asin(Math.sin(xp) / Math.cosh(ep));
-    let lat = chi;
-    for (let k = 0; k < 10; k++) lat = Math.asin(Math.tanh(Math.atanh(Math.sin(chi)) + Math.sqrt(e2) * Math.atanh(Math.sqrt(e2) * Math.sin(lat))));
-    return [(lon0 + Math.atan2(Math.sinh(ep), Math.cos(xp))) * 180 / Math.PI, lat * 180 / Math.PI];
   }
 
   /* ---------- käynnistys ---------- */

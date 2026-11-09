@@ -164,7 +164,7 @@ async function runTalo(browser, ok) {
       const card = (await page.textContent("#card")) || "";
       ok("Talokartta: metsätilan kortti aukeaa", /Puuston arvo/.test(card) && /Hakkuutavan hinnoin/.test(card), card.replace(/\s+/g, " ").slice(0, 100));
     } else ok("Talokartta: metsätilan kortti aukeaa", false, "klikattavaa tilaa ei löytynyt");
-    // Kaukaa VMI-metsäkuva (rasteri) ja tietoruutu
+    // Kaukaa VMI-metsäkuva (rasteri)
     await page.evaluate(() => { closeCard(); map.jumpTo({ center: [23.85, 60.75], zoom: 8.5 }); });
     await idle(page);
     const tiles = await page.evaluate(() => {
@@ -173,18 +173,6 @@ async function runTalo(browser, ok) {
       return sc ? Object.values(sc._tiles || {}).filter((t) => t.state === "loaded").length : 0;
     });
     ok("Talokartta: kaukaa näkyy metsäkuva", tiles > 0, tiles < 0 ? "metsäkuvataso puuttuu" : `${tiles} kuvatiiltä`);
-    {
-      // vesistön tai pellon kohdalla tietoruutua ei avata → kokeillaan muutamaa kohtaa
-      const box = await page.locator("#map").boundingBox();
-      let card = "";
-      for (const [fx, fy] of [[0.5, 0.5], [0.6, 0.4], [0.4, 0.6], [0.7, 0.7], [0.3, 0.3], [0.65, 0.5], [0.35, 0.5]]) {
-        await page.mouse.click(box.x + box.width * fx, box.y + box.height * fy);
-        await page.waitForFunction(() => /Metsäkuva/.test(document.querySelector("#card")?.textContent || ""), null, { timeout: 5_000 }).catch(() => {});
-        card = (await page.textContent("#card")) || "";
-        if (/Metsäkuva/.test(card)) break;
-      }
-      ok("Talokartta: metsäkuvan tietoruutu aukeaa", /Metsäkuva/.test(card) && /m³\/ha/.test(card), card.replace(/\s+/g, " ").slice(0, 100));
-    }
     await page.click('#modeSwitch button[data-m="talot"]');
     await page.evaluate(() => map.jumpTo({ center: [23.763, 60.8095], zoom: 14 }));
     await idle(page);
