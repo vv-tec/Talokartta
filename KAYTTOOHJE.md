@@ -31,6 +31,8 @@ Maanmittauslaitos: tontit ─────────────┘     noin kl
   voi tarkentua vasta kunnan seuraavassa täydessä tonttihaussa (enintään kahden viikon päästä).
 - **Sivu** on pelkkiä tiedostoja, ei omaa palvelinta tai tietokantaa. Siksi palvelu on ilmainen ja kestää paljon käyttäjiä.
 - **Jos yöajo epäonnistuu,** sivulle jää edellinen toimiva versio. Mitään ei mene rikki – tiedot vain eivät päivity sinä yönä.
+- **Tarkistus ennen julkaisua (9.11.2026):** valmis sivu avataan selaimessa jo ennen julkaisua. Jos se ei toimi, sitä ei
+  julkaista lainkaan (sivulle jää edellinen versio) ja saat ilmoituksen.
 - **Sivun tarkistus:** julkaisun jälkeen GitHub avaa sivun automaattisesti oikeassa selaimessa (työpöytä- ja puhelinkoossa)
   ja katsoo, että se toimii kuten sinulla: kartta ja taustakartta latautuvat, Tampereella, Tammelassa, Helsingin Kalliossa
   ja Rovaniemellä näkyy taloja, talon tietokortti aukeaa osoitteineen ja tontin aloineen, puhelimen Suodattimet-nappi
@@ -167,7 +169,13 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 - **Pyydä kirjaamaan päätökset** suunnitelmaan (CLAUDE.md). Keskusteluun jääneet päätökset unohtuvat.
   Suunnitelma pidetään tiiviinä; vanhat mittaukset ja taustat siirretään HISTORIA.md:hen (tiivistetty 6.11.2026).
 - **Tallenna itsellesi tiedostot**, joita haluat säilyttää (esim. Claudelta saadut Excelit) – Clauden työkone on väliaikainen.
-- Pyydä isoista muutoksista silloin tällöin **erillinen katselmointi** uudessa keskustelussa.
+- Pyydä isoista muutoksista silloin tällöin **erillinen katselmointi** uudessa keskustelussa (viimeksi 9.11.2026).
+- **Automaattiset testit (9.11.2026):** jokainen Clauden muutos testataan GitHubissa (Actions → **Testit**): laskennan
+  pikatestit sekä sivu oikeassa selaimessa ennen kuin muutos julkaistaan. Isommat muutokset Claude tekee ensin erilliseen
+  haaraan ja yhdistää ne vasta, kun Testit ovat vihreänä. Punainen Testit-ajo ei vaikuta julkaistuun sivuun.
+- **Talot ja metsätilat ovat erotettavissa:** koodi on jaettu osiin (talot, metsätilat, yhteiset osat, kokeilut), ja
+  testit valvovat, etteivät talot ja metsätilat riipu toisistaan. Jos metsätilat joskus halutaan omaksi palvelukseen,
+  osat voidaan siirtää omaan repositorioonsa ilman isoa uudelleenkirjoitusta.
 - Tarkista uudet ominaisuudet itse sivulta: Claude kertoo aina, mitä avata ja mitä pitäisi näkyä.
 
 ---
@@ -247,14 +255,12 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 Metsätilat (kiinteistöt, joilla metsämaata yli 2 ha) lasketaan ja julkaistaan omassa repositoriossa **Metsakartta**,
 koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelmakoodi on silti Talokartassa.
 
-- **Esikatselu:** https://vv-tec.github.io/Metsakartta/ – kartta, jossa metsätilat on väritetty puuston määrän (m³/ha metsämaata) mukaan.
-  Tilat näkyvät vasta lähellä (noin kunnan osan kokoinen alue ruudulla); kaukaa kartta on tyhjä, jotta taustakartta erottuu.
-  Vasemmalla **suodattimet**: kokonaisala, puuston arvo yhteensä, metsäpohja (kivennäis-/turvemaa ja yleisin kasvupaikka)
-  ja ikäjakauma (esim. "uudistuskypsää vähintään 50 %"); alla näkyy, montako tilaa kartalla on näkyvissä. Puhelimessa
-  paneeli aukeaa napista **Suodattimet**. Klikkaa tilaa: tietokortti (puuston arvo ja arvo hakkuutavan hinnoin, alat,
-  hakkuurajoitus, puusto puulajeittain, ikärakenne, metsäpohja, linkit Karttapaikkaan ja Talokarttaan).
+- **Erillinen esikatselusivu poistettiin 9.11.2026:** metsätilat ovat nyt osa Talokarttaa. Vanha osoite
+  https://vv-tec.github.io/Metsakartta/ ohjaa suoraan Talokartan metsätilanäkymään. Metsakartta-repositorio laskee
+  ja julkaisee edelleen metsätilojen karttatiedostot, joita Talokartta lukee.
 - **Talokartan metsätilanäkymä (piilotettu, 6.11.2026):** https://vv-tec.github.io/Talokartta/?moodi=metsa – yläreunassa
-  valinta **Talot | Metsätilat**. Metsätiloissa omat suodattimet (samat kuin esikatselussa sekä
+  valinta **Talot | Metsätilat**. Metsätiloissa omat suodattimet (kokonaisala, puuston arvo yhteensä, metsäpohja,
+  ikäjakauma sekä
   liukusäätimet **puuston arvo €/ha** ja **puuston määrä m³/ha** metsämaata, ala- ja yläraja; 9.11.2026) ja tietokortti; kortista pääsee
   talonäkymään, jos tilalla on asuinrakennus, ja talon kortista metsätilaan, jos kiinteistö on metsätila. Ilman
   `?moodi=metsa`-loppua Talokartta näyttää vain talot kuten ennenkin. Näkymä avataan kaikille, kun hyväksyt sen.
@@ -269,13 +275,13 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   Metsätilojen rajat näkyvät vaaleampina myös Talot-näkymässä (vain metsätilojen eli yli 2 ha metsämaan kiinteistöjen
   rajat; pienten tonttien rajoja aineistossa ei ole; 9.11.2026). Siirtymä kaukonäkymästä tiloihin on häivytetty: zoomatessa metsäkuva haalistuu vähitellen ja tilat tulevat esiin
   (9.11.2026). Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
-  vaihtamaan vuosi (asetus `pipeline/vmi.py`).
+  vaihtamaan vuosi (asetus `pipeline/metsa/vmi.py`).
 - **Julkaisun jumit korjattu (9.11.2026):** jos GitHubin julkaisupalvelu on hidas, ajo odottaa nyt rauhassa (enintään
   30 min) ja yrittää tarvittaessa automaattisesti uudelleen. Ilmoitus tulee vain, jos kaikki yritykset epäonnistuvat.
-- **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
-  kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
-  epäonnistuneesta ajosta.
-  Sivu on vain tarkistusta varten; metsätilat tulevat Talokarttaan omaksi näkymäkseen myöhemmin.
+- **Automaattinen tarkistus:** metsätilojen ajo alkaa pikatesteillä, ja jokaisen julkaisun jälkeen Talokartan
+  metsätilanäkymä avataan oikealla selaimella: suodattimet, liukusäätimet, värit, tietokortti ja kaukonäkymä kokeillaan.
+  Jos jokin ei toimi, saat ilmoituksen kuten epäonnistuneesta ajosta. Jos metsätilojen tiedostot eivät jostain syystä
+  lataudu, Talokartta piilottaa metsätilanäkymän ja talot toimivat normaalisti.
 - **Mukana nyt (9.11.2026): koko Manner-Suomi**, 18 maakuntaa, 292 kuntaa, 632 504 metsätilaa (Kanta-Häme 16 728,
   Uusimaa 27 326, Pirkanmaa 44 264, Päijät-Häme 16 276, Varsinais-Suomi 35 248, Satakunta 24 797, Kymenlaakso 17 796,
   Etelä-Karjala 22 265, Keski-Suomi 44 897, Etelä-Savo 41 862, Pohjois-Savo 46 470, Pohjois-Karjala 46 783,

@@ -199,7 +199,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   Kiinteistötietojen kyselypalvelussa käyttöluvalla; omistaja päätti jättää pois).
 - Lähdemaininnat (CC BY 4.0) ja päivitysaika näkyvät sivulla.
 - Sivuilla ei luetella maakuntia (omistajan päätös 9.11.2026: kattaa koko Suomen): alaotsikko `config.REGION_TITLE`,
-  metsäpaneeli ja esikatselu näyttävät vain määrän ja päivitysajan, rantahuomautus ilman luetteloa.
+  metsäpaneeli näyttää vain määrän ja päivitysajan, rantahuomautus ilman luetteloa.
 - Ranta: vesijättö lasketaan omaksi rannaksi; suodattimessa "Oma ranta" = ra 2–3. Lammet mukana. Puroluokka pois (5.11.2026).
 - Uusi maakunta lisätään oletuksena rantatiedon kanssa (myös `SHORE_REGIONS`), ellei omistaja toisin pyydä.
 
