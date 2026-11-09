@@ -325,4 +325,6 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Tilojen väri 9.11.2026 (omistaja): vk = m³ / kokonaisala samalla asteikolla kuin metsäkuva + valinta m³/ha / € (e_stops).
     vk tiiliin: f 420,6 → 433,0 Mt (+3 %), kortit 113,7 → 116,0 Mt. Ensimmäinen tarkistus epäonnistui odotetusti (uusi
     tarkistus ehti ennen uutta sivua), seuraava ✓ 22/22.
+    9.11.2026 klo 17.50 Talokartan julkaisu jumittui jälleen (syncing_files → Timeout) → uusi commit. Jumeja nyt 5.–9.11.
+    jo ~6 kpl → harkitse automaattista uudelleenyritystä (uusi versio) tai Pagesin julkaisutavan vaihtoa.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
