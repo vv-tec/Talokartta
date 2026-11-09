@@ -377,3 +377,19 @@ f-lappi 50,8 Mt (suurin). Utsjoki: 9 kuviota → 0 tilaa (Metsäkeskuksen aineis
 632 504 tilaa, 292/292 kuntaa, f 404,6 Mt + kortit 113,7 Mt ≈ 518 Mt / 1 Gt**, muisti ≤ 2,1 Gt. Kuukausipäivitys
 kasautuu 6.–9.12. (85 kuntaa lisättiin 9.11.) → aikaraja jakaa sen muutamalle yölle (valmis = välimuistitiedosto
 olemassa, joten julkaisu jatkuu vanhoilla tiedoilla).
+
+## Tekninen katselmointi ja rakennemuutos 9.11.2026
+
+- Katselmoinnin havainnot: metsätilojen tuotantokoodi toi kokeiluskripteistä, Metsakartta ajoi Talokartan koodin
+  ilman testejä (metsäkuvan testit eivät olleet missään CI:ssä), kaksi metsätilasivun toteutusta (esikatselu.js ja
+  metsa.js), kirjoittamattomat sopimukset (globaalit, tiedostomuodolla ei versiota), jokainen push ajoi koko
+  Talokartan, CLAUDE.md kasvanut lokiksi.
+- Toteutettu: `pipeline/` osiin (yhteiset/talot/metsa/selvitykset) + rajatesti; Testit-työnkulku (strict + sivu
+  selaimessa paikallisesti, `check/paikallinen.mjs`); Talokartan yöajo tarkistaa `dist/`:n ennen julkaisua; push vain
+  talojen polut; Metsakartta ajaa testit ennen hakuja; julkaisuvaihe lukittu haaraan `julkaisu-v1` (tagit estetty
+  Clauden ympäristössä); esikatselusivu → ohjaus; `window.TalokarttaHost`; `schema` 1.
+- Ensimmäinen tuotantoajo uudella koodilla: Talokartta läpi (myös esitarkistus), Metsakartan tarkistus hälytti
+  metsäkuvan puuttumisesta (issue #9). Syy vanha vika: `metsa.stamp` päivittyi vain kuntahauissa, joten ajossa ilman
+  kuntahakuja tehty metsäkuva ei tallentunut välimuistiin → joka ajo latasi 1,9 Gt VMI:n funetista, joka ei nyt
+  vastannut. Korjaus `touch_stamp` + varalla edellinen julkaistu `r.pmtiles`. Uusinta-ajo: kuva 115 s, välimuisti
+  tallentui (avain metsa-20261109194214), tarkistus läpi, issue suljettu.
