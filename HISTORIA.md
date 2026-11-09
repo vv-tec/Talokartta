@@ -333,4 +333,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     raja (MAX_TIMEOUT 600000 lähdekoodissa) katkaisee ja **peruu** julkaisun. Julkaisun tunnus = commit-SHA (GITHUB_SHA,
     ei muutettavissa) → peruttu SHA ei kelpaa uudelleen ("Deployment cancelled." heti) → vain uusi commit auttoi.
     Korjausehdotus: oma julkaisuvaihe (Pages-rajapinta, oma versiotunnus, pidempi odotus, automaattinen uusi yritys).
+    Oma julkaisuvaihe `.github/actions/julkaise-pages` käyttöön 9.11.2026: 1. versio käytti omaa versiotunnusta →
+    GitHub vastasi 404 (tunnuksen pitää ilmeisesti olla commit-SHA) → 1. yritys SHA:lla, uusinnoissa oma muoto ja aiemmat
+    commitit. Koe: Talokartta 25 s ja Metsakartta 25 s (deployment_in_progress → syncing_files → succeed), tarkistukset ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
