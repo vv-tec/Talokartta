@@ -289,8 +289,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Koko:** tiedostot vievät noin 546 Mt sivuston 1 Gt:n rajasta (tilarajat 421 Mt, kaukonäkymän metsäkuva 8,5 Mt, suurimmat Lappi 53 Mt ja
-  Pohjois-Pohjanmaa 52 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 114 Mt). Maakunnan ensimmäinen haku kesti
+- **Koko:** tiedostot vievät noin 557 Mt sivuston 1 Gt:n rajasta (tilarajat 433 Mt, kaukonäkymän metsäkuva 8,5 Mt, suurimmat Lappi 54 Mt ja
+  Pohjois-Pohjanmaa 53 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 116 Mt). Maakunnan ensimmäinen haku kesti
   20–82 min (pisin Pohjois-Pohjanmaa 82, Lappi 69).
 - **Kuntaliitokset:** jos liitetyn kunnan kiinteistötunnukset alkavat yhä vanhalla numerolla (esim. Pertunmaa 588 →
   Mäntyharju, Valtimo 911 → Nurmes), Claude lisää sen asetukseen (kunta lasketaan silloin automaattisesti uudelleen); ajo varoittaa lokissa, jos se huomaa uuden tällaisen tapauksen.

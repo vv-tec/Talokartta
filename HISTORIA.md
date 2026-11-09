@@ -322,4 +322,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     auttanut → uusi commit. VMI-kuva Metsakartan ajossa: lataus 81 s, kuva 122 s, 575 tiiltä, r.pmtiles 7,7 Mt, r-info 0,8 Mt.
     Omistaja 9.11.2026 iltapäivällä: 1 km ruudun tietoruutu pois (epärelevantti), metsäkuva läpinäkyvämmäksi
     (raster-opacity 0,6 → peitto ~0,47).
+    Tilojen väri 9.11.2026 (omistaja): vk = m³ / kokonaisala samalla asteikolla kuin metsäkuva + valinta m³/ha / € (e_stops).
+    vk tiiliin: f 420,6 → 433,0 Mt (+3 %), kortit 113,7 → 116,0 Mt. Ensimmäinen tarkistus epäonnistui odotetusti (uusi
+    tarkistus ehti ennen uutta sivua), seuraava ✓ 22/22.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
