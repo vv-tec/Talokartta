@@ -293,7 +293,14 @@ def save_kunta(cache, muni, data):
     state = json.load(open(sp, encoding="utf-8")) if os.path.exists(sp) else {}
     state[muni] = {"date": data["date"], "v": data["v"], "n": data["n"], "mv": data["mv"], "px": merged_of(muni)}
     json.dump(state, open(sp, "w", encoding="utf-8"), indent=0, sort_keys=True)
-    with open(os.path.join(cache, "metsa.stamp"), "w") as f:  # välimuistin avain (workflow)
+    touch_stamp(cache)
+
+
+def touch_stamp(cache):
+    """Välimuistin avain (workflow tallentaa välimuistin uudella avaimella). Kutsutaan aina, kun välimuistiin tulee
+    jotain uutta – myös metsäkuva: muuten ajossa, jossa yhtään kuntaa ei haettu, tehty kuva ei tallentuisi ja
+    seuraava ajo lataisi 1,9 Gt:n VMI-aineiston uudelleen (9.11.2026: lataus epäonnistui → kaukonäkymä puuttui)."""
+    with open(os.path.join(cache, "metsa.stamp"), "w") as f:
         f.write(dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S"))
 
 
@@ -416,6 +423,7 @@ def vmi_overview(cache, work, data_dir):
                     "fade": vmi.FADE, "opacity": vmi.OPACITY}
             with open(mfile, "w") as f:
                 json.dump(meta, f)
+            touch_stamp(cache)
             log(f"Metsäkuva (VMI {vmi.YEAR}) tehty: {n} tiiltä, {time.time() - t0:.0f} s")
         shutil.copy(tiles, os.path.join(data_dir, "r.pmtiles"))
         log(f"Metsäkuva: r.pmtiles {os.path.getsize(tiles) / 1e6:.1f} Mt")
@@ -425,6 +433,19 @@ def vmi_overview(cache, work, data_dir):
         return meta
     except Exception as e:  # noqa: BLE001
         traceback.print_exc()
+        # Varalla edellinen julkaistu kuva (sama VMI-vuosi ja väritys), jotta kaukonäkymä ei katoa verkkohäiriön takia.
+        prev = previous_meta()
+        grid = (prev or {}).get("grid")
+        if grid and grid.get("year") == vmi.YEAR and grid.get("ramp") == [list(x) for x in vmi.RAMP]:
+            try:
+                r = net.get(config.METSA_SITE_URL + "data/r.pmtiles", {"v": prev.get("updated", "")}, tries=3, timeout=120)
+                with open(os.path.join(data_dir, "r.pmtiles"), "wb") as f:
+                    f.write(r.content)
+                print(f"::warning title=Metsäkuva edellisestä julkaisusta::Kaukonäkymän metsäkuvaa ei saatu tehtyä ({e}); "
+                      "käytetään edellistä julkaistua kuvaa", flush=True)
+                return grid
+            except Exception as e2:  # noqa: BLE001
+                log(f"  edellistä metsäkuvaa ei saatu ({e2})")
         print(f"::warning title=Metsäkuva puuttuu::Kaukonäkymän metsäkuvaa (VMI) ei saatu tehtyä: {e}", flush=True)
         return None
 
