@@ -133,6 +133,21 @@ async function runTalo(browser, ok) {
     const n1 = await vis();
     ok("Talokartta: suodatin vähentää metsätiloja", n1 < n0 && n1 > 0, `${n0} → ${n1}`);
     await page.click("#fReset");
+    // Liukusäätimet €/ha ja m³/ha: alarajan nosto vähentää tiloja, tyhjennys palauttaa
+    const slide = (sel, v) => page.evaluate(([s, val]) => {
+      const i = document.querySelector(s + " input");
+      i.value = val;
+      i.dispatchEvent(new Event("input", { bubbles: true }));
+    }, [sel, v]);
+    for (const [sel, v, lab] of [["#fEhR", 10, "€/ha"], ["#fVhR", 8, "m³/ha"]]) {
+      await idle(page);
+      const a = await vis();
+      await slide(sel, v);
+      await idle(page);
+      const b = await vis();
+      ok(`Talokartta: liukusäädin ${lab} vähentää metsätiloja`, b < a && b > 0, `${a} → ${b}`);
+      await page.click("#fReset");
+    }
     await idle(page);
     const pt = await page.evaluate(() => {
       const layers = (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id)).map((l) => l.id);

@@ -2,10 +2,10 @@
  * Piilossa, kunnes omistaja hyväksyy: moodivalinta näkyy vain osoitteella ?moodi=metsa (tai ?moodi=talot).
  * Data tulee Metsakartta-repositorion sivulta (METSA_BASE): meta.json, f-<maakunta>.pmtiles (taso "f", zoomista
  * meta.poly_minzoom alkaen) ja kortit/<kunta>.json (tietokortin tiedot, ladataan klikatessa).
- * Tiilen ominaisuudet: k tunnus, ka kokonaisala ha, e puuston arvo €, eh €/ha metsämaata, tu turvemaata %,
+ * Tiilen ominaisuudet: k tunnus, ka kokonaisala ha, e puuston arvo €, eh €/ha metsämaata, vh m³/ha metsämaata, tu turvemaata %,
  * kp yleisin kasvupaikka 1–8, da/dt/d2/d3/d4/d5 kehitysluokkien osuudet % metsämaasta.
  * Kortin kentät: ks. Talokartan pipeline/metsa.py (CARD_KEYS).
- * Käyttää app.js:n globaaleja: map, $, nf, esc, dataUrl-tyyliä, setHouseLayers, applyFilters, closeCard, closePanel, toast.
+ * Käyttää app.js:n globaaleja: map, $, nf, esc, makeRange, setHouseLayers, applyFilters, closeCard, closePanel, toast.
  */
 "use strict";
 
@@ -28,6 +28,10 @@
   const COLOR = ["step", ["get", "eh"], STEPS[0][1], ...STEPS.slice(1).flat()];
   const eur = (n) => nf.format(Math.round((n ?? 0) / 100) * 100) + " €";
   const ha = (n) => nf.format(Math.round((n ?? 0) * 10) / 10) + " ha";
+  // Liukusäätimien portaat (viimeinen = ei ylärajaa)
+  const EH_STOPS = [...Array.from({ length: 21 }, (_, i) => i * 1000), 25000, 30000, Infinity];
+  const VH_STOPS = [...Array.from({ length: 16 }, (_, i) => i * 20), 350, 400, Infinity];
+  const SL = {};              // liukusäätimet (makeRange, app.js)
 
   let FM = null;              // Metsakartan meta.json
   const HOUSE_HINT = $("hint").textContent;
@@ -80,6 +84,8 @@
       <section><h3>Puuston arvo yhteensä (€)</h3>
         <div class="fnum"><input type="number" id="fEMin" min="0" step="10000" inputmode="numeric" placeholder="vähintään" aria-label="Puuston arvo vähintään">–
           <input type="number" id="fEMax" min="0" step="10000" inputmode="numeric" placeholder="enintään" aria-label="Puuston arvo enintään"></div></section>
+      <section><h3>Puuston arvo (€/ha metsämaata)</h3><div class="range" id="fEhR"></div></section>
+      <section><h3>Puuston määrä (m³/ha metsämaata)</h3><div class="range" id="fVhR"></div></section>
       <section><h3>Metsäpohja</h3>
         <select id="fPeat" class="fsel" aria-label="Maapohja">
           <option value="">Kivennäis- ja turvemaat</option>
@@ -99,15 +105,19 @@
         kiinteistöt: Maanmittauslaitos, kantohinnat: <a href="https://www.luke.fi/" target="_blank" rel="noopener">Luonnonvarakeskus</a>,
         rakennukset: SYKE Ryhti (kaikki CC BY 4.0). <span id="fUpdated"></span></p>`;
     $("fpanel").addEventListener("input", (e) => {
-      if (e.target.type === "range") $(e.target.id + "-v").textContent = e.target.value + " %";
+      if (e.target.id.startsWith("fAge-")) $(e.target.id + "-v").textContent = e.target.value + " %";
       apply();
     });
+    const noop = () => {};  // paneelin input-kuuntelija hoitaa suodatuksen
+    SL.eh = makeRange($("fEhR"), EH_STOPS, (v) => (v === Infinity ? "ei ylärajaa" : `${nf.format(v)} €/ha`), noop);
+    SL.vh = makeRange($("fVhR"), VH_STOPS, (v) => (v === Infinity ? "ei ylärajaa" : `${nf.format(v)} m³/ha`), noop);
     $("fpanelClose").addEventListener("click", closePanel);
     $("fReset").addEventListener("click", () => {
       $("fpanel").querySelectorAll("input[type=number]").forEach((i) => { i.value = ""; });
       $("fpanel").querySelectorAll("#fSites input").forEach((i) => { i.checked = true; });
       AGES.forEach(([id]) => { $("fAge-" + id).value = 0; $("fAge-" + id + "-v").textContent = "0 %"; });
       $("fPeat").value = "";
+      SL.eh.reset(); SL.vh.reset();
       apply();
     });
     if (FM) {
@@ -122,6 +132,7 @@
     const range = (key, lo, hi) => { if (lo !== null) f.push([">=", ["get", key], lo]); if (hi !== null) f.push(["<=", ["get", key], hi]); };
     range("ka", num("fKaMin"), num("fKaMax"));
     range("e", num("fEMin"), num("fEMax"));
+    for (const key of ["eh", "vh"]) { const x = SL[key]?.expr(key); if (x) f.push(x); }
     const peat = $("fPeat")?.value;
     if (peat === "min") f.push(["<", ["coalesce", ["get", "tu"], 0], 50]);
     if (peat === "peat") f.push([">=", ["coalesce", ["get", "tu"], 0], 50]);

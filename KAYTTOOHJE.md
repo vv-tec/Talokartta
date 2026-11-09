@@ -254,7 +254,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   paneeli aukeaa napista **Suodattimet**. Klikkaa tilaa: tietokortti (puuston arvo ja arvo hakkuutavan hinnoin, alat,
   hakkuurajoitus, puusto puulajeittain, ikärakenne, metsäpohja, linkit Karttapaikkaan ja Talokarttaan).
 - **Talokartan metsätilanäkymä (piilotettu, 6.11.2026):** https://vv-tec.github.io/Talokartta/?moodi=metsa – yläreunassa
-  valinta **Talot | Metsätilat**. Metsätiloissa omat suodattimet (samat kuin esikatselussa) ja tietokortti; kortista pääsee
+  valinta **Talot | Metsätilat**. Metsätiloissa omat suodattimet (samat kuin esikatselussa sekä
+  liukusäätimet **puuston arvo €/ha** ja **puuston määrä m³/ha** metsämaata, ala- ja yläraja; 9.11.2026) ja tietokortti; kortista pääsee
   talonäkymään, jos tilalla on asuinrakennus, ja talon kortista metsätilaan, jos kiinteistö on metsätila. Ilman
   `?moodi=metsa`-loppua Talokartta näyttää vain talot kuten ennenkin. Näkymä avataan kaikille, kun hyväksyt sen.
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
@@ -277,8 +278,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Koko:** tiedostot vievät noin 518 Mt sivuston 1 Gt:n rajasta (tilarajat 405 Mt, suurimmat Lappi 51 Mt ja
-  Pohjois-Pohjanmaa 50 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 114 Mt). Maakunnan ensimmäinen haku kesti
+- **Koko:** tiedostot vievät noin 534 Mt sivuston 1 Gt:n rajasta (tilarajat 421 Mt, suurimmat Lappi 53 Mt ja
+  Pohjois-Pohjanmaa 52 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 114 Mt). Maakunnan ensimmäinen haku kesti
   20–82 min (pisin Pohjois-Pohjanmaa 82, Lappi 69).
 - **Kuntaliitokset:** jos liitetyn kunnan kiinteistötunnukset alkavat yhä vanhalla numerolla (esim. Pertunmaa 588 →
   Mäntyharju, Valtimo 911 → Nurmes), Claude lisää sen asetukseen (kunta lasketaan silloin automaattisesti uudelleen); ajo varoittaa lokissa, jos se huomaa uuden tällaisen tapauksen.

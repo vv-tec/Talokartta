@@ -92,7 +92,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     Arvo lasketaan julkaisussa joka ajo Luken uusimmilla hinnoilla (`props`). Kunnan virhe → muut jatkavat, ajo päättyy
     virheeseen eikä julkaise. Turvatarkistus: maakunta ei putoa, kunnan tilamäärä ei pudota yli 5 %.
   - Julkaisu: `data/f-<maakunta>.pmtiles` (taso "f", rajat z10–13 (`POLY_MAXZOOM`, ylizoomaus; minzoom 11 → 10 6.11.2026
-    omistajan toiveesta), `--detect-shared-borders`, **vain `TILE_KEYS`**: k, ka, e (100 €), eh (10 €), tu, kp, da–d5),
+    omistajan toiveesta), `--detect-shared-borders`, **vain `TILE_KEYS`**: k, ka, e (100 €), eh (10 €), vh (m³/ha, 9.11.2026: f 404,6 → 420,6 Mt, +4 %), tu, kp, da–d5),
     `data/kortit/<kunta>.json` ({c: `CARD_KEYS`, r: {tunnus: [arvot]}}; tietokortti lataa klikatessa, kunta =
     tunnuksen 1. osa 3 numeroksi), `data/meta.json`
     (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`),
@@ -148,7 +148,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
     `index.html`: `#modeSwitch` (Talot | Metsätilat, hidden), `#fpanel` (metsäpaneeli, sisältö metsa.js:stä: `#fCount`,
-    `#fKaMin/Max`, `#fEMin/Max`, `#fPeat`, `#fSites`, `#fAge-a/n/v/u`, `#fReset`). `app.js`-koukut: `setHouseLayers`,
+    `#fKaMin/Max`, `#fEMin/Max`, liukusäätimet `#fEhR`/`#fVhR` (app.js `makeRange`), `#fPeat`, `#fSites`, `#fAge-a/n/v/u`, `#fReset`). `app.js`-koukut: `setHouseLayers`,
     updateCount/click/mousemove ohjataan Metsalle, `curPanel()`, closeCard → clearSelection, talon kortissa `#forestLink`
     (näkyy, jos kiinteistö on metsätila), fitBounds/alaotsikko vain talonäkymässä. Tasot `metsa-f-<maakunta>-fill/-line/-sel`
     taustakartan nimien alla. Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
