@@ -99,14 +99,20 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      actions: read      # julkaisutiedoston tunnus tämän ajon artefakteista
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Oma julkaisuvaihe (9.11.2026) actions/deploy-pagesin tilalle: ei 10 min rajaa eikä perumista, oma versiotunnus
+      # jokaiselle yritykselle ja automaattinen uusi yritys. Sama vaihe Metsakartassa. Syy: HISTORIA.md, julkaisun jumit.
       - id: deployment
-        uses: actions/deploy-pages@v5
-        with:
-          timeout: 600000   # 10 min = deploy-pagesin enimmäisarvo (suurempi ohitetaan varoituksella); jumittunut julkaisu → uusi ajo
+        uses: vv-tec/Talokartta/.github/actions/julkaise-pages@main
 
   # Sivun tarkistus julkaisun jälkeen: avaa sivun selaimessa ja varmistaa, että se toimii (check-site.yml).
   # Ei voi perua jo tehtyä julkaisua, mutta hälyttää notify-jobin kautta.

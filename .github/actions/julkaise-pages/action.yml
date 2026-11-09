@@ -1,0 +1,85 @@
+name: Julkaise GitHub Pagesiin (uudelleenyrityksin)
+description: >
+  Korvaa actions/deploy-pagesin (9.11.2026). Syy: deploy-pages katkaisee julkaisun kovaan 10 min rajaan, peruu sen ja
+  käyttää versiotunnuksena commitin SHA:ta, jolloin peruttua julkaisua ei voi yrittää uudelleen ilman uutta committia.
+  Tämä vaihe käyttää samaa Pages-rajapintaa, mutta antaa jokaiselle yritykselle oman tunnuksen, odottaa pidempään
+  eikä peru julkaisua, ja yrittää uudelleen, jos GitHub ilmoittaa julkaisun epäonnistuneen.
+  Vaatii jobille oikeudet: pages: write, id-token: write, actions: read.
+inputs:
+  artifact_name:
+    description: upload-pages-artifactin nimi
+    default: github-pages
+  max_wait_minutes:
+    description: Kokonaisodotus kaikille yrityksille (min); jos julkaisu ei valmistu, sitä ei peruta
+    default: "30"
+  attempts:
+    description: Yrityskertoja, jos GitHub ilmoittaa julkaisun epäonnistuneen
+    default: "3"
+outputs:
+  page_url:
+    description: Julkaistun sivun osoite
+    value: ${{ steps.deploy.outputs.page_url }}
+runs:
+  using: composite
+  steps:
+    - id: deploy
+      uses: actions/github-script@v8
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        MAX_WAIT_MIN: ${{ inputs.max_wait_minutes }}
+        ATTEMPTS: ${{ inputs.attempts }}
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const maxWait = Number(process.env.MAX_WAIT_MIN) * 60000;
+          const tries = Number(process.env.ATTEMPTS);
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+          const FINAL = ["deployment_failed", "deployment_content_failed", "deployment_cancelled", "deployment_lost"];
+          const arts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts,
+            { owner, repo, run_id: context.runId, per_page: 100 });
+          const art = arts.find((a) => a.name === process.env.ARTIFACT_NAME);
+          if (!art) return core.setFailed(`Julkaisutiedostoa "${process.env.ARTIFACT_NAME}" ei löytynyt tästä ajosta.`);
+          core.info(`Julkaistava tiedosto: ${art.name}, ${(art.size_in_bytes / 1e6).toFixed(0)} Mt (id ${art.id})`);
+          const start = Date.now();
+          for (let attempt = 1; attempt <= tries; attempt++) {
+            // Oma versiotunnus jokaiselle yritykselle (deploy-pages käytti commitin SHA:ta → peruttu ei kelvannut uudelleen)
+            const version = `${context.sha}-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}-${attempt}`;
+            let dep;
+            try {
+              const oidc = await core.getIDToken();
+              dep = (await github.request("POST /repos/{owner}/{repo}/pages/deployments",
+                { owner, repo, artifact_id: art.id, pages_build_version: version, oidc_token: oidc })).data;
+            } catch (e) {
+              core.warning(`Yritys ${attempt}/${tries}: julkaisun luonti epäonnistui (${e.status || ""} ${e.message}).`);
+              await sleep(30000);
+              continue;
+            }
+            const id = dep.id || (dep.status_url || "").split("/").pop() || version;
+            core.info(`Yritys ${attempt}/${tries}: julkaisu luotu (${id}).`);
+            const t0 = Date.now();
+            let last = "", wait = 5000;
+            while (true) {
+              await sleep(wait);
+              wait = Math.min(Math.round(wait * 1.5), 30000);
+              let st;
+              try {
+                st = (await github.request("GET /repos/{owner}/{repo}/pages/deployments/{id}", { owner, repo, id })).data.status;
+              } catch (e) {
+                core.warning(`Tilan kysely epäonnistui (${e.status || ""}), kysytään uudelleen.`);
+                continue;
+              }
+              if (st !== last) { core.info(`  ${Math.round((Date.now() - t0) / 1000)} s: ${st}`); last = st; }
+              if (st === "succeed") {
+                core.setOutput("page_url", dep.page_url || "");
+                core.info(`Julkaisu valmis (${Math.round((Date.now() - start) / 1000)} s).`);
+                return;
+              }
+              if (FINAL.includes(st)) { core.warning(`Yritys ${attempt}/${tries} päättyi tilaan ${st}.`); break; }
+              if (Date.now() - start > maxWait) {
+                // Ei peruta: GitHub voi vielä saada julkaisun valmiiksi (deploy-pages perui tässä kohtaa).
+                return core.setFailed(`Julkaisu ei valmistunut ${process.env.MAX_WAIT_MIN} minuutissa (viimeisin tila ${st}). ` +
+                  "Julkaisua ei peruttu, joten se voi vielä valmistua; muuten seuraava ajo julkaisee uudelleen.");
+              }
+            }
+          }
+          core.setFailed(`Julkaisu epäonnistui ${tries} yrityksellä.`);

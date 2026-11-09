@@ -270,6 +270,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   rajat; pienten tonttien rajoja aineistossa ei ole; 9.11.2026). Siirtymä kaukonäkymästä tiloihin on häivytetty: zoomatessa metsäkuva haalistuu vähitellen ja tilat tulevat esiin
   (9.11.2026). Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
   vaihtamaan vuosi (asetus `pipeline/vmi.py`).
+- **Julkaisun jumit korjattu (9.11.2026):** jos GitHubin julkaisupalvelu on hidas, ajo odottaa nyt rauhassa (enintään
+  30 min) ja yrittää tarvittaessa automaattisesti uudelleen. Ilmoitus tulee vain, jos kaikki yritykset epäonnistuvat.
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
   kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
   epäonnistuneesta ajosta.

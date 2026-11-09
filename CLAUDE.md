@@ -232,9 +232,12 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 - **Kunnan tai maakunnan lisäys:** aja `maakunnat`-tarkistus ennen ja jälkeen; tarkista kuntaliitokset (esim. Pertunmaa
   588 → Mäntyharju 507 1.1.2025: Ryhtissä 0 rakennusta, MML hylkää numeron HTTP 400). Kunnan siirto maakunnasta toiseen ei
   vaadi uudelleenhakua. Päivitä KAYTTOOHJE (maakunnat, luvut, rantataulukko) ja HISTORIA (mittaukset).
-- **Pages-julkaisun jumi** ("Timeout reached" deploy-vaiheessa, sattunut 5.11. ja 6.11.2026): `deploy-pages`-aikaraja on
-  enintään 600000 ms (suurempi ohitetaan). Peruutetun julkaisun uudelleenajo ei toimi samalla versiolla → uusi käsiajo
-  (välimuistilla ~7 min). Jos jumit yleistyvät: automaattinen uudelleenyritys.
+- **Pages-julkaisu: oma vaihe `.github/actions/julkaise-pages`** (9.11.2026, korvasi `actions/deploy-pages`; käytössä
+  Talokartassa ja Metsakartassa `uses: vv-tec/Talokartta/.github/actions/julkaise-pages@main`). Syy: deploy-pagesin
+  kova 10 min raja perui hitaat julkaisut (~11 % ajoista) ja versiotunnus = commit-SHA esti uusinnan. Oma vaihe:
+  Pages-rajapinta (`POST/GET pages/deployments`), versiotunnus `<sha>-<run>-<attempt>-<yritys>`, odottaa ≤ 30 min eikä
+  peru, uusi yritys (3) tiloissa deployment_failed/_cancelled/_lost/_content_failed. Jobin oikeudet: pages: write,
+  id-token: write, actions: read. Lokissa "Yritys n/3", tilat ja kesto.
 - "Cache save failed" ajossa, jossa mitään ei haettu, on odotettu (sama avain on jo tallessa).
 - **Rajat:** Pages 1 Gt sivusto, 100 Mt tiedosto, kaista ~100 Gt/kk (pehmeä) → tiilet Cloudflare R2:een, jos liikenne tai
   koko kasvaa. Ajokone 16 Gt muistia. Koko Suomen MML-GPKG (13,3 Gt, lataus ~2 h) on olemassa, mutta kunnittainen
