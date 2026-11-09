@@ -1,7 +1,9 @@
-// Metsakartta – julkaistun esikatselusivun automaattinen tarkistus (ajetaan Metsakartan työnkulussa julkaisun jälkeen).
-// Avaa sivun Chromiumilla ja tarkistaa: ei JS-virheitä, meta.json on juuri julkaistu versio, kaukaa ei näy mitään,
-// Tammelassa näkyy metsätiloja, suodatin vähentää ja tyhjennys palauttaa ne, tietokortti aukeaa.
-// Ympäristömuuttujat: SITE_URL (oletus https://vv-tec.github.io/Metsakartta/), EXPECT_UPDATED, ATTEMPTS (oletus 2).
+// Metsätilojen tarkistus: Metsakartan julkaisemat tiedostot ja Talokartan metsätilanäkymä (?moodi=metsa) oikeassa
+// selaimessa (Chromium). Ajetaan Metsakartan työnkulussa julkaisun jälkeen ja Talokartan Testit-työnkulussa ennen
+// julkaisua (TALO_URL = paikallinen sivu). Tarkistaa: meta.json, julkaistu versio, etusivun ohjaus, moodivalinta,
+// tilat Tammelassa, suodattimet ja liukusäätimet, värin valinta, tietokortti, metsäkuva kaukaa, paluu taloihin.
+// Ympäristömuuttujat: SITE_URL (Metsakartta, oletus https://vv-tec.github.io/Metsakartta/), TALO_URL (oletus
+// julkaistu Talokartta), EXPECT_UPDATED, ATTEMPTS (oletus 2).
 import { chromium } from "playwright";
 
 const SITE = (process.env.SITE_URL || "https://vv-tec.github.io/Metsakartta/").replace(/\/?$/, "/");
@@ -21,10 +23,6 @@ async function idle(page) {
   }), TIMEOUT);
 }
 
-const visible = (page) => page.evaluate(() =>
-  new Set(map.queryRenderedFeatures({ layers: META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill") })
-    .map((f) => f.properties.k)).size);
-
 // Pages-välimuisti: uusi versio voi näkyä vasta 5–15 min julkaisun jälkeen (6.11.2026 havaittu yli 13 min).
 // Odotetaan enintään 10 min; jos vanha versio näkyy yhä, se on vain varoitus (sivu toimii, päivittyy pian).
 async function waitForVersion() {
@@ -42,66 +40,21 @@ async function run() {
   const results = [];
   const ok = (name, pass, info = "") => { results.push({ name, pass, info }); console.log(`${pass ? "✓" : "✗"} ${name}${info ? " – " + info : ""}`); };
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  const errors = [];
-  page.on("pageerror", (e) => errors.push(String(e.message || e).slice(0, 300)));
+  // Metsakartan julkaisemat tiedostot (Talokartan metsätilanäkymä lukee ne)
   try {
-    await page.goto(SITE + "?t=" + Date.now() + "#kartta=9/60.75/23.85", { waitUntil: "load", timeout: TIMEOUT });
-    await page.waitForFunction(() => typeof META !== "undefined" && META && map.getLayer && map.isStyleLoaded(), null, { timeout: TIMEOUT });
-    await idle(page);
-    const meta = await page.evaluate(() => ({ updated: META.updated, count: META.count, regions: META.regions.map((r) => r.name) }));
-    ok("meta.json latautui", meta.count > 0, `${meta.count} metsätilaa, ${meta.regions.join(", ")}, päivitetty ${meta.updated}`);
-    if (EXPECT_UPDATED && meta.updated !== EXPECT_UPDATED) {
-      console.log(`! julkaistu versio ei vielä näy (sivulla ${meta.updated}, odotettu ${EXPECT_UPDATED}) – GitHubin välimuisti, ei virhe`);
+    const m = await fetch(`${SITE}data/meta.json?v=${Date.now()}`).then((r) => r.json());
+    ok("meta.json latautui", m.count > 0, `${m.count} metsätilaa, ${m.regions.length} maakuntaa, muoto ${m.schema ?? 1}, päivitetty ${m.updated}`);
+    if (EXPECT_UPDATED && m.updated !== EXPECT_UPDATED) {
+      console.log(`! julkaistu versio ei vielä näy (sivulla ${m.updated}, odotettu ${EXPECT_UPDATED}) – GitHubin välimuisti, ei virhe`);
       if (GH) console.log(`::warning::Metsakartta: uusi versio ${EXPECT_UPDATED} ei vielä näkynyt 10 min kuluessa (GitHubin välimuisti)`);
-    } else if (EXPECT_UPDATED) ok("julkaistu versio näkyy sivulla", true, EXPECT_UPDATED);
-    ok("kaukaa (zoom 9) ei näy tiloja", (await visible(page)) === 0);
-
-    await page.evaluate(() => map.jumpTo({ center: [23.85, 60.75], zoom: 12 }));
-    await idle(page);
-    const n0 = await visible(page);
-    ok("Tammelassa näkyy metsätiloja (zoom 12)", n0 > 20, `${n0} tilaa`);
-    const countText = await page.textContent("#count");
-    ok("näkyvien määrä paneelissa", /näkyvissä/.test(countText), countText.trim());
-
-    await page.fill("#kaMin", "50");
-    await page.dispatchEvent("#kaMin", "input");
-    await idle(page);
-    const n1 = await visible(page);
-    ok("suodatin (kokonaisala ≥ 50 ha) vähentää tiloja", n1 < n0 && n1 > 0, `${n0} → ${n1}`);
-    await page.$eval("#age-u", (el) => { el.value = "50"; el.dispatchEvent(new Event("input", { bubbles: true })); });
-    await idle(page);
-    const n2 = await visible(page);
-    ok("ikäjakauma-suodatin (uudistuskypsää ≥ 50 %) vähentää lisää", n2 <= n1, `${n1} → ${n2}`);
-    await page.click("#reset");
-    await idle(page);
-    const n3 = await visible(page);
-    ok("tyhjennys palauttaa tilat", n3 === n0, `${n3}`);
-
-    const pt = await page.evaluate(() => {
-      const f = map.queryRenderedFeatures({ layers: META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill") })[0];
-      const c = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates[0][0][0] : f.geometry.coordinates[0][0];
-      return map.project(c);
-    });
-    // klikataan hieman polygonin sisäpuolelle reunapisteestä: etsitään piste, jossa on tila
-    const hit = await page.evaluate(({ x, y }) => {
-      for (let d = 2; d < 40; d += 2) for (const [dx, dy] of [[d, 0], [0, d], [-d, 0], [0, -d], [d, d], [-d, -d], [d, -d], [-d, d]]) {
-        const q = map.queryRenderedFeatures([x + dx, y + dy], { layers: META.regions.map((r) => r.file.replace(/\.pmtiles$/, "") + "-fill") });
-        if (q.length) return { x: x + dx, y: y + dy };
-      }
-      return null;
-    }, pt);
-    if (hit) {
-      await page.mouse.click(hit.x, hit.y);
-      await page.waitForFunction(() => /Puuston arvo/.test(document.querySelector("#card")?.textContent || ""), null, { timeout: 15_000 }).catch(() => {});
-      const card = (await page.textContent("#card")) || "";
-      ok("tietokortti aukeaa", /Puuston arvo/.test(card) && /Hakkuurajoitus/.test(card) && /hakkuutavan hinnoin/.test(card),
-        card.replace(/\s+/g, " ").slice(0, 120));
-    } else ok("tietokortti aukeaa", false, "klikattavaa tilaa ei löytynyt");
+    } else if (EXPECT_UPDATED) {
+      ok("julkaistu versio näkyy", true, EXPECT_UPDATED);
+      const idx = await fetch(`${SITE}?v=${Date.now()}`).then((r) => r.text());
+      ok("etusivu ohjaa Talokartan metsätilanäkymään", /moodi=metsa/.test(idx));
+    }
   } catch (e) {
-    ok("sivu toimii", false, String(e.message || e).slice(0, 200));
+    ok("Metsakartan tiedostot saatavilla", false, String(e.message || e).slice(0, 200));
   }
-  ok("ei JavaScript-virheitä", errors.length === 0, errors.slice(0, 3).join(" | "));
   if (TALO) await runTalo(browser, ok);
   await browser.close();
   return results;

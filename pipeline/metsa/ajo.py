@@ -7,8 +7,8 @@ Kulku (python -m pipeline.metsa --out dist --cache cache --work work):
      Talteen vain metsätilat (metsämaata yli METSA_MIN_FOREST_HA): määrät puutavaralajeittain, alat, luokkaosuudet,
      yleistetty raja (lon/lat). Välimuisti cache/metsa/<kunta>.json.gz.
   2. Luken viimeisimmät kantohinnat (joka ajo) → puuston arvo pystykaupan hinnoin ja hakkuutavan hinnoin.
-  3. Valmiit maakunnat (kaikki kunnat tallessa) → f-<maakunta>.pmtiles (rajat; ei pisteitä kaukaa – omistajan päätös 6.11.2026), meta.json,
-     esikatselusivu (metsa_web/).
+  3. Valmiit maakunnat (kaikki kunnat tallessa) → f-<maakunta>.pmtiles (rajat; ei pisteitä kaukaa – omistajan päätös 6.11.2026),
+     kortit/<kunta>.json, r.pmtiles (metsäkuva), meta.json. Etusivu (metsa_web/) ohjaa Talokartan metsätilanäkymään.
 """
 import argparse
 import collections
@@ -40,6 +40,10 @@ from .kuviot import read_stands, to_shape
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repositorion juuri
 VERSION = 1  # kunnan tuloksen laskentaversio; muutos → kunnat lasketaan uudelleen (vanhimmasta alkaen)
+# Julkaistujen tiedostojen muoto (meta.json, f-*.pmtiles, kortit/), jota Talokartan web/metsa.js lukee (sen SCHEMA).
+# Nosta vain yhteensopimattomassa muutoksessa (kenttä poistuu tai merkitys muuttuu) ja päivitä samalla metsa.js;
+# uuden kentän lisäys ei vaadi nostoa. Pikatesti varmistaa, että numerot täsmäävät.
+SCHEMA = 1
 MV_BASE = "https://avoin.metsakeskus.fi/aineistot/MV/Kunta/"
 DRAINED = {"3", "7", "8", "9"}        # ojitettu kangas, ojikko, muuttuma, turvekangas
 PEAT = {"2", "3", "4", "5"}           # korpi, räme, neva, letto
@@ -533,18 +537,15 @@ def build_site(cache, out, work, regions_ready):
         "updated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": total, "regions": regions_meta, "muni_counts": muni_counts, "munis": munis_meta,
         "prices": used, "poly_minzoom": config.METSA_POLY_MINZOOM, "min_forest_ha": config.METSA_MIN_FOREST_HA,
-        "version": VERSION, "kp": {str(k): v for k, v in sorted(kp_counts.items())},
+        "schema": SCHEMA, "version": VERSION, "kp": {str(k): v for k, v in sorted(kp_counts.items())},
         "max": {"ka": round(ka_max), "e": e_max}, "poly_maxzoom": POLY_MAXZOOM, "cards": "kortit/",
         "e_stops": e_stops(e_all),
         "grid": grid_meta,
     }
     with open(os.path.join(data_dir, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False)
+    # Etusivu ohjaa Talokartan metsätilanäkymään (web/metsa.js); tämä sivusto julkaisee vain tiedostot.
     shutil.copytree(os.path.join(ROOT, "metsa_web"), out, dirs_exist_ok=True)
-    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")
-    idx = os.path.join(out, "index.html")
-    html = open(idx, encoding="utf-8").read().replace('src="esikatselu.js"', f'src="esikatselu.js?v={stamp}"')
-    open(idx, "w", encoding="utf-8").write(html)
     return meta
 
 

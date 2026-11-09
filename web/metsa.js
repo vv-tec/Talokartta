@@ -8,13 +8,20 @@
  * Tiilen ominaisuudet: k tunnus, ka kokonaisala ha, e puuston arvo €, eh €/ha metsämaata, vh m³/ha metsämaata, tu turvemaata %,
  * kp yleisin kasvupaikka 1–8, da/dt/d2/d3/d4/d5 kehitysluokkien osuudet % metsämaasta.
  * Kortin kentät: ks. Talokartan pipeline/metsa/ajo.py (CARD_KEYS).
- * Käyttää app.js:n globaaleja: map, $, nf, esc, makeRange, setHouseLayers, applyFilters, closeCard, closePanel, toast.
+ * Käyttää Talokartasta vain isäntärajapintaa window.TalokarttaHost (app.js:n lopussa): map, $, nf, esc, makeRange,
+ * setHouseLayers, applyFilters, updateCount, closeCard, closePanel, toast, meta (talojen meta.json), styleReady.
+ * app.js puolestaan kutsuu tätä vain window.Metsa-olion kautta, ja toimii, vaikka tätä tiedostoa ei olisi.
+ * Tiedostojen muoto: SCHEMA = Talokartan pipeline/metsa/ajo.py SCHEMA (pikatesti varmistaa); meta.json "schema".
  */
 "use strict";
 
 (() => {
   const params = new URLSearchParams(location.search);
   if (!params.has("moodi")) return;  // piilotettu näkymä: ilman parametria sivu toimii kuten ennenkin
+  const H = window.TalokarttaHost;
+  if (!H) return;
+  const { map, $, nf, esc, makeRange, setHouseLayers, applyFilters, updateCount, closeCard, closePanel, toast } = H;
+  const SCHEMA = 1;  // tuettu metsätiedostojen muoto (meta.json "schema"; puuttuva = 1)
 
   const METSA_BASE = "https://vv-tec.github.io/Metsakartta/data/";
   const AREAS = { MPKH01: "Etelä-Suomi", MPKH02: "Keski-Suomi", MPKH03: "Savo-Karjala", MPKH04: "Kymi-Savo",
@@ -102,7 +109,7 @@
     closePanel();
     $("panel").hidden = M.active;
     $("fpanel").hidden = !M.active;
-    $("sub").textContent = M.active ? "Metsätilat avoimista aineistoista (esikatselu)" : (META?.title || "Asuinrakennukset avoimista rekistereistä");
+    $("sub").textContent = M.active ? "Metsätilat avoimista aineistoista (esikatselu)" : (H.meta?.title || "Asuinrakennukset avoimista rekistereistä");
     setHouseLayers(!M.active);
     $("hint").textContent = M.active ? "Lähennä nähdäksesi yksittäiset metsätilat" : HOUSE_HINT;
     // tilojen rajat näkyvät myös talonäkymässä (vaaleampina, omistajan toive 9.11.2026); muut metsätasot vain metsätiloissa
@@ -226,7 +233,7 @@
   const fillLayers = () => ids.map((i) => i + "-fill").filter((l) => map.getLayer(l));
   const gridOn = () => map.getLayer(GRID) && map.getZoom() < (FM.poly_minzoom || 10);
   M.addLayers = () => {
-    if (!FM || !styleReady || (ids.length && map.getLayer(ids[0] + "-fill"))) return;  // styleReady: app.js
+    if (!FM || !H.styleReady || (ids.length && map.getLayer(ids[0] + "-fill"))) return;  // styleReady: app.js
     // tilat taustakartan nimien alle, jotta paikannimet erottuvat
     // Taustakartta voi olla hetken kesken (esim. teeman vaihto) → getStyle() on tyhjä; yritetään uudelleen, kun kartta on valmis.
     const style = map.getStyle();
@@ -404,10 +411,26 @@
   /* ---------- käynnistys ---------- */
   buildPanel();
   setMode(M.active ? "metsa" : "talot");
+  // Metsätiedot eivät latautuneet tai ovat eri muotoa: näkymä pois, talot toimivat normaalisti.
+  function off(msg) {
+    toast(msg);
+    M.active = false;
+    M.enabled = false;
+    sw.hidden = true;
+    $("fpanel").hidden = true;
+    $("panel").hidden = false;
+    setHouseLayers(true);
+    applyFilters();
+  }
+
   fetch(METSA_BASE + "meta.json?v=" + Date.now())
     .then((r) => (r.ok ? r.json() : null)).catch(() => null)
     .then((m) => {
-      if (!m) { toast("Metsätilojen tietoja ei saatu ladattua."); return; }
+      if (!m) return off("Metsätilojen tietoja ei saatu ladattua.");
+      if ((m.schema ?? 1) !== SCHEMA) {
+        console.warn(`Metsätiedostojen muoto ${m.schema}, sivu tukee muotoa ${SCHEMA}`);
+        return off("Metsätilojen tiedot päivittyvät. Lataa sivu hetken päästä uudelleen.");
+      }
       FM = m;
       M.meta = m;
       buildPanel();

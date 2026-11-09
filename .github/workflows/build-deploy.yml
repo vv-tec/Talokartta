@@ -3,6 +3,21 @@ name: Päivitä tiedot ja julkaise
 on:
   push:
     branches: [main]
+    # Vain talojen sivuun vaikuttavat muutokset käynnistävät ajon (metsätilojen laskenta, selvitykset ja dokumentit eivät).
+    # web/metsa.js on mukana, koska Talokartta tarjoilee sen. Metsätilojen tiedot päivittää Metsakartan oma ajo.
+    paths:
+      - "pipeline/config.py"
+      - "pipeline/talot/**"
+      - "pipeline/yhteiset/**"
+      - "pipeline/requirements.txt"
+      - "pipeline/requirements-shore.txt"
+      - "web/**"
+      - "check/sivutarkistus.mjs"
+      - "check/paikallinen.mjs"
+      - "check/package.json"
+      - ".github/workflows/build-deploy.yml"
+      - ".github/workflows/check-site.yml"
+      - ".github/actions/julkaise-pages/**"
   schedule:
     - cron: "17 2 * * *"   # joka yö noin klo 4–5 Suomen aikaa
   workflow_dispatch:        # käsin: Actions → "Päivitä tiedot ja julkaise" → Run workflow
@@ -92,6 +107,35 @@ jobs:
           echo "updated=$(jq -r .updated dist/data/meta.json)" >> "$GITHUB_OUTPUT"
           echo "count=$(jq -r .count dist/data/meta.json)" >> "$GITHUB_OUTPUT"
 
+      # Tarkistus ennen julkaisua: valmis sivu (dist/) tarjoillaan paikallisesti ja avataan oikeassa selaimessa.
+      # Jos sivu ei toimi, julkaisua ei tehdä (sivulle jää edellinen versio) ja omistaja saa ilmoituksen.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Tarkista sivu ennen julkaisua
+        working-directory: check
+        env:
+          SITE_URL: http://localhost:8080/
+          EXPECT_UPDATED: ${{ steps.meta.outputs.updated }}
+          EXPECT_COUNT: ${{ steps.meta.outputs.count }}
+          OUT_DIR: ${{ github.workspace }}/esitarkistus
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          nohup node paikallinen.mjs ../dist 8080 > ../palvelin.log 2>&1 &
+          for i in $(seq 30); do curl -sf -o /dev/null http://localhost:8080/ && break; sleep 1; done
+          node sivutarkistus.mjs
+
+      - name: Tallenna esitarkistuksen kuvakaappaukset
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: esitarkistus
+          path: esitarkistus
+          retention-days: 14
+          if-no-files-found: ignore
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
@@ -111,8 +155,9 @@ jobs:
     steps:
       # Oma julkaisuvaihe (9.11.2026) actions/deploy-pagesin tilalle: ei 10 min rajaa eikä perumista, oma versiotunnus
       # jokaiselle yritykselle ja automaattinen uusi yritys. Sama vaihe Metsakartassa. Syy: HISTORIA.md, julkaisun jumit.
+      # Lukittu tagiin julkaisu-v1 (uusi versio käyttöön tagia siirtämällä, ks. CLAUDE.md).
       - id: deployment
-        uses: vv-tec/Talokartta/.github/actions/julkaise-pages@main
+        uses: vv-tec/Talokartta/.github/actions/julkaise-pages@julkaisu-v1
 
   # Sivun tarkistus julkaisun jälkeen: avaa sivun selaimessa ja varmistaa, että se toimii (check-site.yml).
   # Ei voi perua jo tehtyä julkaisua, mutta hälyttää notify-jobin kautta.

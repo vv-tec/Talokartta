@@ -16,10 +16,12 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
 async function proxy(req, res, rel) {
   const headers = req.headers.range ? { range: req.headers.range } : {};
   const r = await fetch(UPSTREAM + rel, { headers });
-  const out = {};
-  for (const h of ["content-type", "content-length", "content-range", "accept-ranges"]) if (r.headers.get(h)) out[h] = r.headers.get(h);
+  // fetch purkaa pakkauksen (gzip) → pituus lasketaan puretusta sisällöstä, ei välitetä alkuperäistä
+  const body = Buffer.from(await r.arrayBuffer());
+  const out = { "content-length": body.length };
+  for (const h of ["content-type", "content-range", "accept-ranges"]) if (r.headers.get(h)) out[h] = r.headers.get(h);
   res.writeHead(r.status, out);
-  res.end(Buffer.from(await r.arrayBuffer()));
+  res.end(body);
 }
 
 http.createServer(async (req, res) => {

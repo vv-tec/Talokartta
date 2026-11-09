@@ -16,17 +16,29 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 
 ## Arkkitehtuuri
 
-- `pipeline/` – Python 3.12, riippuvuus `requests` (+ Shapely rantatiedolle). Ajo: `python -m pipeline.build --out dist`.
-  Pikatestit ilman verkkoa: `python -m pipeline.selftest` (pidä ajan tasalla, kun logiikka muuttuu; rantatestit ohitetaan
-  ilman Shapelya, CI:ssä ajetaan). Verkkopyynnöt `net.py`: peräkkäin, uudelleenyritys viiveellä, `USER_AGENT` tunnistaa projektin.
-  - `ryhti.py` – SYKE Ryhti OGC API Features: `open_building` (crs EPSG:3067), `open_address`, `open_address_deleted`.
+- **Rakenne ja rajat (9.11.2026, katselmoinnin jälkeen):** talot ja metsätilat ovat erotettavissa toisistaan.
+  `pipeline/yhteiset/` (net, tm35, ryhti, mml_files, julkaisu = loki/fail/slug/fmt_kt/tippecanoe/previous_meta),
+  `pipeline/talot/` (build, ryhti_store, mml, shore; ajo `python -m pipeline.talot`), `pipeline/metsa/` (ajo, kuviot,
+  hinnat, vmi; ajo `python -m pipeline.metsa`), `pipeline/selvitykset/` (kokeilut, `python -m pipeline.selvitykset.<nimi>`),
+  yhteinen asetustiedosto `pipeline/config.py` (osiot YHTEISET / TALOT / METSAKARTTA). **Sääntö** (pikatesti
+  `boundary_tests` valvoo, `ALLOWED_IMPORTS`): talot ↛ metsa, metsa ↛ talot, yhteiset ↛ muut, tuotanto ↛ selvitykset.
+  Yhteinen tarve → `yhteiset/`. Webissä sama periaate: `web/metsa.js` käyttää Talokartasta vain `window.TalokarttaHost`
+  -rajapintaa (app.js:n lopussa) ja app.js kutsuu metsätiloja vain `window.Metsa`-olion kautta (valinnainen).
+  Metsätiedostojen muoto `metsa/ajo.py SCHEMA` = `web/metsa.js SCHEMA` (meta.json `schema`; pikatesti vertaa; nosta
+  vain yhteensopimattomassa muutoksessa – eri muoto → metsätilanäkymä poistuu siististi, talot toimivat). Erottaminen
+  omaksi palveluksi myöhemmin = `metsa/` + `yhteiset/` + config-osiot + `web/metsa.js` uuteen repoon.
+- `pipeline/` – Python 3.12, riippuvuus `requests` (+ Shapely rantatiedolle ja metsätiloille).
+  Pikatestit ilman verkkoa: `python -m pipeline.selftest` (pidä ajan tasalla, kun logiikka muuttuu; ilman kirjastoja
+  ryhmä ohitetaan, `SELFTEST_STRICT=1` tekee ohituksesta virheen – CI). Verkkopyynnöt `yhteiset/net.py`: peräkkäin,
+  uudelleenyritys viiveellä, `USER_AGENT` tunnistaa projektin. Talot (`talot/` ellei toisin mainita):
+  - `yhteiset/ryhti.py` – SYKE Ryhti OGC API Features: `open_building` (crs EPSG:3067), `open_address`, `open_address_deleted`.
     Suodatus CQL `municipality_number='NNN'`; muutoshaku `modified_timestamp_utc > '…Z'` (koko maassa ~2 500–7 000
     muuttunutta rakennusta/vrk). `properties`-parametri toimii osoitteille, rakennuksille ohitetaan.
   - `ryhti_store.py` – tila `cache/ryhti.json.gz` (vain asuinrakennukset kevennettyinä). Kunta haetaan kokonaan, jos puuttuu
     tai yli `RYHTI_FULL_DAYS` (30) pv vanha; muuten koko maan muutokset edellisen tallessa olevan jälkeen (1 pv päällekkäisyys),
     uusille rakennuksille osoitteet erikseen. Poistetut siivoutuvat kunnan seuraavassa täydessä haussa, joka lokittaa erot
     ("erot tallessa olleeseen: …") muutoshaun luotettavuuden seurantaan. Täysiä hakuja enintään `RYHTI_TIME_BUDGET_MIN` (60) min.
-  - `mml_files.py` – **palstalähde**: MML:n tiedostopalvelu (OGC API Processes,
+  - `yhteiset/mml_files.py` – **palstalähde**: MML:n tiedostopalvelu (OGC API Processes,
     `https://avoin-paikkatieto.maanmittauslaitos.fi/tiedostopalvelu/ogcproc/v1`), prosessi
     `kiinteistorekisterikartta_vektori_kunta`, GPKG/EPSG:3067, yksi työ per kunta. Avain GitHub-salaisuutena `MML_API_KEY`
     (Basic auth, avain käyttäjänä; Claude ei näe avainta). Taulu `PalstanSijaintitiedot` (geom, kiinteistotunnus 14 num.);
@@ -42,7 +54,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     Palstahaku lopetetaan hallitusti `PARCEL_TIME_BUDGET_MIN` (150) min kohdalla; yksittäisen kunnan virhe ohitetaan; jos
     kuntia puuttuu, haetut tallennetaan (välimuisti `if: always()`), ajo päättyy virheeseen eikä julkaise, seuraava jatkaa.
     Kapasiteetti: pakotettuna ~30 kuntaa/ajo (rantatieto mukana).
-  - **Rantatieto (irrotettava lisäosa)** – `shore.py`, `requirements-shore.txt` (Shapely ~=2.1), `config.SHORE_REGIONS`
+  - **Rantatieto (irrotettava lisäosa)** – `talot/shore.py`, `requirements-shore.txt` (Shapely ~=2.1), `config.SHORE_REGIONS`
     (**tyhjä lista = pois päältä**: shorea/Shapelya ei tuoda, ei ra-kenttiä, sivu piilottaa Ranta-osiot). Kytkentä vain
     `ParcelResults.on_parcels`-koukussa (lasketaan samoista palstoista aina, kun kunnan palstat ladataan) ja
     `make_records(..., shore_res)`. Tulokset `cache/shore-results.json.gz` ({building_key: [ra, rl, rd, rw, rwa]}).
@@ -63,17 +75,18 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   - Turvatarkistus `build.publish_problems` vertaa julkaistun sivun meta.jsoniin (`config.SITE_URL`): estää julkaisun, jos
     maakunta putoaisi pois tai kunnan rakennusmäärä putoaa yli `DROP_PCT` 5 % (ja yli `DROP_MIN` 20); meta `muni_counts`.
     Ohitus: käsiajo `ohita_tarkistukset` (env `SKIP_CHECKS`). `build.fail()` tulostaa `::error`-rivin → issueen "Syy".
-  - `build.py` – yhdistää, kirjoittaa GeoJSONSeq:n, ajaa `tippecanoe` (taso kerrallaan) → `dist/data/b-<maakunta>.pmtiles`
+  - `talot/build.py` – yhdistää, kirjoittaa GeoJSONSeq:n, ajaa `tippecanoe` (taso kerrallaan) → `dist/data/b-<maakunta>.pmtiles`
     + `g.pmtiles` (tiheysruudut, tile-join) + `meta.json`, kopioi `web/` → `dist/`. Keskeytyy, jos tiedosto > 95 Mt.
-  - Selvitysajot (eivät vaikuta sivuun): `ryhti_explore.py` ("Selvitys – Ryhti-kentät"; kunta `maakunnat` = kuntalistojen
+  - Selvitysajot (`selvitykset/`, eivät vaikuta sivuun): `ryhti_explore.py` ("Selvitys – Ryhti-kentät"; kunta `maakunnat` = kuntalistojen
     tarkistus Tilastokeskuksen luokitusta kunta_1_YYYY0101#maakunta_1_YYYY0101 vasten, `puuttuu:NNN` = kuntaliitosselvitys),
     `mml_explore.py` ("Selvitys – MML-tiedostolataus"), `shore_explore.py` ("Selvitys – rantatesti"), `codes_explore.py`,
     `metsa_explore.py` + `metsa_laske.py` ("Selvitys – metsätilat", vaihe `rakenne` / `laske` → Excel liitteenä + CSV lokiin).
 - `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle lähteen
   ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä,
   taustakartta OpenFreeMap (positron/dark).
-- `.github/workflows/build-deploy.yml` – yöllinen ajo (cron 17 2 * * *) + push + käsin; julkaisu GitHub Pagesiin;
-  epäonnistunut ajo ei julkaise. `[skip ci]` commit-viestissä ohittaa ajon (pelkät dokumenttimuutokset). Jobi `notify`:
+- `.github/workflows/build-deploy.yml` – yöllinen ajo (cron 17 2 * * *) + push (vain talojen polut, `paths`) + käsin;
+  julkaisu GitHub Pagesiin; epäonnistunut ajo ei julkaise. Ennen julkaisua `dist/` tarjoillaan paikallisesti ja
+  tarkistetaan `sivutarkistus.mjs`:llä (vaihe "Tarkista sivu ennen julkaisua"; kuvakaappaukset liitteenä). Jobi `notify`:
   epäonnistunut ajo avaa issuen (label `ajo-epäonnistui`, mainitsee omistajan) tai kommentoi avointa; onnistunut sulkee.
   Käsiajon `koe_virhe` pysäyttää ajon tarkoituksella. Välimuistin avain `parcels-<aikaleima>` joka ajossa.
   Jobi `check` (deployn jälkeen) kutsuu `check-site.yml`:ää buildin `updated`/`count`-luvuilla; notify: jos deploy
@@ -81,10 +94,11 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 - **Metsakartta** (metsätilat, tiekartan kohta 6; vaihe 1 tehty 6.11.2026): koodi täällä, ajo ja julkaisu repositoriossa
   **vv-tec/Metsakartta** (oma Pages 1 Gt: https://vv-tec.github.io/Metsakartta/, sama alkuperä kuin Talokartta → ei CORS-ongelmaa).
   Metsakartan työnkulku `metsa.yml` ("Päivitä metsätilat ja julkaise", cron 47 4 * * * eli Talokartan jälkeen + käsin,
-  `ohita_tarkistukset`) hakee Talokartan koodin (`koodi/`), ajaa `python -m pipeline.metsa`, julkaisee ja ilmoittaa
+  `ohita_tarkistukset`) hakee Talokartan koodin (`koodi/`, main), ajaa pikatestit (`SELFTEST_STRICT`), sitten
+  `python -m pipeline.metsa`, julkaisee ja ilmoittaa
   epäonnistumisesta Metsakartan issueihin (sama malli). Salaisuus `MML_API_KEY` erikseen Metsakartassa (omistajan valinta A:
   Metsakartta lataa palstat itse 30 pv välein, ~10 kuntaa/yö). Asetukset `config.METSA_*` (maakunnat `METSA_REGIONS`).
-  - `metsa.py`: kunta vanhimmasta (puuttuvat ensin, `METSA_MAX_AGE_DAYS` 30, `METSA_TIME_BUDGET_MIN` 150, `VERSION`-muutos
+  - `metsa/ajo.py`: kunta vanhimmasta (puuttuvat ensin, `METSA_MAX_AGE_DAYS` 30, `METSA_TIME_BUDGET_MIN` 150, `VERSION`-muutos
     → uudelleenlaskenta): Metsäkeskuksen MV_<Kunta>.zip (nimi config.py:n kommenteista, `norm`), MML-palstat
     (`municipality_parcels`), Ryhti (rakennukset kiinteistöittäin) → kuviot × palstat (STRtree, leikkausala) → talteen vain
     metsätilat (metsämaata > `METSA_MIN_FOREST_HA`): määrät `am_<kauppatapa>|<puutavaralaji>` (m³), alat, luokkien ha:t,
@@ -97,7 +111,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     tunnuksen 1. osa 3 numeroksi), `data/meta.json`
     (regions, muni_counts, munis, prices {alue: {"KAUP|PTL": [hinta, kk]}}, `kp` kasvupaikkajakauma, `max` {ka, e}, `cards`,
     `e_stops` €-värityksen portaat = persentiilit 15/35/55/75/92 siistittyinä `nice`),
-    `data/r.pmtiles` (**kaukonäkymän metsäkuva**, `vmi.py`, `metsa.vmi_overview`; omistajan päätös
+    `data/r.pmtiles` (**kaukonäkymän metsäkuva**, `metsa/vmi.py`, `ajo.vmi_overview`; omistajan päätös
     9.11.2026: liukuvat värit, **puuta koko alaa kohden** m³/ha (meri/järvet/pellot = 0 → vaalea/läpinäkyvä, alle `FADE`)):
     Luke MVMI 2023 `tilavuus_vmi1x_1923.tif` (koko Suomi, 16 m, 1,9 Gt, lataus ~1 min funetista, Atom
     https://kartta.luke.fi/inspireatom/MVMI-2023.xml) → 256 m ruudut (`aggregate`, segmenteittäin, 14 s, 1,7 Gt muistia)
@@ -109,53 +123,20 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     (× kuvan oma 0,78; omistajan toive 9.11.2026 läpinäkyvämpi). **Ei tietoruutua** (omistaja 9.11.2026: 1 km ruudun
     tiedot epärelevantteja; r-info.png ja selectCell poistettu). (Korvasi 9.11.2026 samana päivänä
     tehdyt metsätiloista lasketut vektoriruudut: levoton kuva, saaristo harhaanjohtavan tumma, valtion maat puuttuivat.)
-    esikatselusivu `metsa_web/` (index.html + esikatselu.js; väri m³/ha (9.11.2026, ennen €/ha), tietokortti, **suodattimet**: kokonaisala,
-    puuston arvo €, metsäpohja = maapohja (turve < / ≥ 50 %) + yleisin kasvupaikka, ikäjakauma (vähintään % aukea+taimikko,
-    nuori, varttunut, uudistuskypsä d4+d5); näkyvien määrä). Kaukaa ei pisteitä (6.11.2026: peittivät taustakartan);
+    Kuviot ja kasvupaikat `metsa/kuviot.py` (`read_stands`), kantohinnat `metsa/hinnat.py` (`luke_prices`, hinta-alueet).
+    **Esikatselusivu poistettu 9.11.2026:** Metsakartan etusivu (`metsa_web/index.html`) ohjaa Talokartan
+    metsätilanäkymään (`?moodi=metsa`, sijainti `#kartta=` säilyy); ainoa toteutus on `web/metsa.js`.
+    Kaukaa ei pisteitä (6.11.2026: peittivät taustakartan);
     **9.11.2026 omistajan päätökset: kaukaa VMI-metsäkuva (puuta koko alaa kohden); tilat liukuvin värein samalla
     mittarilla ja asteikolla (`vk` = m³ / kokonaisala, `grid.ramp`), jotta värit pysyvät synkronissa; paneelin valinta
     "Tilojen väri": m³/ha tai puuston arvo yhteensä € (`e`, `e_stops`), muistetaan selaimessa (`metsaVari`)**
-    (Talokartan metsätilanäkymässä; esikatselussa yhä vh-väri).
-    Selaintarkistus `check/metsa_tarkistus.mjs` (Metsakartan jobi `check` julkaisun jälkeen; 23 kohtaa (10 esikatselu + 13 Talokartta, mm. rajat talonäkymässä, mm. €/ha- ja m³/ha-liukusäätimet, tilojen värin valinta, metsäkuvan tiilet), mm. suodattimet ja
-    kortti; epäonnistuminen → Metsakartan issue). Käyttää globaaleja `map`, `META` ja id:itä `#kaMin`, `#age-u`, `#reset`,
-    `#count`, `#card` → päivitä tarkistus, jos nämä muuttuvat.
-    **Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
-    pinta-alan mukaan ~0,5 + 0,17 Gt ≈ 0,7 Gt / 1 Gt.** Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML hallitsee).
-    **Vaihe 3 (7.11.2026): + Uusimaa** 26 kuntaa 58 min, 27 326 tilaa, f-uusimaa 15,9 Mt; yhteensä 44 054 tilaa,
-    kortit 7,9 Mt, muisti 710 Mt. Kaikki MV-tiedostot löytyivät nimellä (puuttuva → `::warning` + 0 tilaa).
-    **+ Pirkanmaa (7.11.2026)** 23 kuntaa 50 min, 44 264 tilaa, f-pirkanmaa 24,6 Mt; yhteensä 88 318 tilaa, f 49,6 Mt +
-    kortit 15,9 Mt ≈ 0,74 kt/tila → koko Suomi ~0,7–0,8 Gt (seuraa). `muni_names` jättää sulkulisätiedot pois (Kuhmoinen).
-    **+ Päijät-Häme (7.11.2026)** 10 kuntaa 22 min, 16 276 tilaa, f-paijat-hame 10,0 Mt; yhteensä 104 594 tilaa,
-    f 59,6 Mt + kortit 18,8 Mt = 78 Mt.
-    **+ Varsinais-Suomi (7.11.2026)** 27 kuntaa 56 min, 35 248 tilaa, f 21,1 Mt; yhteensä 139 842 tilaa, f 80,7 Mt +
-    kortit 25,1 Mt = 106 Mt, muisti 1,3 Gt. `mv_file`: MV-tiedosto myös nimen 1. sanalla (Koski Tl → löytyi).
-    **+ Satakunta (7.11.2026)** 16 kuntaa, 24 797 tilaa, f 12,4 Mt; yhteensä 164 639 tilaa, f 93,1 Mt + kortit 29,6 Mt
-    = 123 Mt. `mv_download` yrittää uudelleen 4× (Eurajoki: Connection reset kaatoi ensimmäisen ajon).
-    **+ Kymenlaakso (8.11.2026)** 6 kuntaa 20 min (Kouvola 555 s), 17 796 tilaa, f 9,6 Mt, hinta-alue MPKH04;
-    yhteensä 182 435 tilaa, f 102,7 Mt + kortit 32,7 Mt = 136 Mt. `metsa.js` addLayers odottaa `getStyle()`:a (idle).
-    **+ Etelä-Karjala (8.11.2026)** 9 kuntaa 23 min, 22 265 tilaa, f 12,3 Mt; yhteensä 204 700 tilaa, f 115,0 Mt +
-    kortit 36,7 Mt = 152 Mt.
-    **+ Keski-Suomi (8.11.2026)** 22 kuntaa 51 min, 44 897 tilaa, f 26,7 Mt; yhteensä 249 597 tilaa (150/292 kuntaa),
-    f 141,7 Mt + kortit 44,8 Mt = 187 Mt → koko Suomi ~0,5–0,7 Gt. MV-latauksen uusi yritys toimi (Laukaa).
-    **+ Etelä-Savo (8.11.2026)** 11 kuntaa 55 min (1. ajo: MML palautti tyhjiä vastauksia kaikille → `_req_json`
-    yrittää uudelleen ja kertoo tilan), 41 862 tilaa, f 28,9 Mt; yhteensä 291 459 tilaa, f 170,6 Mt + kortit 52,4 Mt.
-    **+ Pohjois-Savo (8.11.2026)** 19 kuntaa 63 min (Kuopio 914 s, ei liitosvaroitusta), 46 470 tilaa, f 30,0 Mt,
-    hinta-alue MPKH03; yhteensä 337 929 tilaa (180/292 kuntaa), f 200,6 Mt + kortit 60,7 Mt = 261 Mt, muisti 2,1 Gt.
-    **+ Pohjois-Karjala (8.11.2026)** 13 kuntaa 57 min, 46 783 tilaa, f 29,3 Mt; yhteensä 384 712 tilaa (193/292),
-    f 229,9 Mt + kortit 69,2 Mt = 299 Mt → koko Suomi ~0,6–0,7 Gt. Valtimo (→ Nurmes 2020) 4 661 palstaa yhä 911.
-    **+ Pohjanmaa (8.11.2026)** 14 kuntaa 41 min, 38 024 tilaa, f 20,3 Mt; yhteensä 422 736 tilaa (207/292),
-    f 250,2 Mt + kortit 76,0 Mt = 326 Mt. `mv_file` myös yksikäsitteisellä alkuosalla (Pedersören kunta).
-    **+ Etelä-Pohjanmaa (9.11.2026)** 18 kuntaa 50 min, 50 232 tilaa, f 26,5 Mt; yhteensä 472 968 tilaa (225/292),
-    f 276,7 Mt + kortit 84,9 Mt = 362 Mt.
-    **+ Keski-Pohjanmaa (9.11.2026)** 8 kuntaa 20 min, 13 123 tilaa, f 8,0 Mt; yhteensä 486 091 (233/292), 372 Mt.
-    **+ Pohjois-Pohjanmaa (9.11.2026)** 30 kuntaa 82 min (Oulu 639 s, Kuusamo 500 s), 73 276 tilaa, f 49,7 Mt (suurin);
-    yhteensä 559 367 (263/292), f 334 Mt + kortit 100,5 Mt = 435 Mt, muisti 2,1 Gt.
-    **+ Kainuu (9.11.2026)** 8 kuntaa 25 min, 23 184 tilaa, f 19,4 Mt; yhteensä 582 551 (271/292), 459 Mt.
-    **+ Lappi (9.11.2026) → koko Manner-Suomi valmis:** 21 kuntaa 69 min (Rovaniemi 6 987 tilaa 405 s), 49 953 tilaa,
-    f-lappi 50,8 Mt (suurin). Utsjoki: 9 kuviota → 0 tilaa (Metsäkeskuksen aineisto ~yksityismetsät). **Yhteensä
-    632 504 tilaa, 292/292 kuntaa, f 404,6 Mt + kortit 113,7 Mt ≈ 518 Mt / 1 Gt**, muisti ≤ 2,1 Gt. Kuukausipäivitys
-    kasautuu 6.–9.12. (85 kuntaa lisättiin 9.11.) → aikaraja jakaa sen muutamalle yölle (valmis = välimuistitiedosto
-    olemassa, joten julkaisu jatkuu vanhoilla tiedoilla).
+    Selaintarkistus `check/metsa_tarkistus.mjs`: Metsakartan tiedostot (meta.json, julkaistu versio, etusivun ohjaus)
+    + Talokartan metsätilanäkymä `runTalo` (moodivalinta, tilat Tammelassa, suodatin, liukusäätimet €/ha ja m³/ha,
+    värin valinta, kortti, metsäkuvan tiilet, paluu taloihin, rajat talonäkymässä). Ajetaan Metsakartan jobissa `check`
+    julkaisun jälkeen (→ Metsakartan issue) ja Talokartan Testit-työnkulussa ennen julkaisua (paikallinen sivu).
+    **Koko Manner-Suomi (9.11.2026):** 632 504 tilaa, 292/292 kuntaa, f 404,6 Mt + kortit 113,7 Mt ≈ 518 Mt / 1 Gt,
+    muisti ≤ 2,1 Gt. Maakuntien käyttöönoton mittaukset (ajoajat, koot) HISTORIA.md. Kuukausipäivitys kasautuu 6.–9.12.
+    → aikaraja jakaa sen muutamalle yölle (julkaisu jatkuu vanhoilla tiedoilla).
     **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"], "541": ["911"]} (Pertunmaa, Valtimo) → palstat
     mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`); loki "tunnusalut …" näyttää määrät;
     paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus). Lisää epäilty liitos ennen ajoa.
@@ -163,6 +144,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   - **Talokartan metsätilanäkymä** (vaihe 2b, 6.11.2026; piilotettu): `web/metsa.js` (IIFE, toimii vain jos osoitteessa
     `?moodi=…`; `window.Metsa` {enabled, active, meta, addLayers, updateCount, click, hover, clearSelection, has,
     houseLink}). Lukee `METSA_BASE` = https://vv-tec.github.io/Metsakartta/data/ (meta.json, f-*.pmtiles, kortit/).
+    Metsätiedot eivät lataudu tai `schema` eri → `off()`: näkymä ja moodivalinta piiloon, talot normaalisti.
     `index.html`: `#modeSwitch` (Talot | Metsätilat, hidden), `#fpanel` (metsäpaneeli, sisältö metsa.js:stä: `#fCount`,
     `#fKaMin/Max`, `#fEMin/Max`, liukusäätimet `#fEhR`/`#fVhR` (app.js `makeRange`), `#fPeat`, `#fSites`, `#fAge-a/n/v/u`, `#fReset`). `app.js`-koukut: `setHouseLayers`,
     updateCount/click/mousemove ohjataan Metsalle, `curPanel()`, closeCard → clearSelection, talon kortissa `#forestLink`
@@ -170,8 +152,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     taustakartan nimien alla; metsäkuva rasteritaso `metsa-r` (maxzoom = poly_minzoom + 1; klikkaus kaukaa sulkee kortin). **Ristihäivytys**
     (omistajan valinta 9.11.2026): zoomista poly_minzoom kuva haalistuu `XFADE` 0,7 askeleessa ja tilojen täyttö/rajat
     vahvistuvat `FADE_IN` 0,6 askeleessa (`fade()`-lauseke; tilatiilet alkavat z10, joten häivytys ei voi alkaa aiemmin). Tilojen rajat (`-line`) näkyvät
-    myös talonäkymässä vaaleampina (`LINE_HOUSE`, ilman metsäsuodattimia; `lineStyle()`; omistajan toive 9.11.2026). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
-    Tarkistus: `check/metsa_tarkistus.mjs` `runTalo` (TALO_URL, oletus julkaistu Talokartta; ajetaan Metsakartan jobissa).
+    myös talonäkymässä vaaleampina (`LINE_HOUSE`, ilman metsäsuodattimia; `lineStyle()`; omistajan toive 9.11.2026). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `talot/build.py` versioi metsa.js:n.
+    Tarkistus: `check/metsa_tarkistus.mjs` `runTalo` (TALO_URL, oletus julkaistu Talokartta).
   - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
     peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit
     (esim. README) ja aja uudelleen; meni läpi heti. Lisäksi Pages näyttää uuden version joskus vasta 5–15 min
@@ -232,8 +214,18 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 - **Kunnan tai maakunnan lisäys:** aja `maakunnat`-tarkistus ennen ja jälkeen; tarkista kuntaliitokset (esim. Pertunmaa
   588 → Mäntyharju 507 1.1.2025: Ryhtissä 0 rakennusta, MML hylkää numeron HTTP 400). Kunnan siirto maakunnasta toiseen ei
   vaadi uudelleenhakua. Päivitä KAYTTOOHJE (maakunnat, luvut, rantataulukko) ja HISTORIA (mittaukset).
+- **Testit ja muutosten kulku (9.11.2026):** työnkulku **Testit** (`tests.yml`) ajaa jokaisesta pushista (myös haarat)
+  pikatestit kaikkine kirjastoineen (`SELFTEST_STRICT=1`) sekä sivun tarkistukset oikeassa selaimessa paikallisesti
+  tarjoillusta `web/`:stä (`check/paikallinen.mjs`, data julkaistulta sivulta). Isompi muutos: tee haara, odota Testit
+  vihreäksi (`gh api "repos/vv-tec/Talokartta/actions/runs?branch=<haara>"`), yhdistä mainiin. Talokartan ajo käynnistyy
+  pushista vain talojen polkujen muuttuessa (`build-deploy.yml` `paths`); metsätilojen muutos näkyy Metsakartan
+  seuraavassa ajossa (tai käsiajo `gh api -X POST repos/vv-tec/Metsakartta/actions/workflows/metsa.yml/dispatches -f ref=main`).
+  Talokartan yöajo tarkistaa valmiin `dist/`:n selaimessa **ennen julkaisua** (rikkinäinen sivu ei mene julki).
+  `[skip ci]` ei enää tarvita dokumenttimuutoksissa (paths), mutta ei haittaa.
 - **Pages-julkaisu: oma vaihe `.github/actions/julkaise-pages`** (9.11.2026, korvasi `actions/deploy-pages`; käytössä
-  Talokartassa ja Metsakartassa `uses: vv-tec/Talokartta/.github/actions/julkaise-pages@main`). Syy: deploy-pagesin
+  Talokartassa ja Metsakartassa `uses: vv-tec/Talokartta/.github/actions/julkaise-pages@julkaisu-v1`). **Lukittu tagiin
+  `julkaisu-v1`:** muutos vaiheeseen otetaan käyttöön siirtämällä tagi (`git tag -f julkaisu-v1 <commit> && git push -f
+  origin julkaisu-v1`) vasta, kun muutos on koeajettu. Syy: deploy-pagesin
   kova 10 min raja perui hitaat julkaisut (~11 % ajoista) ja versiotunnus = commit-SHA esti uusinnan. Oma vaihe:
   Pages-rajapinta (`POST/GET pages/deployments`), versiotunnus 1. yrityksessä commit-SHA, uusinnoissa oma muoto tai (jos
   GitHub hylkää 404, todettu 9.11.2026) aiempien committien SHA:t, odottaa ≤ 30 min eikä
@@ -249,7 +241,9 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 
 Valmiit: 1 Tammela, 2 koko Manner-Suomi (2a–2q maakunnittain), 2x rantatieto, 3 ilmoitus epäonnistuneesta ajosta
 (issue + sähköposti), 3b automaattinen sivun tarkistus (6.11.2026). Yksityiskohdat HISTORIA.md.
-Jatkossa mahdollinen: tarkistus ennen julkaisua paikallisesti tarjoillusta `dist/`:stä (estäisi rikkinäisen julkaisun).
+3c tekninen katselmointi ja rakenne (9.11.2026): osat ja rajat, testit jokaisesta muutoksesta, tarkistus ennen
+julkaisua, esikatselusivu pois, isäntärajapinta ja tiedostomuodon versio (ks. Arkkitehtuuri ja Käytännön ohjeet).
+Jatkossa mahdollinen: Metsakartan tarkistus ennen julkaisua (nyt julkaisun jälkeen; vaatisi METSA_BASE-ohituksen).
 
 
 4. Oma verkko-osoite.

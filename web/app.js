@@ -495,3 +495,11 @@ map.on("error", (e) => {
   if (/styles\/dark/.test(msg) || (e?.error?.url || "").includes("styles/dark")) { map.setStyle(STYLES.light); return; }  // varalla vaalea tausta
   if (/pmtiles|talot/i.test(msg)) toast("Karttatietojen lataus epäonnistui.");
 });
+
+/* Isäntärajapinta toimintamoodeille (web/metsa.js): moodit käyttävät Talokartasta vain näitä. Muutos tähän
+   → päivitä moodit. Talokartta kutsuu moodia vain window.Metsa-olion kautta (valinnainen). */
+window.TalokarttaHost = Object.freeze({
+  map, $, nf, esc, makeRange, setHouseLayers, applyFilters, updateCount, closeCard, closePanel, toast,
+  get meta() { return META; },
+  get styleReady() { return styleReady; },
+});

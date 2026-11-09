@@ -337,3 +337,43 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     GitHub vastasi 404 (tunnuksen pitää ilmeisesti olla commit-SHA) → 1. yritys SHA:lla, uusinnoissa oma muoto ja aiemmat
     commitit. Koe: Talokartta 25 s ja Metsakartta 25 s (deployment_in_progress → syncing_files → succeed), tarkistukset ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
+
+## Metsakartan maakuntien käyttöönotto 6.–9.11.2026 (siirretty CLAUDE.md:stä 9.11.2026)
+
+**Koko (vaihe 2a, 6.11.2026): Kanta-Häme 16 728 tilaa, f 9,1 Mt + kortit 3,0 Mt (ennen 25,7 Mt) → koko Suomi
+pinta-alan mukaan ~0,5 + 0,17 Gt ≈ 0,7 Gt / 1 Gt.** Ensimmäinen haku ~2 min/kunta (Hämeenlinna 10 min, MML hallitsee).
+**Vaihe 3 (7.11.2026): + Uusimaa** 26 kuntaa 58 min, 27 326 tilaa, f-uusimaa 15,9 Mt; yhteensä 44 054 tilaa,
+kortit 7,9 Mt, muisti 710 Mt. Kaikki MV-tiedostot löytyivät nimellä (puuttuva → `::warning` + 0 tilaa).
+**+ Pirkanmaa (7.11.2026)** 23 kuntaa 50 min, 44 264 tilaa, f-pirkanmaa 24,6 Mt; yhteensä 88 318 tilaa, f 49,6 Mt +
+kortit 15,9 Mt ≈ 0,74 kt/tila → koko Suomi ~0,7–0,8 Gt (seuraa). `muni_names` jättää sulkulisätiedot pois (Kuhmoinen).
+**+ Päijät-Häme (7.11.2026)** 10 kuntaa 22 min, 16 276 tilaa, f-paijat-hame 10,0 Mt; yhteensä 104 594 tilaa,
+f 59,6 Mt + kortit 18,8 Mt = 78 Mt.
+**+ Varsinais-Suomi (7.11.2026)** 27 kuntaa 56 min, 35 248 tilaa, f 21,1 Mt; yhteensä 139 842 tilaa, f 80,7 Mt +
+kortit 25,1 Mt = 106 Mt, muisti 1,3 Gt. `mv_file`: MV-tiedosto myös nimen 1. sanalla (Koski Tl → löytyi).
+**+ Satakunta (7.11.2026)** 16 kuntaa, 24 797 tilaa, f 12,4 Mt; yhteensä 164 639 tilaa, f 93,1 Mt + kortit 29,6 Mt
+= 123 Mt. `mv_download` yrittää uudelleen 4× (Eurajoki: Connection reset kaatoi ensimmäisen ajon).
+**+ Kymenlaakso (8.11.2026)** 6 kuntaa 20 min (Kouvola 555 s), 17 796 tilaa, f 9,6 Mt, hinta-alue MPKH04;
+yhteensä 182 435 tilaa, f 102,7 Mt + kortit 32,7 Mt = 136 Mt. `metsa.js` addLayers odottaa `getStyle()`:a (idle).
+**+ Etelä-Karjala (8.11.2026)** 9 kuntaa 23 min, 22 265 tilaa, f 12,3 Mt; yhteensä 204 700 tilaa, f 115,0 Mt +
+kortit 36,7 Mt = 152 Mt.
+**+ Keski-Suomi (8.11.2026)** 22 kuntaa 51 min, 44 897 tilaa, f 26,7 Mt; yhteensä 249 597 tilaa (150/292 kuntaa),
+f 141,7 Mt + kortit 44,8 Mt = 187 Mt → koko Suomi ~0,5–0,7 Gt. MV-latauksen uusi yritys toimi (Laukaa).
+**+ Etelä-Savo (8.11.2026)** 11 kuntaa 55 min (1. ajo: MML palautti tyhjiä vastauksia kaikille → `_req_json`
+yrittää uudelleen ja kertoo tilan), 41 862 tilaa, f 28,9 Mt; yhteensä 291 459 tilaa, f 170,6 Mt + kortit 52,4 Mt.
+**+ Pohjois-Savo (8.11.2026)** 19 kuntaa 63 min (Kuopio 914 s, ei liitosvaroitusta), 46 470 tilaa, f 30,0 Mt,
+hinta-alue MPKH03; yhteensä 337 929 tilaa (180/292 kuntaa), f 200,6 Mt + kortit 60,7 Mt = 261 Mt, muisti 2,1 Gt.
+**+ Pohjois-Karjala (8.11.2026)** 13 kuntaa 57 min, 46 783 tilaa, f 29,3 Mt; yhteensä 384 712 tilaa (193/292),
+f 229,9 Mt + kortit 69,2 Mt = 299 Mt → koko Suomi ~0,6–0,7 Gt. Valtimo (→ Nurmes 2020) 4 661 palstaa yhä 911.
+**+ Pohjanmaa (8.11.2026)** 14 kuntaa 41 min, 38 024 tilaa, f 20,3 Mt; yhteensä 422 736 tilaa (207/292),
+f 250,2 Mt + kortit 76,0 Mt = 326 Mt. `mv_file` myös yksikäsitteisellä alkuosalla (Pedersören kunta).
+**+ Etelä-Pohjanmaa (9.11.2026)** 18 kuntaa 50 min, 50 232 tilaa, f 26,5 Mt; yhteensä 472 968 tilaa (225/292),
+f 276,7 Mt + kortit 84,9 Mt = 362 Mt.
+**+ Keski-Pohjanmaa (9.11.2026)** 8 kuntaa 20 min, 13 123 tilaa, f 8,0 Mt; yhteensä 486 091 (233/292), 372 Mt.
+**+ Pohjois-Pohjanmaa (9.11.2026)** 30 kuntaa 82 min (Oulu 639 s, Kuusamo 500 s), 73 276 tilaa, f 49,7 Mt (suurin);
+yhteensä 559 367 (263/292), f 334 Mt + kortit 100,5 Mt = 435 Mt, muisti 2,1 Gt.
+**+ Kainuu (9.11.2026)** 8 kuntaa 25 min, 23 184 tilaa, f 19,4 Mt; yhteensä 582 551 (271/292), 459 Mt.
+**+ Lappi (9.11.2026) → koko Manner-Suomi valmis:** 21 kuntaa 69 min (Rovaniemi 6 987 tilaa 405 s), 49 953 tilaa,
+f-lappi 50,8 Mt (suurin). Utsjoki: 9 kuviota → 0 tilaa (Metsäkeskuksen aineisto ~yksityismetsät). **Yhteensä
+632 504 tilaa, 292/292 kuntaa, f 404,6 Mt + kortit 113,7 Mt ≈ 518 Mt / 1 Gt**, muisti ≤ 2,1 Gt. Kuukausipäivitys
+kasautuu 6.–9.12. (85 kuntaa lisättiin 9.11.) → aikaraja jakaa sen muutamalle yölle (valmis = välimuistitiedosto
+olemassa, joten julkaisu jatkuu vanhoilla tiedoilla).

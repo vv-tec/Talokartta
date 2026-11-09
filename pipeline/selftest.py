@@ -272,6 +272,10 @@ def metsa_tests():
         sp = os.path.join(td, "metsa", "state.json")
         st = json.load(open(sp)); st["507"]["px"] = []; json.dump(st, open(sp, "w"))
         assert metsa.due(td, ["834", "507"], dt.date.today()) == ["507"]  # liitosasetus muuttui → uudelleen
+    # Sopimus Talokartan sivun kanssa: web/metsa.js tukee samaa tiedostomuotoa kuin ajo julkaisee
+    import re
+    js = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web", "metsa.js"), encoding="utf-8").read()
+    assert int(re.search(r"const SCHEMA = (\d+)", js).group(1)) == metsa.SCHEMA, "web/metsa.js SCHEMA ≠ pipeline/metsa/ajo.py SCHEMA"
     assert metsa.own_prefixes("507") == {"507", "588"} and metsa.own_prefixes("834") == {"834"}
     assert metsa.card_prefix("588-402-1-23") == "588" and metsa.card_prefix("91-1-2-3") == "091"
     with tempfile.TemporaryDirectory() as d:
