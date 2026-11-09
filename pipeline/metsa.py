@@ -44,7 +44,7 @@ DEV_KEYS = {"A0": "da", "S0": "da", "T1": "dt", "T2": "dt", "Y1": "dt", "02": "d
 SPECIES_KEY = {"manty": "m", "kuusi": "k", "koivu": "b", "lehti": "l"}
 # Karttatiedostoon vain väritys- ja suodatinkentät (+ tunnus); muut tietokortin tiedot data/kortit/<kunta>.json
 # (ladataan vasta klikatessa). Pienentää tiedostoja ~puoleen (vaihe 2, 6.11.2026).
-TILE_KEYS = ("k", "ka", "e", "eh", "tu", "kp", "da", "dt", "d2", "d3", "d4", "d5")
+TILE_KEYS = ("k", "ka", "e", "eh", "vh", "tu", "kp", "da", "dt", "d2", "d3", "d4", "d5")
 CARD_KEYS = ("ka", "mm", "kj", "mu", "mt", "pn", "e", "eh", "eu", "et", "ek", "t", "ku", "v", "vh", "sm", "sk", "sb", "sl",
              "ps", "ik", "da", "dt", "d2", "d3", "d4", "d5", "de", "kp", "tu", "oj", "hr", "i0", "i1", "rb", "ab", "pa")
 POLY_MAXZOOM = 13  # rajat tallennetaan zoomiin 13 asti (tarkkuus ~0,6 m), lähempänä kartta suurentaa niitä
@@ -445,7 +445,7 @@ def build_site(cache, out, work, regions_ready):
                     if not rec["g"]:
                         continue
                     all_cards[card_prefix(p["k"])][p["k"]] = [p.get(c) for c in CARD_KEYS]
-                    tp = {c: p[c] for c in TILE_KEYS if p.get(c) not in (None, 0) or c in ("k", "ka", "e", "eh")}
+                    tp = {c: p[c] for c in TILE_KEYS if p.get(c) not in (None, 0) or c in ("k", "ka", "e", "eh", "vh")}
                     tp["e"] = int(round(p["e"], -2))      # pyöristys parantaa tiedoston pakkautumista
                     tp["eh"] = int(round(p["eh"], -1))
                     fpoly.write(json.dumps({"type": "Feature", "properties": tp, "geometry":
