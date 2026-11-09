@@ -23,6 +23,7 @@ import sys
 import time
 import traceback
 import zipfile
+import numpy as np
 import requests
 
 from shapely.ops import unary_union
@@ -31,7 +32,6 @@ from shapely.strtree import STRtree
 from . import config, net, ryhti
 from .build import fail, fmt_kt, keep, slug
 from .metsa_laske import ASSORT, PRICE_AREA, PRICE_AREA_MUNI, luke_prices, price_group, read_stands, to_shape
-from .metsa_grid import ForestGrid
 from .mml_files import MMLFiles, municipality_parcels
 from .tm35 import tm35_to_latlon
 
@@ -390,29 +390,50 @@ def tippecanoe(src, out, layer, zmin, zmax, extra=()):
     return size
 
 
-def write_grid(grid, work, data_dir, t_grid):
-    """Metsäruudut (taso "r") → data/r.pmtiles: 5 km kaukaa, 1 km lähempää, kunnes tilojen rajat tulevat näkyviin."""
-    t0 = time.time()
-    parts, counts = [], {}
-    for c in config.METSA_GRIDS:
-        src = os.path.join(work, f"r{c['size']}.geojsonl")
-        feats = list(grid.features(c["size"]))
-        counts[c["size"]] = len(feats)
-        write_features(src, feats)
-        mbt = src.replace(".geojsonl", ".mbtiles")
-        tippecanoe(src, mbt, "r", c["minzoom"], c["maxzoom"], ["--no-tiny-polygon-reduction", "--no-line-simplification"])
-        parts.append(mbt)
-    out = os.path.join(data_dir, "r.pmtiles")
-    cmd = ["tile-join", "-o", out, "--force", "--quiet", "--no-tile-size-limit", *parts]
-    log(" ".join(cmd))
-    subprocess.run(cmd, check=True)
-    size = os.path.getsize(out) / 1e6
-    log(f"Metsäruudut: " + ", ".join(f"{s // 1000} km {n} ruutua" for s, n in counts.items())
-        + f", r.pmtiles {size:.1f} Mt; jako ruutuihin {t_grid:.0f} s, tiedosto {time.time() - t0:.0f} s")
-    if size > 95:
-        fail(f"r.pmtiles on {size:.1f} Mt, yli GitHub Pagesin rajan")
-    return {"file": "r.pmtiles", "layer": "r", "min_share": grid.min_share,
-            "maxzoom": max(c["maxzoom"] for c in config.METSA_GRIDS)}
+def vmi_overview(cache, work, data_dir):
+    """Kaukonäkymän metsäkuva (Luken VMI, puuta koko alaa kohden) → data/r.pmtiles + data/r-info.png.
+    Valmis kuva säilyy välimuistissa (cache/vmi) ja tehdään uudelleen vain, kun VMI-vuosi tai väritys muuttuu.
+    Virhe ei kaada ajoa: metsätilat julkaistaan ilman kaukonäkymää (::warning)."""
+    from . import vmi
+    vdir = os.path.join(cache, "vmi")
+    os.makedirs(vdir, exist_ok=True)
+    ver = f"{vmi.YEAR}-{vmi.RENDER_VERSION}"
+    tiles, info, mfile = (os.path.join(vdir, f"{n}-{ver}{e}") for n, e in (("r", ".pmtiles"), ("r-info", ".png"), ("meta", ".json")))
+    try:
+        if not all(os.path.exists(f) for f in (tiles, info, mfile)):
+            t0 = time.time()
+            npz = os.path.join(vdir, f"vmi{vmi.YEAR}_256.npz")
+            if os.path.exists(npz):
+                z = np.load(npz)
+                agg = {"vol": z["vol"].astype(np.float64), "forest": z["forest"].astype(np.int32),
+                       "nocalc": z["nocalc"].astype(np.int32), "x0": float(z["meta"][0]), "y0": float(z["meta"][1]),
+                       "cell": float(z["meta"][2]), "block": int(z["meta"][3])}
+            else:
+                tif = vmi.download(os.path.join(work, "vmi.tif"))
+                agg = vmi.aggregate(tif)
+                os.remove(tif)
+                np.savez_compressed(npz, vol=agg["vol"].astype(np.float32), forest=agg["forest"].astype(np.uint16),
+                                    nocalc=agg["nocalc"].astype(np.uint16),
+                                    meta=np.array([agg["x0"], agg["y0"], agg["cell"], agg["block"]]))
+            for f in os.listdir(vdir):   # vanhat versiot pois
+                if f.startswith(("r-", "r-info-", "meta-")) and ver not in f:
+                    os.remove(os.path.join(vdir, f))
+            n = vmi.render_pmtiles(agg, tiles)
+            cell = vmi.info_png(agg, info)
+            meta = {"type": "raster", "file": "r.pmtiles", "maxzoom": vmi.ZMAX, "info": "r-info.png",
+                    "x0": agg["x0"], "y0": agg["y0"], "cell": cell, "year": vmi.YEAR, "ramp": vmi.RAMP,
+                    "fade": vmi.FADE, "opacity": vmi.OPACITY}
+            with open(mfile, "w") as f:
+                json.dump(meta, f)
+            log(f"Metsäkuva (VMI {vmi.YEAR}) tehty: {n} tiiltä, {time.time() - t0:.0f} s")
+        shutil.copy(tiles, os.path.join(data_dir, "r.pmtiles"))
+        shutil.copy(info, os.path.join(data_dir, "r-info.png"))
+        log(f"Metsäkuva: r.pmtiles {os.path.getsize(tiles) / 1e6:.1f} Mt, r-info.png {os.path.getsize(info) / 1e6:.1f} Mt")
+        return json.load(open(mfile))
+    except Exception as e:  # noqa: BLE001
+        traceback.print_exc()
+        print(f"::warning title=Metsäkuva puuttuu::Kaukonäkymän metsäkuvaa (VMI) ei saatu tehtyä: {e}", flush=True)
+        return None
 
 
 def previous_meta():
@@ -457,8 +478,6 @@ def build_site(cache, out, work, regions_ready):
     card_bytes = 0
     all_cards = collections.defaultdict(dict)
     total = 0
-    grid = ForestGrid(sizes=[c["size"] for c in config.METSA_GRIDS])   # kaukaa näytettävät ruudut (m³/ha)
-    t_grid = 0.0
     for r in regions_ready:
         src = os.path.join(work, f"f-{slug(r)}.geojsonl")
         n = 0
@@ -482,9 +501,6 @@ def build_site(cache, out, work, regions_ready):
                     lons.append(rec["pt"][0])
                     lats.append(rec["pt"][1])
                     kp_counts[p.get("kp", 0)] += 1
-                    t1 = time.time()
-                    grid.add(rec["g"], p.get("v", 0), p.get("mm", 0))
-                    t_grid += time.time() - t1
                     ka_max, e_max = max(ka_max, p["ka"]), max(e_max, p["e"])
                     n += 1
         fname = f"f-{slug(r)}.pmtiles"
@@ -501,7 +517,7 @@ def build_site(cache, out, work, regions_ready):
             json.dump({"c": CARD_KEYS, "r": cards}, f, ensure_ascii=False, separators=(",", ":"))
         card_bytes += os.path.getsize(cpath)
     log(f"Tietokortit: {len(all_cards)} tiedostoa ({len(muni_counts)} kuntaa), {card_bytes / 1e6:.1f} Mt")
-    grid_meta = write_grid(grid, work, data_dir, t_grid)
+    grid_meta = vmi_overview(cache, work, data_dir)
 
     used = {}
     for a, tab in prices.items():

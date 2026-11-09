@@ -382,12 +382,7 @@ METSA_MAX_AGE_DAYS = 30        # kunnan metsätiedot ja palstat haetaan uudellee
 METSA_TIME_BUDGET_MIN = 150    # kuntahakuja tehdään enintään näin kauan; loput seuraavalla ajolla
 METSA_MIN_FOREST_HA = 2.0      # metsätila = metsämaata yli 2 ha (omistajan päätös 6.11.2026)
 METSA_SITE_URL = "https://vv-tec.github.io/Metsakartta/"   # julkaistut metsätiedostot (turvatarkistus vertaa tähän)
-METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa ruudut (METSA_GRIDS)
-# Metsäruudut kaukaa (omistajan päätös 9.11.2026): väri = puuston määrä m³/ha metsämaata; 1 km loppuu ennen tilojen rajoja
-METSA_GRIDS = [
-    {"size": 5000, "minzoom": 0, "maxzoom": 7},
-    {"size": 1000, "minzoom": 8, "maxzoom": METSA_POLY_MINZOOM - 1},
-]
+METSA_POLY_MINZOOM = 10        # tilan rajat näkyvät tästä zoomista (11 → 10 omistajan toiveesta 6.11.2026); kaukaa VMI-metsäkuva (pipeline/vmi.py)
 # Kuntaliitokset, joissa kiinteistötunnukset alkavat yhä vanhalla kuntanumerolla (MML ei ole vielä numeroinut uudelleen):
 # nykyinen kunta → vanhat tunnusalut. Metsälaskenta ottaa nämä palstat mukaan ja tietokortit tallennetaan tunnusalun mukaan.
 # Pertunmaa → Mäntyharju 1.1.2025, Valtimo → Nurmes 1.1.2020 (8.11.2026: 4 661 palstaa yhä 911). Kesälahden (→ Kitee 2020)

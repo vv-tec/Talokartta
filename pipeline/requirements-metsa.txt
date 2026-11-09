@@ -1,0 +1,5 @@
+# Metsakartan kaukonäkymän metsäkuva (Luken VMI-GeoTIFF → PNG-tiilet PMTiles-tiedostoon), pipeline/vmi.py
+tifffile>=2025.1
+imagecodecs>=2025.3
+pillow>=11.0
+pmtiles>=3.3

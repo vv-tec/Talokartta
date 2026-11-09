@@ -143,50 +143,42 @@ def run():
         assert len(ps) == 1 and ps[0]["ref"] == "23500100010001" and mml.parcel_area(ps[0]) == 100
     ryhti_store_tests(parcels)
     shore_tests()
-    grid_tests()
+    vmi_tests()
     metsa_tests()
     print("selftest OK")
 
 
-def grid_tests():
-    """METSARUUDUT: palstan jako ruutuihin ja m³/ha (ei vaadi Shapelya; numpy tulee Shapelyn mukana)."""
+def vmi_tests():
+    """METSÄKUVA (VMI): kokoaminen, koko alaa kohden -luku, väritys ja tietokuva (ohitetaan ilman numpy/tifffile/Pillow)."""
     try:
-        import numpy  # noqa: F401
+        import numpy as np
+        import tifffile
+        from PIL import Image
     except ImportError:
-        print("  (ruututestit ohitettu: numpy puuttuu)")
+        print("  (metsäkuvatestit ohitettu: numpy, tifffile tai Pillow puuttuu)")
         return
-    from .metsa_grid import ForestGrid, clip_box, ring_area
-    assert ring_area([0, 10, 10, 0], [0, 0, 10, 10]) == 100
-    c = clip_box([(-5, 0), (5, 0), (5, 10), (-5, 10)], 0, 0, 100, 100)
-    assert abs(ring_area([p[0] for p in c], [p[1] for p in c]) - 50) < 1e-9
-
-    def square(x0, y0, x1, y1, hole=None):  # TM35-suorakulmio → lon/lat-rengas(+reikä)
-        def ring(a, b, c, d):
-            pts = [(a, b), (c, b), (c, d), (a, d), (a, b)]
-            out = []
-            for x, y in pts:
-                lat, lon = tm35_to_latlon(x, y)
-                out.append([lon, lat])
-            return out
-        return [ring(x0, y0, x1, y1)] + ([ring(*hole)] if hole else [])
-
-    g = ForestGrid(sizes=(5000, 1000), min_share=0.01)   # järjestys kuten config.METSA_GRIDS   # näytetään, jos metsämaata ≥ 1 % ruudusta
-    # tila A: 300 m × 200 m palsta yhden 1 km ruudun sisällä, 6 ha metsämaata, 900 m³ → 150 m³/ha
-    g.add([square(332100, 6748100, 332400, 6748300)], 900, 6.0)
-    # tila B: 2 km × 1 km palsta kahdessa 1 km ruudussa (332000–334000), 100 ha, 20 000 m³ (200 m³/ha)
-    g.add([square(332000, 6747000, 334000, 6748000)], 20000, 100.0)
-    # tila C: reiällinen palsta; reikä pienentää alaa mutta suhde säilyy
-    g.add([square(336000, 6747000, 337000, 6748000, hole=(336200, 6747200, 336400, 6747400))], 1000, 10.0)
-    one = {f["properties"]["c"]: f["properties"] for f in g.features(1000)}
-    assert one[332 * 10000 + 6748]["vh"] == 150 and one[332 * 10000 + 6748]["n"] == 1      # vain A
-    assert one[332 * 10000 + 6747]["mm"] == 50 and one[333 * 10000 + 6747]["vh"] == 200    # B puoliksi kummassakin
-    assert one[336 * 10000 + 6747]["vh"] == 100 and one[336 * 10000 + 6747]["mm"] == 10
-    five = {f["properties"]["c"]: f["properties"] for f in g.features(5000)}   # 5 km: A ja B ruudussa 66, C ruudussa 67
-    assert five[66 * 10000 + 1349]["n"] == 2 and five[66 * 10000 + 1349]["mm"] == 106
-    assert five[66 * 10000 + 1349]["vh"] == round((900 + 20000) / 106) and 67 * 10000 + 1349 not in five  # C: 10 < 25 ha
-    g2 = ForestGrid(sizes=(1000,))
-    g2.add([square(332100, 6748100, 332200, 6748200)], 100, 1.0)   # 1 ha < 5 % ruudusta (oletus) → ei näytetä
-    assert list(g2.features(1000)) == []
+    import os
+    import tempfile
+    from . import vmi
+    a = np.full((64, 48), vmi.NODATA, dtype=np.uint16)   # 4 × 3 ruutua à 16 × 16 pikseliä
+    a[:16, :16] = 200                                    # ruutu (0,0): kokonaan metsää 200 m³/ha
+    a[:16, 16:24] = 100                                  # ruutu (0,1): puolet metsää 100 m³/ha → 50 koko alasta
+    a[16:32, :16] = vmi.NOCALC                           # ruutu (1,0): ei laskettu → NaN
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "t.tif")
+        tifffile.imwrite(p, a, tile=(32, 32), compression="zlib",
+                         extratags=[(33550, "d", 3, (16.0, 16.0, 0.0)), (33922, "d", 6, (0, 0, 0, 300000.0, 7000000.0, 0))])
+        agg = vmi.aggregate(p)
+        tot = vmi.total_per_ha(agg)
+        assert agg["cell"] == 256 and agg["x0"] == 300000 and agg["y0"] == 7000000
+        assert tot[0, 0] == 200 and tot[0, 1] == 50 and np.isnan(tot[1, 0]) and tot[2, 2] == 0, tot
+        info = os.path.join(d, "i.png")
+        assert vmi.info_png(agg, info, k=2) == 512
+        px = np.asarray(Image.open(info))
+        assert px.shape == (2, 2, 3) and tuple(px[0, 0]) == (83, 50, 83), px[0, 0]   # 64 000/768, 384/768 = 50 %, 64 000/384/2
+    rgba = vmi.colorize(np.array([np.nan, 0.0, vmi.FADE / 2, 1000.0]))
+    assert rgba[0, 3] == 0 and rgba[1, 3] == 0 and 0 < rgba[2, 3] < rgba[3, 3]
+    assert tuple(rgba[3, :3]) == tuple(int(vmi.RAMP[-1][1][i:i + 2], 16) for i in (1, 3, 5))
 
 
 def metsa_tests():

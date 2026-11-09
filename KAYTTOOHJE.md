@@ -258,12 +258,15 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   liukusäätimet **puuston arvo €/ha** ja **puuston määrä m³/ha** metsämaata, ala- ja yläraja; 9.11.2026) ja tietokortti; kortista pääsee
   talonäkymään, jos tilalla on asuinrakennus, ja talon kortista metsätilaan, jos kiinteistö on metsätila. Ilman
   `?moodi=metsa`-loppua Talokartta näyttää vain talot kuten ennenkin. Näkymä avataan kaikille, kun hyväksyt sen.
-  **Värit ja kaukonäkymä (9.11.2026):** väri kertoo puuston määrän metsämaan hehtaaria kohden (vaalea vähän, tumma paljon).
-  Kaukaa katsottaessa kartalla on ruudut (ensin 5 km, lähempänä 1 km), jotka näyttävät alueen metsätilojen keskimääräisen
-  puuston määrän; lähempänä ruudut vaihtuvat yksittäisiin tiloihin. Ruutua klikkaamalla aukeaa tietoruutu (m³/ha,
-  metsätilojen metsämaa, tilojen määrä, "Lähennä alueeseen"). Ruutu näytetään vain, jos siinä on metsätilojen metsämaata
-  vähintään 5 % ruudun alasta; tyhjä kohta tarkoittaa "ei tietoa" (esim. valtion metsät, pellot, järvet). Suodattimet
-  koskevat vain tiloja, eivät ruutuja.
+  **Värit ja kaukonäkymä (9.11.2026):** värit liukuvat tasaisesti (vaalea = vähän puuta, tumma = paljon).
+  Kaukaa katsottaessa koko Suomi on väritetty sen mukaan, **paljonko puuta on koko alaa kohden** (m³/ha): meri, järvet,
+  pellot ja taajamat vaalentavat, joten tumma tarkoittaa aluetta, jossa on todella paljon puuta. Lähde on
+  Luonnonvarakeskuksen valtakunnan metsien inventoinnin (VMI) kartta-aineisto 2023, joka kattaa kaikki metsät myös
+  valtion maat. Karttaa klikkaamalla aukeaa tietoruutu (noin 1 km × 1 km alue: puuta koko alaa kohden, metsän osuus,
+  metsän puusto m³/ha, "Lähennä alueeseen"). Lähempänä (zoomista 10) näkyvät yksittäiset metsätilat, joiden väri kertoo
+  tilan puuston määrän metsämaan hehtaaria kohden (Metsäkeskuksen aineisto). Paneelissa on molemmille oma väriselite.
+  Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
+  vaihtamaan vuosi (asetus `pipeline/vmi.py`).
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
   kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
   epäonnistuneesta ajosta.
@@ -277,14 +280,14 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   juuri näy.
 - **Päivitys:** joka aamu noin klo 6.47 (Talokartan yöajon jälkeen). Kunnan metsätiedot ja tontit haetaan uudelleen
   kuukauden välein, muutama kunta kerrallaan; kantohinnat (Luke) joka ajossa uusimmasta julkaistusta kuukaudesta.
-  Ajo kestää yleensä 30–40 min (noin 10 kuntaa yössä; metsäruutujen laskenta noin 9 min). Koska suurin osa kunnista lisättiin 6.–9.11.2026, niiden
+  Ajo kestää yleensä 20–30 min (noin 10 kuntaa yössä). Koska suurin osa kunnista lisättiin 6.–9.11.2026, niiden
   kuukausipäivitys osuu joulukuun alkuun: muutamana aamuna ajo kestää silloin noin 2,5 h ja osa kunnista siirtyy
   seuraavaan yöhön. Se on normaalia, eikä siitä tule ilmoitusta; kartalla näkyvät sillä välin edelliset tiedot.
 - **Ilmoitukset:** epäonnistunut ajo avaa Metsakartan **Issues**-välilehdelle ilmoituksen "Metsakartan päivitys
   epäonnistui" (sähköposti). Toimi kuten kohdassa 4. Julkaistuna pysyy edellinen toimiva versio.
 - **Käsiajo:** https://github.com/vv-tec/Metsakartta → **Actions** → **Päivitä metsätilat ja julkaise** → **Run workflow**.
 - **Avain:** Metsakartassa on oma `MML_API_KEY`-salaisuus. Jos vaihdat avaimen, päivitä se molempiin (kohta 7).
-- **Koko:** tiedostot vievät noin 546 Mt sivuston 1 Gt:n rajasta (tilarajat 421 Mt, metsäruudut 12 Mt, suurimmat Lappi 53 Mt ja
+- **Koko:** tiedostot vievät noin 546 Mt sivuston 1 Gt:n rajasta (tilarajat 421 Mt, kaukonäkymän metsäkuva noin 20–40 Mt, suurimmat Lappi 53 Mt ja
   Pohjois-Pohjanmaa 52 Mt, yksittäisen tiedoston raja 100 Mt; tietokortit 114 Mt). Maakunnan ensimmäinen haku kesti
   20–82 min (pisin Pohjois-Pohjanmaa 82, Lappi 69).
 - **Kuntaliitokset:** jos liitetyn kunnan kiinteistötunnukset alkavat yhä vanhalla numerolla (esim. Pertunmaa 588 →

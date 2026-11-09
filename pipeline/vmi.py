@@ -82,3 +82,164 @@ def aggregate(path, block=16):
                 nocalc[win] += np.bincount(local[ncm], minlength=nr * nc_).reshape(nr, nc_).astype(np.int32)
     return {"vol": vol, "forest": forest, "nocalc": nocalc,
             "x0": x0, "y0": y0, "cell": px * block, "block": block, "shape": (h, w)}
+
+
+# ---------- kaukonäkymän kuva (rasteritiilet) ----------
+RENDER_VERSION = 1           # nosta, kun väritys tai laskenta muuttuu → kuva tehdään uudelleen seuraavassa ajossa
+TILE = 256
+ZMIN, ZMAX = 0, 9            # tilojen rajat näkyvät zoomista 10 (config.METSA_POLY_MINZOOM)
+BOUNDS = (19.0, 59.4, 31.8, 70.2)   # lon/lat: Manner-Suomi ja Ahvenanmaa (tiilet vain tälle alueelle)
+# Väriasteikko: puuta koko alaa kohden m³/ha → väri (liukuva). Alle FADE m³/ha häivytetään läpinäkyväksi
+# (meri, järvet, pellot ja taajamat näkyvät taustakartan väreissä).
+# Koeajo 9.11.2026 (256 m ruudut, joissa metsää): mediaani 73, 75 % 115, 95 % 179 m³/ha.
+RAMP = [(0, "#f1eadb"), (25, "#d6e5b9"), (50, "#a8cf8e"), (75, "#6fae6b"), (100, "#3c8a4f"), (140, "#1d5e34")]
+FADE = 8.0
+OPACITY = 0.78
+BLUR_PASSES = 3              # pehmennyskierrokset kullakin tasolla (3 × 1-2-1 ≈ 1,2 solun gaussinen)
+
+
+def _rgb(hexcol):
+    return [int(hexcol[i:i + 2], 16) for i in (1, 3, 5)]
+
+
+def total_per_ha(agg):
+    """Puuta koko alaa kohden (m³/ha) ruuduittain; NaN, jos ruudussa ei ole yhtään laskettua pikseliä."""
+    valid = agg["block"] ** 2 - agg["nocalc"].astype(np.float64)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(valid > 0, agg["vol"] / valid, np.nan)
+
+
+def _blur(a, passes=None):
+    """Pehmennys (binomi 1-2-1 molempiin suuntiin, BLUR_PASSES kertaa); NaN-kohdat eivät levitä virhettä."""
+    w = np.where(np.isnan(a), 0.0, 1.0)
+    v = np.nan_to_num(a)
+    for _ in range(BLUR_PASSES if passes is None else passes):
+        for axis in (0, 1):
+            v = (np.roll(v, 1, axis) + 2 * v + np.roll(v, -1, axis)) / 4
+            w = (np.roll(w, 1, axis) + 2 * w + np.roll(w, -1, axis)) / 4
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(w > 0.2, v / w, np.nan)
+
+
+def pyramid(tot, levels=6):
+    """Tasot 1×, 2×, 4× … solukoko (keskiarvo 2×2), kukin pehmennettynä."""
+    out = [_blur(tot)]
+    cur = tot
+    for _ in range(levels - 1):
+        h, w = cur.shape
+        pad = np.full((h + h % 2, w + w % 2), np.nan)
+        pad[:h, :w] = cur
+        blocks = pad.reshape(pad.shape[0] // 2, 2, pad.shape[1] // 2, 2)
+        with np.errstate(invalid="ignore"):
+            cur = np.nanmean(blocks, axis=(1, 3)) if np.isfinite(blocks).any() else blocks[:, 0, :, 0]
+        out.append(_blur(cur))
+    return out
+
+
+def _bilinear(a, fx, fy):
+    h, w = a.shape
+    x0 = np.clip(np.floor(fx).astype(int), 0, w - 1)
+    y0 = np.clip(np.floor(fy).astype(int), 0, h - 1)
+    x1, y1 = np.clip(x0 + 1, 0, w - 1), np.clip(y0 + 1, 0, h - 1)
+    tx, ty = np.clip(fx - x0, 0, 1), np.clip(fy - y0, 0, 1)
+    v = (a[y0, x0] * (1 - tx) * (1 - ty) + a[y0, x1] * tx * (1 - ty) + a[y1, x0] * (1 - tx) * ty + a[y1, x1] * tx * ty)
+    outside = (fx < -0.5) | (fy < -0.5) | (fx > w - 0.5) | (fy > h - 0.5)
+    return np.where(outside, np.nan, v)
+
+
+def colorize(v):
+    """m³/ha → RGBA (uint8). Liukuva väri RAMPin mukaan; pienet arvot ja NaN läpinäkyviä."""
+    stops = np.array([s for s, _ in RAMP], dtype=float)
+    cols = np.array([_rgb(c) for _, c in RAMP], dtype=float)
+    vv = np.nan_to_num(v, nan=0.0)
+    rgba = np.zeros(v.shape + (4,), dtype=np.uint8)
+    for ch in range(3):
+        rgba[..., ch] = np.interp(vv, stops, cols[:, ch]).round().astype(np.uint8)
+    alpha = np.clip(vv / FADE, 0, 1) * OPACITY * 255
+    rgba[..., 3] = np.where(np.isnan(v), 0, alpha).round().astype(np.uint8)
+    return rgba
+
+
+def _tile_range(z):
+    import math
+    n = 2 ** z
+    def tx(lon):
+        return int((lon + 180) / 360 * n)
+    def ty(lat):
+        r = math.radians(lat)
+        return int((1 - math.log(math.tan(r) + 1 / math.cos(r)) / math.pi) / 2 * n)
+    return range(tx(BOUNDS[0]), tx(BOUNDS[2]) + 1), range(ty(BOUNDS[3]), ty(BOUNDS[1]) + 1)
+
+
+def render_tile(levels, x0, y0, cell, z, x, y):
+    """Yksi 256×256 PNG-tiili (tai None, jos tyhjä)."""
+    import io
+    from PIL import Image
+    from .tm35 import latlon_to_tm35_np
+    n = 2 ** z
+    px = (np.arange(TILE) + 0.5) / TILE
+    lon = (x + px) / n * 360 - 180
+    merc = np.pi * (1 - 2 * (y + px) / n)
+    lat = np.degrees(np.arctan(np.sinh(merc)))
+    LON, LAT = np.meshgrid(lon, lat)
+    X, Y = latlon_to_tm35_np(LAT, LON)
+    pix_m = 40075016.7 * np.cos(np.radians(lat.mean())) / (TILE * n)
+    lvl = 0
+    while lvl + 1 < len(levels) and cell * 2 ** (lvl + 1) <= pix_m:
+        lvl += 1
+    c = cell * 2 ** lvl
+    v = _bilinear(levels[lvl], (X - x0) / c - 0.5, (y0 - Y) / c - 0.5)
+    rgba = colorize(v)
+    if not rgba[..., 3].any():
+        return None
+    img = Image.fromarray(rgba, "RGBA").quantize(colors=128, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def render_pmtiles(agg, out):
+    """Koko Suomen kuva PMTiles-tiedostoksi (PNG-tiilet z ZMIN–ZMAX). Palauttaa tiilien määrän."""
+    from pmtiles.tile import Compression, TileType, zxy_to_tileid
+    from pmtiles.writer import Writer
+    levels = pyramid(total_per_ha(agg))
+    jobs = sorted((zxy_to_tileid(z, x, y), z, x, y) for z in range(ZMIN, ZMAX + 1)
+                  for x in _tile_range(z)[0] for y in _tile_range(z)[1])
+    count = 0
+    with open(out, "wb") as f:
+        w = Writer(f)
+        for tid, z, x, y in jobs:
+            data = render_tile(levels, agg["x0"], agg["y0"], agg["cell"], z, x, y)
+            if data:
+                w.write_tile(tid, data)
+                count += 1
+        e7 = lambda v: int(v * 1e7)  # noqa: E731
+        w.finalize({"tile_type": TileType.PNG, "tile_compression": Compression.NONE, "min_zoom": ZMIN,
+                    "max_zoom": ZMAX, "min_lon_e7": e7(BOUNDS[0]), "min_lat_e7": e7(BOUNDS[1]),
+                    "max_lon_e7": e7(BOUNDS[2]), "max_lat_e7": e7(BOUNDS[3]), "center_zoom": 5,
+                    "center_lon_e7": e7(25.5), "center_lat_e7": e7(64.5)},
+                   {"attribution": f"© Luonnonvarakeskus, monilähteisen VMI:n kartta-aineisto {YEAR} (CC BY 4.0)"})
+    return count
+
+
+def info_png(agg, out, k=4):
+    """Tietoruudun luvut noin 1 km ruuduittain kuvana (selain lukee pikselit): R = puuta koko alaa kohden m³/ha,
+    G = metsä-, kitu- ja joutomaan osuus %, B = metsämaan puusto m³/ha / 2. Palauttaa solukoon (m)."""
+    from PIL import Image
+    h, w = agg["vol"].shape
+    H, W = -(-h // k), -(-w // k)
+
+    def blocksum(a):
+        p = np.zeros((H * k, W * k))
+        p[:h, :w] = a
+        return p.reshape(H, k, W, k).sum(axis=(1, 3))
+    vol = blocksum(agg["vol"])
+    forest = blocksum(agg["forest"])
+    valid = blocksum(agg["block"] ** 2 - agg["nocalc"].astype(np.float64))
+    with np.errstate(invalid="ignore", divide="ignore"):
+        r = np.where(valid > 0, vol / valid, 0)
+        g = np.where(valid > 0, 100 * forest / valid, 0)
+        b = np.where(forest > 0, vol / forest / 2, 0)
+    rgb = np.stack([np.clip(np.round(c), 0, 255) for c in (r, g, b)], axis=-1).astype(np.uint8)
+    Image.fromarray(rgb, "RGB").save(out, "PNG", optimize=True)
+    return agg["cell"] * k

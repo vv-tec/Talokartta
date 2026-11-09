@@ -312,4 +312,10 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     jako ruutuihin 493 s + tiedostot 32 s (koko ajo ilman hakuja 805 s), muisti 1,2 Gt. Ensimmäinen ajo kaatui
     ZeroDivisionErroriin (ruutukoot asetuksissa suurin ensin) → järjestys lajitellaan, testi asetusten järjestyksellä.
     Tiiliin lisättiin samana päivänä vh (m³/ha) liukusäädintä varten: f 404,6 → 420,6 Mt.
+    Metsäkuva (VMI) 9.11.2026 (omistajan päätökset: liukuvat värit, puuta koko alaa kohden, kuvamuoto): metsätiloista
+    lasketut ruudut olivat levottomia ja saaristo näytti tummalta (mittari m³/ha metsämaata; valtion maat puuttuivat).
+    Koeajo "Selvitys – VMI-metsäkuva": Luke MVMI 2023 tilavuus koko Suomi 1 908 Mt (73 472 × 42 240 px, LZW, tiilet
+    512), lataus 56 s, kokoaminen 256 m ruutuihin 14 s, muisti 1,7 Gt, npz 18,9 Mt; laskematta vain 279 px.
+    Koko alaa kohden (256 m ruudut, joissa metsää) mediaani 73, 75 % 115, 95 % 179 m³/ha. Pistokokeet 5 km:
+    Nauvo 50, Korppoo 76, Tammela 42, Helsinki 3, Kuhmo 52, Rovaniemi 22, Pallas 40, Seinäjoki 18, Puumala 50, Inari 50.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
