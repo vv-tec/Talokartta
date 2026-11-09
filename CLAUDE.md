@@ -235,7 +235,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 - **Pages-julkaisu: oma vaihe `.github/actions/julkaise-pages`** (9.11.2026, korvasi `actions/deploy-pages`; käytössä
   Talokartassa ja Metsakartassa `uses: vv-tec/Talokartta/.github/actions/julkaise-pages@main`). Syy: deploy-pagesin
   kova 10 min raja perui hitaat julkaisut (~11 % ajoista) ja versiotunnus = commit-SHA esti uusinnan. Oma vaihe:
-  Pages-rajapinta (`POST/GET pages/deployments`), versiotunnus `<sha>-<run>-<attempt>-<yritys>`, odottaa ≤ 30 min eikä
+  Pages-rajapinta (`POST/GET pages/deployments`), versiotunnus 1. yrityksessä commit-SHA, uusinnoissa oma muoto tai (jos
+  GitHub hylkää 404, todettu 9.11.2026) aiempien committien SHA:t, odottaa ≤ 30 min eikä
   peru, uusi yritys (3) tiloissa deployment_failed/_cancelled/_lost/_content_failed. Jobin oikeudet: pages: write,
   id-token: write, actions: read. Lokissa "Yritys n/3", tilat ja kesto.
 - "Cache save failed" ajossa, jossa mitään ei haettu, on odotettu (sama avain on jo tallessa).

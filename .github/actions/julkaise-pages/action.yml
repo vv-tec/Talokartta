@@ -2,7 +2,7 @@ name: Julkaise GitHub Pagesiin (uudelleenyrityksin)
 description: >
   Korvaa actions/deploy-pagesin (9.11.2026). Syy: deploy-pages katkaisee julkaisun kovaan 10 min rajaan, peruu sen ja
   käyttää versiotunnuksena commitin SHA:ta, jolloin peruttua julkaisua ei voi yrittää uudelleen ilman uutta committia.
-  Tämä vaihe käyttää samaa Pages-rajapintaa, mutta antaa jokaiselle yritykselle oman tunnuksen, odottaa pidempään
+  Tämä vaihe käyttää samaa Pages-rajapintaa, mutta antaa uusinnoille eri tunnuksen (oma muoto tai aiempi commit), odottaa pidempään
   eikä peru julkaisua, ja yrittää uudelleen, jos GitHub ilmoittaa julkaisun epäonnistuneen.
   Vaatii jobille oikeudet: pages: write, id-token: write, actions: read.
 inputs:
@@ -40,22 +40,32 @@ runs:
           const art = arts.find((a) => a.name === process.env.ARTIFACT_NAME);
           if (!art) return core.setFailed(`Julkaisutiedostoa "${process.env.ARTIFACT_NAME}" ei löytynyt tästä ajosta.`);
           core.info(`Julkaistava tiedosto: ${art.name}, ${(art.size_in_bytes / 1e6).toFixed(0)} Mt (id ${art.id})`);
+          // Versiotunnukset: 1. commitin SHA (kuten deploy-pages). Uusinnoille eri tunnus, koska GitHub hylkää perutun
+          // tunnuksen: ensin oma muoto, ja jos GitHub ei hyväksy sitä (404/422 9.11.2026), aiempien committien SHA:t
+          // (sisältö tulee joka tapauksessa tämän ajon artefaktista; tunnus on vain nimilappu).
+          const candidates = [context.sha, `${context.sha}-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}`];
+          try {
+            const commits = (await github.rest.repos.listCommits({ owner, repo, sha: context.sha, per_page: 6 })).data;
+            for (const c of commits.slice(1)) candidates.push(c.sha);
+          } catch (e) { core.warning(`Aiempia committeja ei saatu (${e.status || ""}).`); }
           const start = Date.now();
-          for (let attempt = 1; attempt <= tries; attempt++) {
-            // Oma versiotunnus jokaiselle yritykselle (deploy-pages käytti commitin SHA:ta → peruttu ei kelvannut uudelleen)
-            const version = `${context.sha}-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}-${attempt}`;
+          let attempt = 0;
+          for (const version of candidates) {
+            if (attempt >= tries) break;
             let dep;
             try {
               const oidc = await core.getIDToken();
               dep = (await github.request("POST /repos/{owner}/{repo}/pages/deployments",
                 { owner, repo, artifact_id: art.id, pages_build_version: version, oidc_token: oidc })).data;
             } catch (e) {
-              core.warning(`Yritys ${attempt}/${tries}: julkaisun luonti epäonnistui (${e.status || ""} ${e.message}).`);
-              await sleep(30000);
-              continue;
+              const detail = JSON.stringify(e.response?.data || {}).slice(0, 300);
+              core.warning(`Julkaisun luonti tunnuksella ${version.slice(0, 20)}… ei onnistunut (${e.status || ""}): ${detail}`);
+              if (![400, 404, 409, 422].includes(e.status)) { attempt++; await sleep(30000); }
+              continue;   // tunnus ei kelpaa → seuraava tunnus heti
             }
+            attempt++;
             const id = dep.id || (dep.status_url || "").split("/").pop() || version;
-            core.info(`Yritys ${attempt}/${tries}: julkaisu luotu (${id}).`);
+            core.info(`Yritys ${attempt}/${tries}: julkaisu luotu (tunnus ${version.slice(0, 20)}…, id ${id}).`);
             const t0 = Date.now();
             let last = "", wait = 5000;
             while (true) {
@@ -82,4 +92,4 @@ runs:
               }
             }
           }
-          core.setFailed(`Julkaisu epäonnistui ${tries} yrityksellä.`);
+          core.setFailed(`Julkaisu epäonnistui (${attempt} yritystä, ${candidates.length} tunnusta kokeiltu).`);
