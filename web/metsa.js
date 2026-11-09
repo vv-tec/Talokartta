@@ -31,6 +31,10 @@
   const COLOR = ["interpolate", ["linear"], ["coalesce", ["get", "vh"], 0], ...STEPS.flat()];   // liukuva väri
   const GRID = "metsa-r";     // kaukonäkymän metsäkuva (rasteri)
   const RASTER_OPACITY = 0.6; // metsäkuvan läpinäkyvyys (omistajan toive 9.11.2026: läpinäkyvämpi; kuvan oma peitto 0,78 → yht. ~0,47)
+  // Ristihäivytys kaukonäkymästä tiloihin (omistajan valinta 9.11.2026): tilojen zoomista (poly_minzoom) alkaen metsäkuva
+  // haalistuu XFADE zoomausaskeleen aikana ja tilat vahvistuvat FADE_IN askeleen aikana.
+  const XFADE = 0.7, FADE_IN = 0.6;
+  const fade = (z0, from, to, len) => ["interpolate", ["linear"], ["zoom"], z0, from, z0 + len, to];
   const gradient = (stops) => `linear-gradient(to right, ${stops.map(([v, c]) => `${c} ${(100 * v / stops[stops.length - 1][0]).toFixed(1)}%`).join(", ")})`;
   const legend = (stops, unit, op = 1) => `<div class="fgrad" style="background:${gradient(stops)};opacity:${op}"></div>
     <div class="fgrad-l">${stops.map(([v], i) => `<span style="left:${(100 * v / stops[stops.length - 1][0]).toFixed(1)}%">${nf.format(v)}${i === stops.length - 1 ? "+" : ""}</span>`).join("")}</div>
@@ -184,16 +188,17 @@
     ids = [];
     if (FM.grid?.type === "raster" && !map.getLayer(GRID)) {
       if (!map.getSource(GRID)) map.addSource(GRID, { type: "raster", url: "pmtiles://" + METSA_BASE + FM.grid.file, tileSize: 256 });
-      map.addLayer({ id: GRID, type: "raster", source: GRID, maxzoom: minz, layout: { visibility: vis },
-        paint: { "raster-resampling": "linear", "raster-fade-duration": 0, "raster-opacity": RASTER_OPACITY } }, before);
+      map.addLayer({ id: GRID, type: "raster", source: GRID, maxzoom: minz + 1, layout: { visibility: vis },
+        paint: { "raster-resampling": "linear", "raster-fade-duration": 0,
+          "raster-opacity": fade(minz, RASTER_OPACITY, 0, XFADE) } }, before);
     }
     for (const r of FM.regions) {
       const id = "metsa-" + r.file.replace(/\.pmtiles$/, "");
       if (!map.getSource(id)) map.addSource(id, { type: "vector", url: "pmtiles://" + METSA_BASE + r.file });
       map.addLayer({ id: id + "-fill", type: "fill", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
-        paint: { "fill-color": COLOR, "fill-opacity": 0.55 } }, before);
+        paint: { "fill-color": COLOR, "fill-opacity": fade(minz, 0, 0.55, FADE_IN) } }, before);
       map.addLayer({ id: id + "-line", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
-        paint: { "line-color": "#24382b", "line-opacity": 0.7, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 15, 1.2] } }, before);
+        paint: { "line-color": "#24382b", "line-opacity": fade(minz, 0, 0.7, FADE_IN), "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.2, 15, 1.2] } }, before);
       map.addLayer({ id: id + "-sel", type: "line", source: id, "source-layer": "f", minzoom: minz, layout: { visibility: vis },
         filter: ["==", ["get", "k"], selected ?? "__none__"], paint: { "line-color": "#d1495b", "line-width": 3 } });
       ids.push(id);

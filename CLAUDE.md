@@ -164,7 +164,9 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     `#fKaMin/Max`, `#fEMin/Max`, liukusäätimet `#fEhR`/`#fVhR` (app.js `makeRange`), `#fPeat`, `#fSites`, `#fAge-a/n/v/u`, `#fReset`). `app.js`-koukut: `setHouseLayers`,
     updateCount/click/mousemove ohjataan Metsalle, `curPanel()`, closeCard → clearSelection, talon kortissa `#forestLink`
     (näkyy, jos kiinteistö on metsätila), fitBounds/alaotsikko vain talonäkymässä. Tasot `metsa-f-<maakunta>-fill/-line/-sel`
-    taustakartan nimien alla; metsäkuva rasteritaso `metsa-r` (maxzoom = poly_minzoom; klikkaus kaukaa sulkee kortin). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
+    taustakartan nimien alla; metsäkuva rasteritaso `metsa-r` (maxzoom = poly_minzoom + 1; klikkaus kaukaa sulkee kortin). **Ristihäivytys**
+    (omistajan valinta 9.11.2026): zoomista poly_minzoom kuva haalistuu `XFADE` 0,7 askeleessa ja tilojen täyttö/rajat
+    vahvistuvat `FADE_IN` 0,6 askeleessa (`fade()`-lauseke; tilatiilet alkavat z10, joten häivytys ei voi alkaa aiemmin). Moodi osoitteessa (`?moodi=metsa|talot`, replaceState). `build.py` versioi metsa.js:n.
     Tarkistus: `check/metsa_tarkistus.mjs` `runTalo` (TALO_URL, oletus julkaistu Talokartta; ajetaan Metsakartan jobissa).
   - Pages-julkaisun jumi myös Metsakartassa (6.11.2026 kahdesti peräkkäin "deployment_queued" → "Timeout reached"):
     peruutetun version (`pages_build_version` = commit) uudelleenyritys jumittuu → tee Metsakarttaan uusi commit

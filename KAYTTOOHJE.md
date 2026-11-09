@@ -265,7 +265,8 @@ koska niiden karttatiedostot eivät mahdu Talokartan sivun 1 Gt:n rajaan. Ohjelm
   valtion maat. Väritys on läpikuultava, jotta taustakartan paikannimet ja maasto erottuvat (läpinäkyvyys lisätty
   9.11.2026; kaukonäkymässä ei ole tietoruutua). Lähempänä (zoomista 10) näkyvät yksittäiset metsätilat, joiden väri kertoo
   tilan puuston määrän metsämaan hehtaaria kohden (Metsäkeskuksen aineisto). Paneelissa on molemmille oma väriselite.
-  Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
+  Siirtymä kaukonäkymästä tiloihin on häivytetty: zoomatessa metsäkuva haalistuu vähitellen ja tilat tulevat esiin
+  (9.11.2026). Suodattimet koskevat vain tiloja. Kun Luke julkaisee uuden VMI-aineiston (noin kahden vuoden välein), pyydä Claudea
   vaihtamaan vuosi (asetus `pipeline/vmi.py`).
 - **Automaattinen tarkistus:** jokaisen julkaisun jälkeen sivu avataan oikealla selaimella ja suodattimet sekä tietokortti
   kokeillaan – sekä esikatselusivulla että Talokartan metsätilanäkymässä. Jos jokin ei toimi, saat ilmoituksen kuten
