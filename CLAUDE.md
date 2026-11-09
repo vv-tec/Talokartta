@@ -223,9 +223,10 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
   Talokartan yöajo tarkistaa valmiin `dist/`:n selaimessa **ennen julkaisua** (rikkinäinen sivu ei mene julki).
   `[skip ci]` ei enää tarvita dokumenttimuutoksissa (paths), mutta ei haittaa.
 - **Pages-julkaisu: oma vaihe `.github/actions/julkaise-pages`** (9.11.2026, korvasi `actions/deploy-pages`; käytössä
-  Talokartassa ja Metsakartassa `uses: vv-tec/Talokartta/.github/actions/julkaise-pages@julkaisu-v1`). **Lukittu tagiin
-  `julkaisu-v1`:** muutos vaiheeseen otetaan käyttöön siirtämällä tagi (`git tag -f julkaisu-v1 <commit> && git push -f
-  origin julkaisu-v1`) vasta, kun muutos on koeajettu. Syy: deploy-pagesin
+  Talokartassa ja Metsakartassa `uses: vv-tec/Talokartta/.github/actions/julkaise-pages@julkaisu-v1`). **Lukittu haaraan
+  `julkaisu-v1`** (tagien luonti on estetty Clauden ympäristössä, haara toimii `uses`-viittauksessa samoin): muutos
+  vaiheeseen otetaan käyttöön siirtämällä haara (`git push -f origin <commit>:refs/heads/julkaisu-v1`) vasta, kun
+  muutos on koeajettu. Älä tee haaraan muita muutoksia. Syy: deploy-pagesin
   kova 10 min raja perui hitaat julkaisut (~11 % ajoista) ja versiotunnus = commit-SHA esti uusinnan. Oma vaihe:
   Pages-rajapinta (`POST/GET pages/deployments`), versiotunnus 1. yrityksessä commit-SHA, uusinnoissa oma muoto tai (jos
   GitHub hylkää 404, todettu 9.11.2026) aiempien committien SHA:t, odottaa ≤ 30 min eikä

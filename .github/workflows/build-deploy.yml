@@ -155,7 +155,7 @@ jobs:
     steps:
       # Oma julkaisuvaihe (9.11.2026) actions/deploy-pagesin tilalle: ei 10 min rajaa eikä perumista, oma versiotunnus
       # jokaiselle yritykselle ja automaattinen uusi yritys. Sama vaihe Metsakartassa. Syy: HISTORIA.md, julkaisun jumit.
-      # Lukittu tagiin julkaisu-v1 (uusi versio käyttöön tagia siirtämällä, ks. CLAUDE.md).
+      # Lukittu haaraan julkaisu-v1 (uusi versio käyttöön haaraa siirtämällä, ks. CLAUDE.md).
       - id: deployment
         uses: vv-tec/Talokartta/.github/actions/julkaise-pages@julkaisu-v1
 
