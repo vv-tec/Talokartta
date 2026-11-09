@@ -122,7 +122,7 @@
     });
     if (FM) {
       const d = new Date(FM.updated);
-      $("fUpdated").textContent = `Päivitetty ${d.toLocaleDateString("fi-FI")}. Mukana: ${FM.regions.map((r) => r.name).join(", ")}.`;
+      $("fUpdated").textContent = `Päivitetty ${d.toLocaleDateString("fi-FI")}.`;
     }
   }
 
@@ -190,7 +190,7 @@
     $("hint").hidden = close;
     if (!close) {
       $("fCount").textContent = nf.format(FM.count);
-      $("fLabel").textContent = `metsätilaa (${FM.regions.map((r) => r.name).join(", ")}). Lähennä nähdäksesi ne kartalla.`;
+      $("fLabel").textContent = "metsätilaa. Lähennä nähdäksesi ne kartalla.";
       return;
     }
     const seen = new Set(map.queryRenderedFeatures({ layers: ids.map((i) => i + "-fill").filter((l) => map.getLayer(l)) }).map((f) => f.properties.k));

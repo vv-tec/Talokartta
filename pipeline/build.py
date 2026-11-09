@@ -203,7 +203,7 @@ def meta(records, region_files, regions=None, muni_counts=None, shore_regions=No
         "grid": "g.pmtiles",
         "bounds": [min(lons), min(lats), max(lons), max(lats)],
         "years": [min(years), max(years)] if years else None,
-        "title": "Asuinrakennukset: " + ", ".join(regions) if regions else config.REGION_TITLE,
+        "title": config.REGION_TITLE,
         "building_minzoom": config.BUILDING_MINZOOM,
         "by_type": Counter(r[4].get("p", "") for r in records),
         "by_status": Counter(r[4].get("s", "") for r in records),

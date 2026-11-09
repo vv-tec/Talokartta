@@ -415,7 +415,7 @@ function buildShore() {
   const n = (ks) => ks.reduce((a, k) => a + (by[k] || 0), 0);
   counts(box, { own: n(["2", "3"]), sep: n(["4"]), stream: n(["5"]), no: n(["0", "1"]), na: n([""]) });
   const sr = META.stream_regions || [], todo = META.streams ? META.shore_regions.filter((r) => !sr.includes(r)) : [];
-  $("shoreNote").textContent = `Laskettu: ${META.shore_regions.join(", ")}. Muualla rakennukset ovat "Ei laskettu" -ryhmässä, joten rajaus piilottaa ne.`
+  $("shoreNote").textContent = 'Aivan uusille rakennuksille ranta lasketaan kahden viikon sisällä; siihen asti ne ovat "Ei laskettu" -ryhmässä.'
     + (todo.length ? ` Puron varrella -tieto päivittyy vielä kunta kerrallaan (kesken: ${todo.join(", ")}).` : "");
 }
 function buildCats() {

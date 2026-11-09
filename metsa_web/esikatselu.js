@@ -121,7 +121,7 @@ map.on("load", async () => {
   META = await (await fetch("data/meta.json?v=" + Date.now(), { cache: "no-cache" })).json();
   const upd = new Date(META.updated).toLocaleString("fi-FI", { dateStyle: "short", timeStyle: "short" });
   document.getElementById("stats").textContent =
-    `${fmt(META.count)} metsätilaa: ${META.regions.map((r) => r.name).join(", ")}. Päivitetty ${upd}.`;
+    `${fmt(META.count)} metsätilaa. Päivitetty ${upd}.`;
   const minz = META.poly_minzoom || 11;
   for (const r of META.regions) {
     const id = r.file.replace(/\.pmtiles$/, "");

@@ -195,6 +195,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
 - Mukana vain asuinrakennukset (01, 05, 06); purettu/tuhoutunut (06, 07, 08) ja purkupäivälliset pois.
 - Omistajatietoja ei käsitellä eikä näytetä.
 - Lähdemaininnat (CC BY 4.0) ja päivitysaika näkyvät sivulla.
+- Sivuilla ei luetella maakuntia (omistajan päätös 9.11.2026: kattaa koko Suomen): alaotsikko `config.REGION_TITLE`,
+  metsäpaneeli ja esikatselu näyttävät vain määrän ja päivitysajan, rantahuomautus ilman luetteloa.
 - Ranta: vesijättö lasketaan omaksi rannaksi; suodattimessa "Oma ranta" = ra 2–3. Lammet mukana. Puroluokka pois (5.11.2026).
 - Uusi maakunta lisätään oletuksena rantatiedon kanssa (myös `SHORE_REGIONS`), ellei omistaja toisin pyydä.
 

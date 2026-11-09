@@ -332,7 +332,7 @@ REGIONS = {
         "976",  # Ylitornio
     ],
 }
-REGION_TITLE = "Asuinrakennukset: " + ", ".join(REGIONS)
+REGION_TITLE = "Asuinrakennukset avoimista rekistereistä"  # ei maakuntaluetteloa (omistajan päätös 9.11.2026)
 MUNICIPALITIES = [m for codes in REGIONS.values() for m in codes]
 
 # Ryhdin avoin rakennusluokitus (main_purpose), joka otetaan mukaan:
