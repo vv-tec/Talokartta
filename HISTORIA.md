@@ -305,6 +305,6 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     Lappi 9.11.2026: 21 kuntaa 4 145 s, ei varoituksia. Rovaniemi 6 987 tilaa (199 414 kuviota) 405 s, Kittilä 3 865,
     Tornio 3 866, Kemijärvi 3 821, Inari 2 257, Kemi 302; Utsjoki 9 kuviota → 0 tilaa. 49 953 tilaa, f 50,8 Mt.
     **Koko Manner-Suomi valmis:** 632 504 metsätilaa, 292 kuntaa, f 404,6 Mt + kortit 293 tiedostoa 113,7 Mt ≈ 518 Mt;
-    muisti 1,5 Gt. Tarkistukset ✓. Maakuntien lisäys 6.–9.11.2026 ilman yhtään epäonnistunutta lisäysajoa
-    (Satakunnassa ja Etelä-Savossa verkkokatkot → uudelleenyritykset koodiin).
+    muisti 1,5 Gt. Tarkistukset ✓. Maakuntien lisäys 6.–9.11.2026; epäonnistuneet ajot vain Satakunnassa
+    (Eurajoki, Connection reset) ja Etelä-Savossa (MML:n tyhjät vastaukset) → uudelleenyritykset koodiin.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
