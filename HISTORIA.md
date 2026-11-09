@@ -327,4 +327,10 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     tarkistus ehti ennen uutta sivua), seuraava ✓ 22/22.
     9.11.2026 klo 17.50 Talokartan julkaisu jumittui jälleen (syncing_files → Timeout) → uusi commit. Jumeja nyt 5.–9.11.
     jo ~6 kpl → harkitse automaattista uudelleenyritystä (uusi versio) tai Pagesin julkaisutavan vaihtoa.
+    Julkaisun jumien selvitys 9.11.2026: Talokartassa 4 aikakatkaisua ~35 julkaisusta 4.–9.11. (~11 %), Metsakartassa 2
+    (6.11.). Artefakti 482 Mt (Metsakartta 475 Mt). Onnistuneissa GitHubin "syncing_files" kestää yleensä 15–60 s, mutta
+    joskus 5–6 min; jumeissa jonossa (deployment_queued) jopa 4 min + synkronointi > 6 min → deploy-pagesin kova 10 min
+    raja (MAX_TIMEOUT 600000 lähdekoodissa) katkaisee ja **peruu** julkaisun. Julkaisun tunnus = commit-SHA (GITHUB_SHA,
+    ei muutettavissa) → peruttu SHA ei kelpaa uudelleen ("Deployment cancelled." heti) → vain uusi commit auttoi.
+    Korjausehdotus: oma julkaisuvaihe (Pages-rajapinta, oma versiotunnus, pidempi odotus, automaattinen uusi yritys).
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
