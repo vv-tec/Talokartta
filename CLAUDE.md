@@ -132,6 +132,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     **+ Etelä-Pohjanmaa (9.11.2026)** 18 kuntaa 50 min, 50 232 tilaa, f 26,5 Mt; yhteensä 472 968 tilaa (225/292),
     f 276,7 Mt + kortit 84,9 Mt = 362 Mt.
     **+ Keski-Pohjanmaa (9.11.2026)** 8 kuntaa 20 min, 13 123 tilaa, f 8,0 Mt; yhteensä 486 091 (233/292), 372 Mt.
+    **+ Pohjois-Pohjanmaa (9.11.2026)** 30 kuntaa 82 min (Oulu 639 s, Kuusamo 500 s), 73 276 tilaa, f 49,7 Mt (suurin);
+    yhteensä 559 367 (263/292), f 334 Mt + kortit 100,5 Mt = 435 Mt, muisti 2,1 Gt.
     **Kuntaliitokset:** `config.MERGED_PROPERTY_PREFIXES` {"507": ["588"], "541": ["911"]} (Pertunmaa, Valtimo) → palstat
     mukaan (`own_prefixes`), kortit tallennetaan **tunnusalun** mukaan (`card_prefix`); loki "tunnusalut …" näyttää määrät;
     paljon vieraita tunnusalkuja kuntatiedostossa → `::warning` (uusi liitostapaus). Lisää epäilty liitos ennen ajoa.

@@ -297,4 +297,7 @@ Puron varrella (ra 5, 4.11.2026): MTK `virtavesikapea` (viivat) haetaan samassa 
     yhteensä 472 968, f 276,7 Mt + kortit 227 tiedostoa 84,9 Mt; muisti 0,7 Gt. Tarkistukset ✓.
     Keski-Pohjanmaa 9.11.2026: 8 kuntaa 1 170 s, ei varoituksia (Kokkola 2009 jo 272: 4 470 tilaa 405 s). 13 123 tilaa,
     f 8,0 Mt; yhteensä 486 091, f 284,7 Mt + kortit 235 tiedostoa 87,3 Mt. Tarkistukset ✓.
+    Pohjois-Pohjanmaa 9.11.2026: 30 kuntaa 4 906 s (mahtui 150 min aikarajaan), ei varoituksia. Kuusamo 7 876 tilaa
+    (245 328 kuviota) 500 s, Oulu 6 896 (69 442 palstaa) 639 s, Pudasjärvi 5 747. 73 276 tilaa, f 49,7 Mt; yhteensä
+    559 367, f 334,4 Mt + kortit 265 tiedostoa 100,5 Mt ≈ 435 Mt; muisti 2,1 Gt. Tarkistukset ✓.
     Huom: Talokartan julkaisu jumittui taas 7.11. ("Timeout reached"; 3. kerta 5.–7.11.) – seuraava ajo onnistui.
