@@ -1,0 +1,51 @@
+name: Päivitä sivun kirjastot
+
+# Karttakirjastot (MapLibre, PMTiles) ja fontit omalle sivulle kansioon web/vendor/ (tietosuoja 10.11.2026: kävijän
+# selain ei ota yhteyttä Googleen eikä unpkg:hen). Lataa npm-rekisteristä tiivisteellä tarkistettuna ja tallentaa
+# repositorioon (tyokalut/hae_kirjastot.py). Käynnistyy, kun skripti muuttuu (esim. uusi MapLibre-versio), tai käsin.
+# Huom.: tämän ajon tekemä tallennus ei käynnistä muita ajoja (GitHubin sääntö) → muutos julkaistaan seuraavassa
+# yöajossa tai käsiajolla "Päivitä tiedot ja julkaise".
+on:
+  push:
+    paths:
+      - "tyokalut/hae_kirjastot.py"
+      - ".github/workflows/kirjastot.yml"
+  workflow_dispatch:
+    inputs:
+      paivita_fontit:
+        description: "Päivitä fontit uusimpaan versioon (muuten pidetään nykyinen)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kirjastot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  hae:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Lataa kirjastot ja fontit
+        env:
+          PAIVITA: ${{ inputs.paivita_fontit && '1' || '' }}
+        run: python tyokalut/hae_kirjastot.py
+
+      - name: Tallenna muutokset repositorioon
+        run: |
+          git add -A web/vendor
+          if git diff --cached --quiet; then echo "Ei muutoksia."; exit 0; fi
+          git diff --cached --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sivun kirjastot ja fontit omalle sivulle (tyokalut/hae_kirjastot.py)"
+          git push
