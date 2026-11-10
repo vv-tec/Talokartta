@@ -402,3 +402,22 @@ Nyt `web/vendor/` (1,2 Mt): maplibre-gl 4.7.1, pmtiles 3.2.0 (npm, sha512 tarkis
 (familjen-grotesk 5.3.0, source-sans-3 5.3.1, jetbrains-mono 5.3.0; vain latin + latin-ext, 14 woff2-tiedostoa).
 Haku GitHubissa (`kirjastot.yml`), koska Clauden kone ei tavoita npm:ää. pmtiles-paketissa ei ole lisenssitiedostoa
 (BSD-3, github.com/protomaps/PMTiles).
+
+## Tietosuojaselosteen vertailukohdat (selvitetty 10.11.2026)
+
+- **MML (Karttapaikka):** Karttapaikalle ei ole omaa selostetta; alatunniste ohjaa MML:n yleiseen tietosuojasivuun ja
+  evästetietoihin (analytiikkaevästeet suostumuksella). MML:n selosteiden rakenne (esim. kiinteistörekisteri, lainhuuto- ja
+  kiinnitysrekisteri): rekisterinpitäjä + tietosuojavastaava, tarkoitus, oikeusperuste, rekisteröidyt, tietoryhmät,
+  lähteet, vastaanottajat, siirrot EU/ETA:n ulkopuolelle, säilytys, automaattinen päätöksenteko, oikeudet, valitus
+  tietosuojavaltuutetulle. Kiinteistörajat ja -tunnukset ovat Karttapaikassa vapaasti katseltavissa; omistajatiedot
+  luovutetaan vain lain perusteella tai luvalla (ei suoramarkkinointiin).
+- **UPM Metsä, metsänarvolaskuri:** syöte kiinteistötunnus; arvo kuvioittain, lähteet Metsäkeskuksen avoin metsävaratieto,
+  Luken MVMI, MML ja puukaupan hinnat. Käyttöehdot: tarkoitettu käyttäjän **oman** tilan tarkasteluun, tiedot
+  suuntaa-antavia, tietoja ei saa käyttää muuhun liiketoimintaan. Kerää nimen ja sähköpostin; reCAPTCHA (Google).
+  UPM Metsän oman selosteen teksti (privacy.upm.com) latautuu skriptillä, sisältöä ei saatu luettua.
+- **Metsäkeskus:** avoimessa metsävaratiedossa ei ole omistajatietoja, **kiinteistötunnuksia eikä kiinteistörajoja** →
+  Talokartta luo kiinteistökohtaisen yhteenvedon itse (tasapainotestin tärkein kohta; mainittu selosteessa).
+- **OpenFreeMap:** ei IP-osoitteita tavallisissa lokeissa, lokit 7 pv, ei evästeitä; Hyperknot Software Kft. (Unkari),
+  mahdollisesti Cloudflare CDN:nä. **GitHub Pages:** kävijän IP tallennetaan tietoturvasyistä. GitHubin seloste viittaa
+  EU–USA Data Privacy Frameworkiin; vakiosopimuslausekkeet (GitHubin blogi 2020).
+

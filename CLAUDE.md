@@ -257,7 +257,9 @@ Jatkossa mahdollinen: Metsakartan tarkistus ennen julkaisua (nyt julkaisun jälk
 5. Osoitehaku, mobiilihionta, tietosuojaseloste (ennen kuin palvelusta kerrotaan laajemmin; tärkeämpi metsätilojen myötä).
    **Tietosuojaseloste (aloitettu 10.11.2026):** 1 ✅ tekninen siivous: kirjastot ja fontit omalta sivulta (kävijän IP ei
    välity Googlelle/unpkg:lle); jäljellä GitHub Pages (palvelin) ja OpenFreeMap. 2 oikeutetun edun tasapainotesti
-   muistioksi, 3 seloste `web/tietosuoja.html` + linkit, 4 piilotuspyyntöjen käsittely (vastustamisoikeus), 5 lakimiehen
+   muistioksi, 3 seloste `web/tietosuoja.html` + linkit (**luonnos 10.11.2026 haarassa `tietosuojaseloste`, ei yhdistetty**:
+   täydennettävät kohdat `<span class="ph">` – kaikki poistettava ennen yhdistämistä, koska build julkaisee koko `web/`:n;
+   linkki sivulle lisätään vasta silloin; vertailukohdat HISTORIA.md), 4 piilotuspyyntöjen käsittely (vastustamisoikeus), 5 lakimiehen
    katselmointi ennen metsätilojen julkistusta. Avoinna omistajalta: rekisterinpitäjä (henkilö/yritys), yhteysosoite,
    piilotuspyynnöt toimintona vai sähköpostilla. **Kävijätilasto tulossa lähiaikoina** (omistaja 10.11.2026): valitse
    evästeetön, IP:tä tallentamaton palvelu (esim. GoatCounter, Plausible tai Cloudflare Web Analytics; ei Google
