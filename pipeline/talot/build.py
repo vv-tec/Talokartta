@@ -392,6 +392,7 @@ def main(argv=None):
     idx = os.path.join(args.out, "index.html")
     html = open(idx, encoding="utf-8").read()
     html = html.replace('src="app.js"', f'src="app.js?v={stamp}"').replace('href="style.css"', f'href="style.css?v={stamp}"').replace('src="metsa.js"', f'src="metsa.js?v={stamp}"')
+    html = html.replace('href="vendor/fontit.css"', f'href="vendor/fontit.css?v={stamp}"')  # kirjastoilla versio kansion nimessä
     open(idx, "w", encoding="utf-8").write(html)
     log("Sivusto valmis:", args.out)
     import resource  # muistin huippukäyttö (Linux: kt) – koko Suomen mitoituksen seurantaan

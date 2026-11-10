@@ -393,3 +393,12 @@ olemassa, joten julkaisu jatkuu vanhoilla tiedoilla).
   kuntahakuja tehty metsäkuva ei tallentunut välimuistiin → joka ajo latasi 1,9 Gt VMI:n funetista, joka ei nyt
   vastannut. Korjaus `touch_stamp` + varalla edellinen julkaistu `r.pmtiles`. Uusinta-ajo: kuva 115 s, välimuisti
   tallentui (avain metsa-20261109194214), tarkistus läpi, issue suljettu.
+
+## Kirjastot ja fontit omalle sivulle 10.11.2026 (tietosuojaselosteen vaihe 1)
+
+Sivu latasi MapLibren ja PMTilesin unpkg:stä ja fontit Google Fontsista → jokaisen kävijän IP välittyi Googlelle ja
+Cloudflarelle (unpkg). Saksassa Google Fontsin käyttö ilman suostumusta on johtanut seuraamuksiin (LG München 2022).
+Nyt `web/vendor/` (1,2 Mt): maplibre-gl 4.7.1, pmtiles 3.2.0 (npm, sha512 tarkistettu) ja Fontsource-fontit
+(familjen-grotesk 5.3.0, source-sans-3 5.3.1, jetbrains-mono 5.3.0; vain latin + latin-ext, 14 woff2-tiedostoa).
+Haku GitHubissa (`kirjastot.yml`), koska Clauden kone ei tavoita npm:ää. pmtiles-paketissa ei ole lisenssitiedostoa
+(BSD-3, github.com/protomaps/PMTiles).

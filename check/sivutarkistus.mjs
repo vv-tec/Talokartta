@@ -2,7 +2,8 @@
 // Avaa sivun oikeassa selaimessa (Playwright + Chromium) ja tarkistaa, että se toimii kuten käyttäjällä:
 // ei JS-virheitä, meta.json on juuri julkaistu versio, taustakartta ja kaikki karttatiedostot latautuvat,
 // tunnetuissa paikoissa näkyy rakennuksia, tietokortti aukeaa ja puhelinkoossa suodatinpaneeli toimii.
-// Ei kuormita rekistereitä (vain oma sivu, OpenFreeMap ja unpkg).
+// Ei kuormita rekistereitä (vain oma sivu ja OpenFreeMap). Valvoo myös, ettei sivu ota yhteyttä muihin palveluihin
+// (tietosuoja 10.11.2026: kirjastot ja fontit omalta sivulta, ks. tyokalut/hae_kirjastot.py).
 //
 // Ympäristömuuttujat (kaikki valinnaisia):
 //   SITE_URL         tarkistettava sivu (oletus https://vv-tec.github.io/Talokartta/)
@@ -35,6 +36,9 @@ const PLACES = [
 const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
 const TIMEOUT = 60_000;
+// Palvelut, joihin kävijän selain saa ottaa yhteyttä (tietosuojaseloste luettelee nämä): oma sivu, Metsakartan tiedostot
+// ja taustakartta. Uusi palvelu (esim. kävijätilasto) → lisää tähän JA tietosuojaselosteeseen.
+const ALLOWED_HOSTS = [new URL(SITE).host, "vv-tec.github.io", "tiles.openfreemap.org"];
 
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -52,6 +56,10 @@ async function idle(page) {
 
 // Seuraa sivun virheitä ja epäonnistuneita latauksia.
 function watch(page, bag) {
+  page.on("request", (r) => {
+    const u = new URL(r.url());
+    if (u.protocol === "http:" || u.protocol === "https:") bag.hosts.add(u.host);
+  });
   page.on("pageerror", (e) => bag.pageErrors.push(String(e.message || e).slice(0, 300)));
   page.on("console", (m) => { if (m.type() === "error") bag.consoleErrors.push(m.text().slice(0, 300)); });
   page.on("requestfailed", (r) => {
@@ -71,7 +79,7 @@ async function attempt(n) {
   const ok = (name, info = "") => checks.push({ name, ok: true, info });
   const bad = (name, info) => checks.push({ name, ok: false, info });
   const shots = [];
-  const bag = { pageErrors: [], consoleErrors: [], failed: [], baseTiles: 0 };
+  const bag = { pageErrors: [], consoleErrors: [], failed: [], baseTiles: 0, hosts: new Set() };
   const browser = await chromium.launch();
   try {
     // ---------- 1. meta.json: onko sivulla juuri julkaistu versio ----------
@@ -203,8 +211,11 @@ async function attempt(n) {
 
     // ---------- 6. virheet koko käynnin ajalta ----------
     bag.pageErrors.length ? bad("JavaScript-virheet", [...new Set(bag.pageErrors)].slice(0, 3).join(" | ")) : ok("JavaScript-virheet", "ei virheitä");
-    const ess = [...new Set(bag.failed)].filter((u) => !/fonts\.(googleapis|gstatic)\.com/.test(u));  // fontit: sivu toimii ilmankin
+    const ess = [...new Set(bag.failed)];
     ess.length ? bad("Lataukset", `epäonnistui ${ess.length}: ${ess.slice(0, 3).join(" | ")}`) : ok("Lataukset", "kaikki onnistuivat");
+    const other = [...bag.hosts].filter((h) => !ALLOWED_HOSTS.includes(h));
+    other.length ? bad("Ulkopuoliset palvelut", `sivu otti yhteyttä: ${other.join(", ")} (päivitä ALLOWED_HOSTS ja tietosuojaseloste)`)
+      : ok("Ulkopuoliset palvelut", `vain ${[...bag.hosts].sort().join(", ")}`);
     return { checks, shots, bag };
   } catch (e) {
     bad("Tarkistus", `keskeytyi: ${String(e.message || e).split("\n")[0]}`);

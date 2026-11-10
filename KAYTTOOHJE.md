@@ -6,7 +6,7 @@ Kehittäjän (Clauden) tekninen muistio on tiedostossa [CLAUDE.md](CLAUDE.md).
 
 - **Sivu:** https://vv-tec.github.io/Talokartta/
 - **Koodi ja asetukset:** https://github.com/vv-tec/Talokartta
-- **Päivitetty viimeksi:** 9.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
+- **Päivitetty viimeksi:** 10.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
 
 ---
 
@@ -187,8 +187,11 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
   (suurin, Uusimaa, noin 63 Mt). Koko Manner-Suomi (1,9 miljoonaa rakennusta) mahtuu siis hyvin.
 - **Kävijämäärä:** GitHub Pagesin siirtomäärän suositusraja on 100 Gt kuukaudessa (arviolta 10 000–50 000 käyntiä).
   Jos sivun käyttö kasvaa tätä suuremmaksi, karttatiedostot siirretään Cloudflare R2 -palveluun (ilmainen siirto).
-- **Ulkoiset palvelut, joista sivu riippuu:** OpenFreeMap (taustakartta) ja unpkg (karttakirjastot). Jos jompikumpi on
-  katkolla, sivu ei toimi kunnes palvelu palaa. Yöllinen sivun tarkistus huomaa tällaisen katkon ja ilmoittaa siitä.
+- **Ulkoiset palvelut, joista sivu riippuu:** vain OpenFreeMap (taustakartta). Jos se on katkolla, taustakartta puuttuu,
+  kunnes palvelu palaa. Yöllinen sivun tarkistus huomaa tällaisen katkon ja ilmoittaa siitä.
+- **Kirjastot ja fontit omalta sivulta (10.11.2026):** karttakirjasto ja fontit ovat sivun omassa kansiossa (`web/vendor/`)
+  eivätkä tule Googlelta tai unpkg:stä, joten kävijän tiedot eivät välity niille (tietosuoja). Tarkistus hälyttää, jos
+  sivu alkaa ottaa yhteyttä johonkin muuhun palveluun. Päivitys: pyydä Claudea, tai Actions → **Päivitä sivun kirjastot**.
 
 ---
 
@@ -238,6 +241,8 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 11. Avoimet asiat ja suunnitelmat (6.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
+  Ensimmäinen vaihe tehty 10.11.2026 (kirjastot ja fontit omalta sivulta). Kävijätilasto on tulossa: se valitaan
+  evästeettömäksi, jotta evästebanneria ei tarvita, ja se kuvataan selosteessa.
 - Osoitehaku, oma verkko-osoite. (Kaikki Manner-Suomen maakunnat lisätty 6.11.2026.)
 - **Metsätilat ja tontit** (metsätilojen vaihe 1 tehty 6.11.2026, ks. kohta 12): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
   Metsätila = kiinteistö, jolla yli 2 ha metsämaata; haku mm. alan, **puuston arvon** (viimeisimmän kuukauden kantohinnoilla),

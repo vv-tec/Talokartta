@@ -11,7 +11,7 @@ const PORT = Number(process.argv[3] || 8080);
 const UPSTREAM = process.argv[4] ? process.argv[4].replace(/\/?$/, "/") : "";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css",
   ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml",
-  ".pmtiles": "application/octet-stream" };
+  ".pmtiles": "application/octet-stream", ".woff2": "font/woff2" };
 
 async function proxy(req, res, rel) {
   const headers = req.headers.range ? { range: req.headers.range } : {};

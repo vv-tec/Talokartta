@@ -82,8 +82,14 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     `mml_explore.py` ("Selvitys – MML-tiedostolataus"), `shore_explore.py` ("Selvitys – rantatesti"), `codes_explore.py`,
     `metsa_explore.py` + `metsa_laske.py` ("Selvitys – metsätilat", vaihe `rakenne` / `laske` → Excel liitteenä + CSV lokiin).
 - `web/` – staattinen sivu, ei build-vaihetta. Lukee `meta.json`:n `regions`-listan ja lisää jokaiselle maakunnalle lähteen
-  ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 unpkg-CDN:stä,
-  taustakartta OpenFreeMap (positron/dark).
+  ja tason (`B_LAYERS`); suodattimet ja värit koskevat kaikkia. MapLibre GL 4.7.1 + pmtiles 3.2.0 ja fontit
+  **omalta sivulta `web/vendor/`** (10.11.2026, tietosuoja: ei Google Fontsia eikä unpkg:tä), taustakartta OpenFreeMap
+  (positron/dark) – ainoa ulkopuolinen palvelu. `web/vendor/` tehdään työnkulussa **"Päivitä sivun kirjastot"**
+  (`kirjastot.yml` → `tyokalut/hae_kirjastot.py`: npm-rekisteri, sha512-tarkistus, fontit Fontsourcesta latin+latin-ext,
+  versiot `web/vendor/versiot.json`; ajo tallentaa repoon, mikä ei käynnistä muita ajoja). Versiopäivitys: muuta
+  `LIBRARIES` + index.html:n polut (versio kansion nimessä). Pikatesti `web_tests`: index.html ei lataa ulkopuolelta ja
+  viitatut tiedostot ovat olemassa. Sivun tarkistus "Ulkopuoliset palvelut" (`ALLOWED_HOSTS`): uusi palvelu (esim.
+  kävijätilasto) → lisää sinne **ja tietosuojaselosteeseen**.
 - `.github/workflows/build-deploy.yml` – yöllinen ajo (cron 17 2 * * *) + push (vain talojen polut, `paths`) + käsin;
   julkaisu GitHub Pagesiin; epäonnistunut ajo ei julkaise. Ennen julkaisua `dist/` tarjoillaan paikallisesti ja
   tarkistetaan `sivutarkistus.mjs`:llä (vaihe "Tarkista sivu ennen julkaisua"; kuvakaappaukset liitteenä). Jobi `notify`:
@@ -166,7 +172,7 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     1–8, `tu` turve %, `oj` ojitettu %, `hr` hakkuurajoitus %, `i0`/`i1` inventointi vvvv-kk, `rb`/`ab` rakennuksia/asuin-,
     `pa` Luken hinta-alue.
 - `check/` – **sivun tarkistus** (`sivutarkistus.mjs`, Node + Playwright 1.63, `package.json`). Avaa julkaistun sivun
-  Chromiumilla ja tarkistaa 17 kohtaa (meta-versio ja määrät, pmtiles 206, taustakartta, tunnetut paikat Tampere/Tammela/
+  Chromiumilla ja tarkistaa 18 kohtaa (ulkopuoliset palvelut, meta-versio ja määrät, pmtiles 206, taustakartta, tunnetut paikat Tampere/Tammela/
   Kallio/Rovaniemi, tietokortti, puhelinkoko, JS-virheet, lataukset). Käyttää sivun globaaleja `map`, `META`, `B_LAYERS`,
   `state` (`app.js`) sekä id:itä `#card`, `#filtersBtn`, `#panel`, `#visCount`, `#updated` → **päivitä tarkistus, jos
   nämä muuttuvat** (myös moodien tullessa). Uusi yritys 60 s päästä ennen hälytystä. Käsiajo: työnkulku "Tarkista sivu"
@@ -249,6 +255,13 @@ Jatkossa mahdollinen: Metsakartan tarkistus ennen julkaisua (nyt julkaisun jälk
 
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste (ennen kuin palvelusta kerrotaan laajemmin; tärkeämpi metsätilojen myötä).
+   **Tietosuojaseloste (aloitettu 10.11.2026):** 1 ✅ tekninen siivous: kirjastot ja fontit omalta sivulta (kävijän IP ei
+   välity Googlelle/unpkg:lle); jäljellä GitHub Pages (palvelin) ja OpenFreeMap. 2 oikeutetun edun tasapainotesti
+   muistioksi, 3 seloste `web/tietosuoja.html` + linkit, 4 piilotuspyyntöjen käsittely (vastustamisoikeus), 5 lakimiehen
+   katselmointi ennen metsätilojen julkistusta. Avoinna omistajalta: rekisterinpitäjä (henkilö/yritys), yhteysosoite,
+   piilotuspyynnöt toimintona vai sähköpostilla. **Kävijätilasto tulossa lähiaikoina** (omistaja 10.11.2026): valitse
+   evästeetön, IP:tä tallentamaton palvelu (esim. GoatCounter, Plausible tai Cloudflare Web Analytics; ei Google
+   Analyticsia → ei evästebanneria) ja suunnittele seloste sen kanssa yhtä aikaa.
 6. Toimintamoodit **Metsätilat** ja **Tontit** (suunniteltu 6.11.2026 omistajan kanssa, ei toteutettu; ei koodia ennen
    omistajan lupaa). Sama sivu, yläreunassa moodivalinta **Talot | Metsätilat | Tontit**. Yhteiset: taustakartta, kartan
    sijainti/zoom, myöhemmin osoitehaku. Moodikohtaiset: tasot, suodatinpaneeli, tietokortti. Moodi verkko-osoitteessa
