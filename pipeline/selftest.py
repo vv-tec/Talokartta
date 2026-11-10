@@ -151,17 +151,18 @@ def run():
 
 
 def web_tests():
-    """SIVU: index.html lataa skriptit, tyylit ja fontit vain omalta sivulta, ja viitatut tiedostot ovat olemassa
+    """SIVU: sivut (web/*.html) lataavat skriptit, tyylit, kuvat ja fontit vain omalta sivulta, ja viitatut tiedostot ovat olemassa
     (tietosuoja 10.11.2026; kirjastot web/vendor/, tyokalut/hae_kirjastot.py + työnkulku "Päivitä sivun kirjastot")."""
     import os
     import re
     web = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
-    html = open(os.path.join(web, "index.html"), encoding="utf-8").read()
-    refs = re.findall(r'<(?:script|link)\b[^>]*?\b(?:src|href)="([^"]+)"', html)
-    external = [r for r in refs if re.match(r"(https?:)?//", r)]
-    assert not external, "index.html lataa ulkopuolelta (kävijän IP välittyy; tietosuojaseloste): " + ", ".join(external)
-    missing = [r for r in refs if not os.path.exists(os.path.join(web, r.split("?")[0]))]
-    assert not missing, "index.html viittaa puuttuviin tiedostoihin (aja 'Päivitä sivun kirjastot'?): " + ", ".join(missing)
+    for page in sorted(f for f in os.listdir(web) if f.endswith(".html")):   # index.html, tietosuoja.html
+        html = open(os.path.join(web, page), encoding="utf-8").read()
+        refs = re.findall(r'<(?:script|link|img)\b[^>]*?\b(?:src|href)="([^"]+)"', html)
+        external = [r for r in refs if re.match(r"(https?:)?//", r)]
+        assert not external, f"{page} lataa ulkopuolelta (kävijän IP välittyy; tietosuojaseloste): " + ", ".join(external)
+        missing = [r for r in refs if not os.path.exists(os.path.join(web, r.split("?")[0]))]
+        assert not missing, f"{page} viittaa puuttuviin tiedostoihin (aja 'Päivitä sivun kirjastot'?): " + ", ".join(missing)
     css = open(os.path.join(web, "vendor", "fontit.css"), encoding="utf-8").read()
     fonts = re.findall(r"url\(([^)]+)\)", css)
     assert fonts and all(os.path.exists(os.path.join(web, "vendor", f)) for f in fonts), "vendor/fontit.css: fonttitiedosto puuttuu"

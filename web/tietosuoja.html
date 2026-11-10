@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tietosuojaseloste – Talokartta</title>
+<meta name="description" content="Talokartan tietosuojaseloste: mitä tietoja kartalla näytetään, mistä ne tulevat ja miten sivun käyttäjien tietoja käsitellään.">
+<meta name="theme-color" content="#2d5c55" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141a19" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="img/icon-192.png" type="image/png">
+<!-- Vain omalta sivulta (tietosuoja): fontit web/vendor/, ei ulkopuolisia skriptejä. Pikatesti web_tests valvoo. -->
+<link rel="stylesheet" href="vendor/fontit.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  html, body { height: auto; }
+  .doc { max-width: 760px; margin: 0 auto; padding: 24px max(16px, env(safe-area-inset-left)) 64px; }
+  .doc header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .doc header img { border-radius: 8px; }
+  .doc h1 { font-size: 28px; letter-spacing: -.01em; margin: 6px 0 4px; }
+  .doc h2 { font-size: 20px; margin: 32px 0 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .doc h3 { font-size: 16px; margin: 20px 0 6px; }
+  .doc p, .doc li { max-width: 68ch; }
+  .doc ul { padding-left: 20px; }
+  .doc li { margin: 4px 0; }
+  .doc .summary { background: var(--accent-soft); border-radius: 10px; padding: 12px 16px; margin: 16px 0; }
+  .doc .summary ul { margin: 6px 0 0; }
+  .doc dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 8px 0; }
+  .doc dt { color: var(--muted); }
+  .doc dd { margin: 0; }
+  .doc table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0; }
+  .doc th, .doc td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .doc th { font-family: var(--f-display); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  /* Täydennettävät kohdat (luonnos): näkyvät selvästi, jotta mikään ei jää vahingossa julki. */
+  .ph { background: #fff2b3; color: #4a3b00; border-radius: 4px; padding: 0 4px; font-weight: 600; }
+  @media (prefers-color-scheme: dark) { .ph { background: #5a4a00; color: #fff2b3; } }
+  .back { display: inline-block; margin-top: 4px; }
+  @media (max-width: 560px) { .doc dl { grid-template-columns: 1fr; } .doc dt { margin-top: 6px; } }
+</style>
+</head>
+<body>
+<main class="doc">
+  <header>
+    <img src="img/icon-192.png" alt="" width="34" height="34">
+    <a class="back" href="./">← Takaisin karttaan</a>
+  </header>
+
+  <h1>Tietosuojaseloste</h1>
+  <p class="muted">Talokartta (talot ja metsätilat). EU:n yleisen tietosuoja-asetuksen (2016/679) 13 ja 14 artikla.
+    Päivitetty <span class="ph">[pvm, kun seloste julkaistaan]</span>.</p>
+
+  <div class="summary">
+    <strong>Lyhyesti</strong>
+    <ul>
+      <li>Kartan tiedot tulevat avoimista viranomaisrekistereistä. Kartalla ei ole nimiä, henkilötunnuksia eikä
+        yhteystietoja.</li>
+      <li>Osoitteen tai kiinteistötunnuksen avulla kohde voidaan kuitenkin yhdistää ihmiseen, joten tiedot ovat
+        tietosuojalain mielessä henkilötietoja. Siksi tämä seloste on olemassa.</li>
+      <li>Sivulla ei ole kirjautumista, lomakkeita, mainoksia eikä evästeitä.</li>
+      <li>Kohteensa omistaja voi pyytää sen piilottamista kartalta (kohta 4).</li>
+    </ul>
+  </div>
+
+  <h2>1. Rekisterinpitäjä ja yhteystiedot</h2>
+  <dl>
+    <dt>Rekisterinpitäjä</dt><dd><span class="ph">[REKISTERINPITÄJÄ: nimi tai yritys ja Y-tunnus]</span></dd>
+    <dt>Osoite</dt><dd><span class="ph">[postiosoite]</span></dd>
+    <dt>Yhteydenotot</dt><dd><span class="ph">[sähköpostiosoite tietosuoja-asioille]</span></dd>
+  </dl>
+  <p>Rekisterinpitäjällä ei ole lakisääteistä velvollisuutta nimetä tietosuojavastaavaa. Kaikki tietosuoja-asiat
+    hoidetaan yllä olevan yhteystiedon kautta.</p>
+
+  <h2>2. Kartalla näytettävät tiedot</h2>
+
+  <h3>Keitä tiedot koskevat</h3>
+  <p>Asuinrakennusten ja kiinteistöjen omistajia ja haltijoita sekä rakennusten asukkaita silloin, kun he ovat
+    yksityishenkilöitä. Yritysten, kuntien ja valtion kiinteistöjen tiedot eivät ole henkilötietoja.</p>
+
+  <h3>Mitä tietoja näytetään</h3>
+  <ul>
+    <li><strong>Asuinrakennukset:</strong> osoite ja postinumero, kiinteistötunnus, rakennustunnus, rakennuksen tyyppi
+      ja käyttötilanne, valmistumisvuosi, pinta-alat, kerros- ja asuntomäärä sekä rakenne- ja lämmitystiedot.</li>
+    <li><strong>Kiinteistöt:</strong> palstan ja kiinteistön pinta-ala sekä laskettu rantatieto (onko palsta rannassa,
+      rantaviivan pituus, etäisyys vedestä).</li>
+    <li><strong>Metsätilat</strong> (kiinteistö, jolla on yli 2 ha metsämaata): kiinteistön rajat ja alat, puuston määrä,
+      puulajit ja ikärakenne, kasvupaikka- ja maaperätiedot, hakkuurajoitusten osuus sekä
+      <strong>laskennallinen puuston arvo</strong>.</li>
+  </ul>
+  <p><strong>Kartalla ei ole:</strong> omistajien tai asukkaiden nimiä, henkilötunnuksia, yhteystietoja, kiinteistön
+    nimeä, kauppahintoja eikä tietoa siitä, onko kohde myynnissä. Palvelu ei käsittele näitä tietoja lainkaan.</p>
+  <p>Puuston arvo on Talokartan oma laskelma: avoimen metsävaratiedon tukki- ja kuitupuun määrät kerrotaan
+    Luonnonvarakeskuksen julkaisemilla keskimääräisillä kantohinnoilla. Se ei ole arvio tilan arvosta eikä kauppahinta,
+    ja metsävaratiedon tarkkuus vaihtelee.</p>
+
+  <h3>Mistä tiedot tulevat</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Tieto</th><th>Lähde</th></tr>
+    <tr><td>Rakennukset ja osoitteet</td><td>Suomen ympäristökeskus, rakennetun ympäristön tietojärjestelmä Ryhti (avoin data, CC BY 4.0)</td></tr>
+    <tr><td>Kiinteistötunnukset ja rajat, vesialueet</td><td>Maanmittauslaitos, kiinteistörekisterikartta ja maastotietokanta (avoin data, CC BY 4.0)</td></tr>
+    <tr><td>Metsävaratieto</td><td>Suomen metsäkeskus, avoin metsävaratieto (CC BY 4.0)</td></tr>
+    <tr><td>Kantohinnat ja kaukonäkymän metsäkuva</td><td>Luonnonvarakeskus (CC BY 4.0)</td></tr>
+  </table></div>
+  <p>Samat rakennustiedot, kiinteistörajat ja kiinteistötunnukset ovat kenen tahansa katsottavissa myös viranomaisten
+    omissa palveluissa, kuten Maanmittauslaitoksen Karttapaikassa. Metsäkeskuksen avoimessa aineistossa ei ole
+    kiinteistötunnuksia eikä -rajoja. Talokartta yhdistää metsävaratiedon kiinteistöihin itse, ja näin syntyy
+    kiinteistökohtainen yhteenveto.</p>
+
+  <h3>Käyttötarkoitus ja oikeusperuste</h3>
+  <p>Tarkoitus on tarjota helppokäyttöinen kartta asuinrakennusten ja metsätilojen tutkimiseen ja vertailuun avoimen
+    datan pohjalta, esimerkiksi kodin, vapaa-ajan asunnon tai metsätilan etsimiseen ja alueiden vertailuun.</p>
+  <p>Käsittely perustuu <strong>oikeutettuun etuun</strong> (tietosuoja-asetuksen 6 artiklan 1 kohdan f alakohta):
+    palvelun käyttäjien ja rekisterinpitäjän etuun hyödyntää viranomaisten avoimeksi julkaisemaa tietoa. Rekisterinpitäjä
+    on arvioinut, ettei käsittely ylitä rekisteröityjen etuja, koska</p>
+  <ul>
+    <li>tiedot ovat jo julkisia ja avoimesti saatavilla lähteissään</li>
+    <li>nimiä, yhteystietoja ja muita suoria tunnisteita ei käsitellä</li>
+    <li>palvelussa ei voi hakea henkilön nimellä eikä koota tietoja henkilöstä</li>
+    <li>kohteen voi pyytää piilotettavaksi (kohta 4).</li>
+  </ul>
+  <p>Arvio (tasapainotesti) on saatavilla pyynnöstä. <span class="ph">[Tasapainotesti tehdään erillisenä muistiona.]</span></p>
+
+  <h3>Säilytys ja päivitys</h3>
+  <p>Kartalla näkyy aina viimeisin tieto. Tiedot päivitetään lähteistä öisin: rakennusten muutokset päivittäin,
+    kiinteistöt noin kahden viikon ja metsätilat noin kuukauden välein. Kun tieto muuttuu tai poistuu lähteestä, se
+    muuttuu tai poistuu myös kartalta seuraavassa päivityksessä. Palvelu ei säilytä vanhoja tietoja näytettäväksi.</p>
+
+  <h3>Kuka tiedot näkee</h3>
+  <p>Kartta on julkinen, joten tiedot näkee kuka tahansa sivun käyttäjä. Tietoja ei luovuteta muuten eikä käytetä
+    suoramarkkinointiin. Tekninen käsittely on kuvattu kohdassa 3.</p>
+
+  <h2>3. Sivun käyttäjät</h2>
+  <p>Sivun käyttöön ei tarvita tunnusta, eikä sivulla ole lomakkeita, mainoksia eikä evästeitä.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Mitä</th><th>Mitä tietoa välittyy</th><th>Kuka käsittelee</th></tr>
+    <tr><td>Sivun ja karttatiedostojen lataus</td>
+      <td>IP-osoite ja selaimen tekniset tiedot. Ne tallentuvat palvelimen lokiin tietoturvasyistä.</td>
+      <td>GitHub, Inc. (GitHub Pages, palvelin), Yhdysvallat</td></tr>
+    <tr><td>Taustakartta</td>
+      <td>Selain hakee karttakuvat suoraan. Palvelun oman selosteen mukaan IP-osoitteita ei tallenneta tavallisiin
+        lokeihin, ja lokit poistetaan 7 päivän kuluessa.</td>
+      <td>OpenFreeMap (Hyperknot Software Kft.), Unkari</td></tr>
+    <tr><td>Kävijätilasto</td><td colspan="2"><span class="ph">[Täydennetään, kun kävijätilastopalvelu on valittu.
+      Tavoite: evästeetön palvelu, joka ei tallenna IP-osoitteita.]</span></td></tr>
+    <tr><td>Selaimen muisti</td>
+      <td>Metsätilanäkymän värivalinta tallentuu vain omaan selaimeesi, ei palvelimelle. Sen voi poistaa selaimen
+        asetuksista.</td><td>–</td></tr>
+  </table></div>
+  <p>Karttakirjasto ja fontit ladataan Talokartan omalta sivulta, eikä selain ota yhteyttä esimerkiksi Googleen.</p>
+  <p>Kohteen tietokortin linkit Google Mapsiin, Google Street View'hun ja Maanmittauslaitoksen Karttapaikkaan
+    avautuvat vain, jos painat niitä. Silloin kohteen sijainti välittyy kyseiselle palvelulle, ja sen käsittelyyn
+    sovelletaan palvelun omaa tietosuojaselostetta.</p>
+  <p><strong>Siirrot EU:n ulkopuolelle:</strong> GitHub sijaitsee Yhdysvalloissa. GitHubin oman tietosuojaselosteen
+    mukaan siirrot perustuvat EU:n ja Yhdysvaltojen väliseen tietosuojakehykseen (Data Privacy Framework) ja
+    Euroopan komission vakiosopimuslausekkeisiin.
+    <span class="ph">[Tarkistettava ennen julkaisua.]</span></p>
+
+  <h2>4. Oikeutesi</h2>
+  <ul>
+    <li><strong>Kohteen piilottaminen kartalta (vastustamisoikeus):</strong> jos omistat tai hallitset kiinteistön,
+      voit pyytää sen tietojen poistamista kartalta. Lähetä pyyntö osoitteeseen
+      <span class="ph">[yhteysosoite]</span> ja kerro kiinteistötunnus tai osoite. Pyyntö käsitellään viimeistään
+      kuukauden kuluessa, ja kohde poistuu kartalta seuraavassa yöllisessä päivityksessä.
+      <span class="ph">[Käsittelytapa vahvistetaan: sähköposti vai erillinen toiminto.]</span></li>
+    <li><strong>Tietojen tarkastaminen:</strong> kaikki kohteesta näytettävät tiedot näet itse kartalta kohdetta
+      painamalla. Palvelu ei tiedä, kuka kiinteistön omistaa.</li>
+    <li><strong>Virheellisen tiedon korjaaminen:</strong> tiedot tulevat viranomaisrekistereistä, joten virhe korjataan
+      lähteessä: rakennustiedot kunnan rakennusvalvonnassa, kiinteistötiedot Maanmittauslaitoksessa ja metsävaratiedot
+      Metsäkeskuksessa. Korjaus näkyy kartalla seuraavassa päivityksessä. Voit myös ilmoittaa virheestä meille.</li>
+    <li><strong>Valitus:</strong> voit tehdä valituksen valvontaviranomaiselle, jos katsot, että henkilötietojasi
+      käsitellään lainvastaisesti: tietosuojavaltuutetun toimisto,
+      <a href="https://tietosuoja.fi/" target="_blank" rel="noopener">tietosuoja.fi</a>.</li>
+  </ul>
+  <p>Palvelussa ei tehdä automaattisia päätöksiä eikä profilointia.</p>
+
+  <h2>5. Muutokset</h2>
+  <p>Selostetta päivitetään, kun palvelu tai sen käyttämät palvelut muuttuvat. Päivityspäivä näkyy sivun alussa.</p>
+</main>
+</body>
+</html>
