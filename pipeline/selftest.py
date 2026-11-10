@@ -150,6 +150,11 @@ def run():
     print("selftest OK")
 
 
+def html_of(web, name):
+    import os
+    return open(os.path.join(web, name), encoding="utf-8").read()
+
+
 def web_tests():
     """SIVU: sivut (web/*.html) lataavat skriptit, tyylit, kuvat ja fontit vain omalta sivulta, ja viitatut tiedostot ovat olemassa
     (tietosuoja 10.11.2026; kirjastot web/vendor/, tyokalut/hae_kirjastot.py + työnkulku "Päivitä sivun kirjastot")."""
@@ -163,6 +168,15 @@ def web_tests():
         assert not external, f"{page} lataa ulkopuolelta (kävijän IP välittyy; tietosuojaseloste): " + ", ".join(external)
         missing = [r for r in refs if not os.path.exists(os.path.join(web, r.split("?")[0]))]
         assert not missing, f"{page} viittaa puuttuviin tiedostoihin (aja 'Päivitä sivun kirjastot'?): " + ", ".join(missing)
+    # Tietosuojaselosteen luonnos: niin kauan kuin täydennettäviä kohtia (class="ph") on, sivu ei saa näkyä hakukoneille
+    # eikä karttasivu linkittää siihen (luonnos on vain suoralla osoitteella).
+    ts = open(os.path.join(web, "tietosuoja.html"), encoding="utf-8").read()
+    if 'class="ph"' in ts:
+        assert 'name="robots" content="noindex"' in ts and 'class="draft"' in ts, "tietosuoja.html: luonnoksessa oltava noindex ja luonnosilmoitus"
+        assert "tietosuoja.html" not in html_of(web, "index.html") + html_of(web, "metsa.js"), \
+            "karttasivu linkittää tietosuojaselosteeseen, vaikka siinä on täydentämättömiä kohtia (class=\"ph\")"
+    else:
+        assert 'class="draft"' not in ts and "noindex" not in ts, "tietosuoja.html valmis: poista luonnosilmoitus ja noindex"
     css = open(os.path.join(web, "vendor", "fontit.css"), encoding="utf-8").read()
     fonts = re.findall(r"url\(([^)]+)\)", css)
     assert fonts and all(os.path.exists(os.path.join(web, "vendor", f)) for f in fonts), "vendor/fontit.css: fonttitiedosto puuttuu"

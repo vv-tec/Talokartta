@@ -256,14 +256,24 @@ Jatkossa mahdollinen: Metsakartan tarkistus ennen julkaisua (nyt julkaisun jälk
 4. Oma verkko-osoite.
 5. Osoitehaku, mobiilihionta, tietosuojaseloste (ennen kuin palvelusta kerrotaan laajemmin; tärkeämpi metsätilojen myötä).
    **Tietosuojaseloste (aloitettu 10.11.2026):** 1 ✅ tekninen siivous: kirjastot ja fontit omalta sivulta (kävijän IP ei
-   välity Googlelle/unpkg:lle); jäljellä GitHub Pages (palvelin) ja OpenFreeMap. 2 oikeutetun edun tasapainotesti
-   muistioksi, 3 seloste `web/tietosuoja.html` + linkit (**luonnos 10.11.2026 haarassa `tietosuojaseloste`, ei yhdistetty**:
-   täydennettävät kohdat `<span class="ph">` – kaikki poistettava ennen yhdistämistä, koska build julkaisee koko `web/`:n;
-   linkki sivulle lisätään vasta silloin; vertailukohdat HISTORIA.md), 4 piilotuspyyntöjen käsittely (vastustamisoikeus), 5 lakimiehen
-   katselmointi ennen metsätilojen julkistusta. Avoinna omistajalta: rekisterinpitäjä (henkilö/yritys), yhteysosoite,
-   piilotuspyynnöt toimintona vai sähköpostilla. **Kävijätilasto tulossa lähiaikoina** (omistaja 10.11.2026): valitse
-   evästeetön, IP:tä tallentamaton palvelu (esim. GoatCounter, Plausible tai Cloudflare Web Analytics; ei Google
-   Analyticsia → ei evästebanneria) ja suunnittele seloste sen kanssa yhtä aikaa.
+   välity Googlelle/unpkg:lle); jäljellä GitHub Pages (palvelin) ja OpenFreeMap. 2 ✅ **luonnos** `web/tietosuoja.html`
+   julki suoralla osoitteella (https://vv-tec.github.io/Talokartta/tietosuoja.html; noindex, luonnosilmoitus, ei linkkiä
+   kartalta – pikatesti `web_tests` valvoo, niin kauan kuin `class="ph"`-kohtia on). Sisältö: omistajan päätökset
+   10.11.2026 – eurot pidetään (€ ja €/ha) ja niiden epävarmuus kerrotaan (metsävaratieto + toteutuvat hinnat);
+   tunnistaminen vaatii palvelun ulkopuolista tietoa (lainhuutotodistus), mutta tiedot käsitellään henkilötietoina;
+   käyttäjän vastuu -lauseke (Karttaselaimen mallin mukaan). Vertailukohdat (MML, UPM, Metsäkeskus, Karttaselain) HISTORIA.md.
+   **3 Viimeistely (avoinna, omistajalta tarvitaan tiedot):**
+   - rekisterinpitäjä (henkilö vai yritys, Y-tunnus), postiosoite ja yhteysosoite (erillinen sähköposti suositeltu)
+   - kävijätilasto: palvelun valinta (evästeetön, ei IP-tallennusta, esim. GoatCounter, Plausible tai Cloudflare Web
+     Analytics) → käyttöön, `ALLOWED_HOSTS` (sivutarkistus) ja selosteen kohta 3
+   - piilotuspyyntöjen käsittely (vastustamisoikeus): sähköposti + käsin poisto vai toiminto (piilotuslista, jonka
+     talojen ja metsätilojen yöajot huomioivat); kirjataan selosteen kohtaan 4
+   - oikeutetun edun tasapainotesti muistioksi repoon (seloste viittaa siihen)
+   - GitHubin siirtoperuste (Data Privacy Framework / vakiosopimuslausekkeet) tarkistetaan
+   - lopuksi: päivämäärä, kaikki `class="ph"`-kohdat ja luonnosilmoitus + noindex pois, linkki karttasivun lähdetietoihin
+     (`#src`) ja metsäpaneeliin (`metsa.js`), KAYTTOOHJE
+   **4** Lakimiehen katselmointi ennen metsätilojen julkistusta (painopisteet: kiinteistökohtainen puuston arvo €,
+   tunnistettavuus, oikeutettu etu).
 6. Toimintamoodit **Metsätilat** ja **Tontit** (suunniteltu 6.11.2026 omistajan kanssa, ei toteutettu; ei koodia ennen
    omistajan lupaa). Sama sivu, yläreunassa moodivalinta **Talot | Metsätilat | Tontit**. Yhteiset: taustakartta, kartan
    sijainti/zoom, myöhemmin osoitehaku. Moodikohtaiset: tasot, suodatinpaneeli, tietokortti. Moodi verkko-osoitteessa

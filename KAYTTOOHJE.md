@@ -241,8 +241,11 @@ Nämä ovat palvelun "avaimet". **Älä koskaan liitä avaimia tai salasanoja ke
 ## 11. Avoimet asiat ja suunnitelmat (6.11.2026)
 
 - **Tietosuojaseloste** – tehtävä ennen kuin palvelusta kerrotaan laajemmin (osoitteet ja kiinteistötunnukset voidaan yhdistää ihmisiin).
-  Ensimmäinen vaihe tehty 10.11.2026 (kirjastot ja fontit omalta sivulta). Kävijätilasto on tulossa: se valitaan
-  evästeettömäksi, jotta evästebanneria ei tarvita, ja se kuvataan selosteessa.
+  Ensimmäinen vaihe tehty 10.11.2026 (kirjastot ja fontit omalta sivulta). **Luonnos on julki** osoitteessa
+  https://vv-tec.github.io/Talokartta/tietosuoja.html (keltaiset kohdat täydennetään; ei vielä linkkiä kartalta eikä
+  näy hakukoneissa). Viimeistelyyn tarvitaan sinulta: rekisterinpitäjä ja yhteystiedot, kävijätilaston valinta
+  (evästeetön, jotta evästebanneria ei tarvita) ja piilotuspyyntöjen käsittelytapa. Ennen metsätilojen julkistusta
+  lakimiehen katselmointi.
 - Osoitehaku, oma verkko-osoite. (Kaikki Manner-Suomen maakunnat lisätty 6.11.2026.)
 - **Metsätilat ja tontit** (metsätilojen vaihe 1 tehty 6.11.2026, ks. kohta 12): sivulle uudet toimintamoodit Talot | Metsätilat | Tontit.
   Metsätila = kiinteistö, jolla yli 2 ha metsämaata; haku mm. alan, **puuston arvon** (viimeisimmän kuukauden kantohinnoilla),
