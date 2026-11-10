@@ -420,4 +420,10 @@ Haku GitHubissa (`kirjastot.yml`), koska Clauden kone ei tavoita npm:ää. pmtil
 - **OpenFreeMap:** ei IP-osoitteita tavallisissa lokeissa, lokit 7 pv, ei evästeitä; Hyperknot Software Kft. (Unkari),
   mahdollisesti Cloudflare CDN:nä. **GitHub Pages:** kävijän IP tallennetaan tietoturvasyistä. GitHubin seloste viittaa
   EU–USA Data Privacy Frameworkiin; vakiosopimuslausekkeet (GitHubin blogi 2020).
+- **Karttaselain (AccelBit Oy, Oulu; karttaselain.fi/privacy):** näyttää Metsäkeskuksen avointa metsävaratietoa
+  kuvioittain kiinteistötunnusten kanssa (ei euroja) → suomalainen kaupallinen ennakkotapaus samalle yhdistelmälle.
+  Peruste oikeutettu etu (avoimen maa- ja metsätiedon tarjoaminen karttapalveluna; viittaa elinkeinovapauteen).
+  Selosteessa todetaan, ettei tiedoissa ole omistajien nimiä, yhteystietoja eikä henkilötunnuksia, ja että **käyttäjä
+  vastaa tietosuojavelvoitteista**, jos yhdistää tiedot nimettyyn henkilöön (sama lauseke lisätty Talokartan luonnokseen).
+  Ei piilotus- tai vastustamismenettelyä maanomistajille (Talokartta tarjoaa). Siirto USA:han DPF:n varassa.
 
