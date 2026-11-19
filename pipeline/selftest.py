@@ -434,6 +434,7 @@ def ryhti_store_tests(parcels):
             counts.update({("open_building", ryhti.changed_filter("2026-11-10T08:50:55Z")): 3_800_000,
                            ("open_building", ryhti.changed_filter("2026-11-11T00:00:00Z", "2026-11-12T00:00:00Z")):
                            RYHTI_MASS_CHANGE + 1})
+            ryhti_store.print = lambda *x, **k: None  # testin ::warning ei näy ajon yhteenvedossa
             now = dt.datetime(2026, 11, 13, 3, 0, tzinfo=dt.timezone.utc)
             assert st.windows("open_building", "2026-11-10T08:50:55Z", now=now) == [
                 ("2026-11-10T08:50:55Z", "2026-11-11T00:00:00Z"), ("2026-11-12T00:00:00Z", "2026-11-13T00:00:00Z"),
@@ -443,7 +444,7 @@ def ryhti_store_tests(parcels):
             calls.clear(); st.changes("2026-11-10T08:50:55Z", {"834"})
             starts = [c[1] for c in calls]  # massapäivä 11.11. ohitettu, viimeinen väli avoin (ei loppua)
             assert starts[:2] == ["2026-11-10T08:50:55Z", "2026-11-12T00:00:00Z"] and len(calls[-1]) == 2, calls
-            counts.clear()
+            counts.clear(); del ryhti_store.print
             # kuukauden päästä: täysi haku 1/30 kunnista (vähintään yksi), vanhin ensin; muut muutoshaulla
             calls.clear()
             st = mk(day + dt.timedelta(days=31)); st.update(["834", "235"])
