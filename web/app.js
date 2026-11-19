@@ -452,9 +452,10 @@ function initControls() {
   buildCats();
   buildShore();
 
-  document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+  // Värityksen valinta (Tyypin / Käytön mukaan); ei koske yläreunan moodivalintaa (.seg.mode, metsa.js)
+  document.querySelectorAll(".seg:not(.mode) button").forEach((b) => b.addEventListener("click", () => {
     state.colorMode = b.dataset.mode;
-    document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    document.querySelectorAll(".seg:not(.mode) button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     applyColors();
   }));
   $("reset").addEventListener("click", () => {
