@@ -390,11 +390,13 @@ def ryhti_store_tests(parcels):
            "cb": [], "ca": [], "da": [], "for": []}
     calls = []
     orig = {k: getattr(ryhti, k) for k in ("buildings", "addresses", "changed_buildings", "changed_addresses",
-                                            "deleted_addresses", "addresses_for")}
+                                            "deleted_addresses", "addresses_for", "count")}
+    counts = {}  # muutoshaun määrät ehdoittain (oletus pieni)
+    ryhti.count = lambda col, flt: counts.get((col, flt), 10)
     ryhti.buildings = lambda m: calls.append(("full", m)) or [dict(x) for x in src["b"][m]]
     ryhti.addresses = lambda m: [dict(x) for x in src["a"][m]]
-    ryhti.changed_buildings = lambda since: calls.append(("delta", since)) or src["cb"]
-    ryhti.changed_addresses = lambda since: src["ca"]
+    ryhti.changed_buildings = lambda since, until=None: calls.append(("delta", since) + ((until,) if until else ())) or src["cb"]
+    ryhti.changed_addresses = lambda since, until=None: src["ca"]
     ryhti.deleted_addresses = lambda since: src["da"]
     ryhti.addresses_for = lambda keys: [x for x in src["for"] if x["building_key"] in keys]
     try:
@@ -423,6 +425,22 @@ def ryhti_store_tests(parcels):
             src["da"] = [{"address_key": "a4"}]
             st.changes("2026-11-02T00:00:00Z", {"834"})
             assert [x["address_fin"] for x in st.addresses()] == ["Tie 1 A"]
+            # Ryhtin massapäivitys (11.11.2026): muutoshaku päivittäin, massapäivä ohitetaan
+            from .config import RYHTI_MASS_CHANGE
+            assert ryhti.changed_filter("A", "B") == "modified_timestamp_utc > 'A' AND modified_timestamp_utc <= 'B'"
+            counts.update({("open_building", ryhti.changed_filter("2026-11-10T08:50:55Z")): 3_800_000,
+                           ("open_building", ryhti.changed_filter("2026-11-11T00:00:00Z", "2026-11-12T00:00:00Z")):
+                           RYHTI_MASS_CHANGE + 1})
+            now = dt.datetime(2026, 11, 13, 3, 0, tzinfo=dt.timezone.utc)
+            assert st.windows("open_building", "2026-11-10T08:50:55Z", now=now) == [
+                ("2026-11-10T08:50:55Z", "2026-11-11T00:00:00Z"), ("2026-11-12T00:00:00Z", "2026-11-13T00:00:00Z"),
+                ("2026-11-13T00:00:00Z", None)], st.stats
+            assert st.stats["mass"] == [f"open_building 2026-11-11 ({RYHTI_MASS_CHANGE + 1})"]
+            assert st.windows("open_address", "2026-11-10T08:50:55Z", now=now) == [("2026-11-10T08:50:55Z", None)]
+            calls.clear(); st.changes("2026-11-10T08:50:55Z", {"834"})
+            starts = [c[1] for c in calls]  # massapäivä 11.11. ohitettu, viimeinen väli avoin (ei loppua)
+            assert starts[:2] == ["2026-11-10T08:50:55Z", "2026-11-12T00:00:00Z"] and len(calls[-1]) == 2, calls
+            counts.clear()
             # kuukauden päästä: täysi haku 1/30 kunnista (vähintään yksi), vanhin ensin; muut muutoshaulla
             calls.clear()
             st = mk(day + dt.timedelta(days=31)); st.update(["834", "235"])

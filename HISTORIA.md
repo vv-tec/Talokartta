@@ -427,3 +427,15 @@ Haku GitHubissa (`kirjastot.yml`), koska Clauden kone ei tavoita npm:ää. pmtil
   vastaa tietosuojavelvoitteista**, jos yhdistää tiedot nimettyyn henkilöön (sama lauseke lisätty Talokartan luonnokseen).
   Ei piilotus- tai vastustamismenettelyä maanomistajille (Talokartta tarjoaa). Siirto USA:han DPF:n varassa.
 
+
+## Ryhtin massapäivitys ja yöajon jumi 13.–19.11.2026
+
+- Talokartan yöajo aikakatkaistiin (210 min) 13.11. alkaen joka yö (18.11. lisäksi katkennut JSON-vastaus); sivulla pysyi
+  12.11. tieto. Metsakartta toimi koko ajan.
+- Syy (selvitysajo `ryhti_explore delta`, päivittäiset numberMatched): Ryhti muutti 11.11.2026 (UTC) **kaikkien
+  3 794 741 rakennuksen** `modified_timestamp_utc`:n. Muutoshaku "muutettu 10.11. jälkeen" palautti ~3,8 milj. kohdetta
+  1 000 kpl sivuina → ei ehdi. Koska ajo ei onnistunut, `mark` jäi 11.11. kohdalle ja sama toistui joka yö.
+  Tavalliset määrät: rakennuksia 1 900–3 900 / arkipäivä, viikonloppuna 10–40; osoitteissa massapäivä 9.11. (219 502, meni läpi).
+- Korjaus 19.11.2026: `ryhti.count` (numberMatched, limit 1); jos muutoksia > `config.RYHTI_MASS_CHANGE` (500 000),
+  `RyhtiStore.windows` jakaa haun UTC-päiviin ja ohittaa massapäivät (`::warning`, stats `mass`). Ohitetun päivän todelliset
+  muutokset tulevat kuntien 30 pv täysissä hauissa. `_paged` yrittää katkenneen JSON-vastauksen uudelleen (3 kertaa).

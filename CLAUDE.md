@@ -36,7 +36,8 @@ Mittaukset, koeajot ja päätösten tausta: `HISTORIA.md` (arkisto; lisää sinn
     muuttunutta rakennusta/vrk). `properties`-parametri toimii osoitteille, rakennuksille ohitetaan.
   - `ryhti_store.py` – tila `cache/ryhti.json.gz` (vain asuinrakennukset kevennettyinä). Kunta haetaan kokonaan, jos puuttuu
     tai yli `RYHTI_FULL_DAYS` (30) pv vanha; muuten koko maan muutokset edellisen tallessa olevan jälkeen (1 pv päällekkäisyys),
-    uusille rakennuksille osoitteet erikseen. Poistetut siivoutuvat kunnan seuraavassa täydessä haussa, joka lokittaa erot
+    uusille rakennuksille osoitteet erikseen. **Massapäivitys** (yli `RYHTI_MASS_CHANGE` 500 000 muutosta, sattui 11.11.2026 kaikille
+    rakennuksille → yöajo jumissa viikon): `RyhtiStore.windows` hakee päivä kerrallaan ja ohittaa massapäivät (`::warning`). Poistetut siivoutuvat kunnan seuraavassa täydessä haussa, joka lokittaa erot
     ("erot tallessa olleeseen: …") muutoshaun luotettavuuden seurantaan. Täysiä hakuja enintään `RYHTI_TIME_BUDGET_MIN` (60) min.
   - `yhteiset/mml_files.py` – **palstalähde**: MML:n tiedostopalvelu (OGC API Processes,
     `https://avoin-paikkatieto.maanmittauslaitos.fi/tiedostopalvelu/ogcproc/v1`), prosessi

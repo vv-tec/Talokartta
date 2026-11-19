@@ -14,6 +14,7 @@ import math
 import os
 import time
 
+from ..config import RYHTI_MASS_CHANGE
 from ..yhteiset import ryhti
 
 FIELDS = ("building_key", "permanent_building_identifier", "property_identifier", "completion_date", "main_purpose",
@@ -47,7 +48,7 @@ class RyhtiStore:
                 self.data = json.load(f)
             log(f"  Ryhti tallessa: {len(self.data['b'])} rakennusta, {len(self.data['a'])} osoitetta, "
                 f"viimeisin muutos {self.data['mark']}")
-        self.stats = {"full": [], "drift": {}, "changed_b": 0, "changed_a": 0, "removed_b": 0, "removed_a": 0}
+        self.stats = {"full": [], "drift": {}, "changed_b": 0, "changed_a": 0, "removed_b": 0, "removed_a": 0, "mass": []}
         self.missing = []
 
     def _mark(self, ts):
@@ -85,11 +86,44 @@ class RyhtiStore:
         self.log(msg)
         return n
 
+    def windows(self, collection, since, now=None):
+        """Muutoshaun aikavälit [(alku, loppu tai None)]. Tavallisesti yksi väli. Jos Ryhti on muuttanut kerralla
+        valtavan määrän kohteita (yli RYHTI_MASS_CHANGE, esim. 11.11.2026 kaikki rakennukset), haku jaetaan päiviin
+        ja massapäivät ohitetaan: muuten yöajo yrittäisi ladata koko rekisterin muutoksina joka yö."""
+        n = ryhti.count(collection, ryhti.changed_filter(since))
+        if n is None or n <= RYHTI_MASS_CHANGE:
+            return [(since, None)]
+        now = now or dt.datetime.now(dt.timezone.utc)
+        out, skipped = [], []
+        a = since
+        while True:
+            start = dt.datetime.fromisoformat(a.replace("Z", "+00:00"))
+            if start >= now:
+                break
+            end = dt.datetime.combine(start.date() + dt.timedelta(days=1), dt.time(), dt.timezone.utc)
+            b = end.strftime("%Y-%m-%dT%H:%M:%SZ") if end < now else None
+            m = ryhti.count(collection, ryhti.changed_filter(a, b))
+            if m is not None and m > RYHTI_MASS_CHANGE:
+                skipped.append(f"{start.date()} ({m})")
+            else:
+                out.append((a, b))
+            if b is None:
+                break
+            a = b
+        if skipped:
+            self.stats["mass"].extend(f"{collection} {x}" for x in skipped)
+            msg = (f"Ryhti: {collection} massapäivitys ohitettiin muutoshaussa: {', '.join(skipped)}; "
+                   f"kunnat tarkentuvat kuukausittaisissa täysissä hauissa")
+            self.log(f"  {msg}")
+            print(f"::warning::{msg}", flush=True)
+        return out
+
     def changes(self, since, munis):
         """Muutokset koko maasta aikaleiman since jälkeen; vain annettujen kuntien kohteet tallennetaan."""
         d, st = self.data, self.stats
         new = set()
-        for p in ryhti.changed_buildings(since):
+        for p in (p for a, b in self.windows("open_building", since)
+                  for p in (ryhti.changed_buildings(a, b) if b else ryhti.changed_buildings(a))):
             self._mark(p.get("modified_timestamp_utc"))
             if p.get("municipality_number") not in munis:
                 continue
@@ -101,7 +135,8 @@ class RyhtiStore:
                 d["b"][k] = slim(p)
             elif d["b"].pop(k, None) is not None:
                 st["removed_b"] += 1
-        for a in ryhti.changed_addresses(since):
+        for a in (a for w0, w1 in self.windows("open_address", since)
+                  for a in (ryhti.changed_addresses(w0, w1) if w1 else ryhti.changed_addresses(w0))):
             self._mark(a.get("modified_timestamp_utc"))
             if a.get("municipality_number") not in munis or not a.get("address_key"):
                 continue

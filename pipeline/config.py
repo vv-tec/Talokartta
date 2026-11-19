@@ -362,6 +362,11 @@ PARCEL_MAX_AGE_DAYS = 14    # kunnan palstat haetaan uudelleen kahden viikon vä
 NEW_BUILDINGS_MAX_PER_RUN = 500  # uusien rakennusten palstatieto heti pienillä aluehauilla (INSPIRE WFS), enintään näin monta per ajo
 RYHTI_FULL_DAYS = 30        # kunta haetaan Ryhtistä kokonaan kuukauden välein (1/30 kunnista per yö); muuten vain muutokset
 RYHTI_TIME_BUDGET_MIN = 60   # Ryhtin täysiä kuntahakuja tehdään enintään näin kauan ajon alusta; loput seuraavalla ajolla
+# Ryhtin massapäivitys (11.11.2026 kaikkien 3,8 milj. rakennuksen aikaleima muuttui kerralla → yöajo jumittui viikoksi):
+# jos muutoshaku palauttaisi yli näin monta kohdetta, se tehdään päivä kerrallaan ja massapäivät ohitetaan.
+# Ohitettujen päivien todelliset muutokset tulevat kuntien kuukausittaisissa täysissä hauissa (RYHTI_FULL_DAYS).
+# Tavallisesti muutoksia on 2 000–7 000 / vrk.
+RYHTI_MASS_CHANGE = 500_000
 # RANTA (irrotettava lisäosa): maakunnat, joille lasketaan "oma ranta" -tieto. Tyhjä lista = pois päältä kokonaan.
 # Lisätään maakunta kerrallaan; käyttöönotto hakee maakunnan kuntien palstat heti uudelleen rantalaskentaa varten.
 SHORE_REGIONS = ["Kanta-Häme", "Pirkanmaa", "Päijät-Häme", "Satakunta", "Uusimaa", "Varsinais-Suomi", "Keski-Suomi",

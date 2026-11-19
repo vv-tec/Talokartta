@@ -6,7 +6,7 @@ Kehittäjän (Clauden) tekninen muistio on tiedostossa [CLAUDE.md](CLAUDE.md).
 
 - **Sivu:** https://vv-tec.github.io/Talokartta/
 - **Koodi ja asetukset:** https://github.com/vv-tec/Talokartta
-- **Päivitetty viimeksi:** 10.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
+- **Päivitetty viimeksi:** 19.11.2026 (Claude päivittää tämän ohjeen, kun toiminta muuttuu)
 
 ---
 
@@ -84,6 +84,7 @@ Ilmoituksessa (GitHubin Issues ja sähköposti) lukee **Kohta** (mikä vaihe ep�
 | Syy mainitsee **401** tai **403** ja Maanmittauslaitoksen | API-avain ei kelpaa. Katso kohta 7, "Maanmittauslaitoksen API-avain". |
 | "on X Mt, yli GitHub Pagesin rajan" | Jokin karttatiedosto kasvoi liian suureksi. Pyydä Claudea jakamaan alue pienempiin osiin. |
 | Kohta on **deploy** (julkaisu), syy esim. "Timeout reached" | GitHub Pages jumittui sivua päivittäessään (sattunut 5.11. ja 6.11.2026). Ei mitään: seuraava yöajo julkaisee. Jos haluat heti, käynnistä ajo käsin (kohta 5). |
+| Syy **"has timed out after 210 minutes"** kohdassa *Hae rekisteritiedot ja tee karttatiilet* useana yönä | Sattui 13.–19.11.2026: Ryhti päivitti kerralla kaikkien rakennusten muutosajan, ja yöajo yritti ladata koko rekisterin. Korjattu 19.11.2026: tällaiset massapäivitykset ohitetaan nyt automaattisesti (ajon yhteenvetoon tulee keltainen varoitus "massapäivitys ohitettiin", ei ilmoitusta). Jos aikakatkaisu silti toistuu, pyydä Claudea katsomaan. |
 | "Koe-epäonnistuminen" | Testiajo, joka pysäytettiin tarkoituksella. Ei toimenpiteitä. |
 | Otsikko **"Talokartan sivun tarkistus löysi ongelman"** (kohta **check / sivu**) | Tiedot päivittyivät, mutta automaattinen tarkistus huomasi, ettei kaikki sivulla toimi. Syy kertoo mikä, esim. "Taustakartta" (OpenFreeMap katkolla), "JavaScript-virheet" tai "Rovaniemen keskusta: ei yhtään rakennusta". Avaa sivu itse ja katso. Kuvakaappaukset: ajon sivun alareunassa **Artifacts → sivutarkistus** (zip). Tarkistus yrittää jo kahdesti, joten tilapäinen katko ei hälytä. Pyydä Claudea selvittämään ja liitä ilmoituksen teksti. |
 

@@ -1,6 +1,7 @@
 """Rakennukset ja osoitteet SYKE:n Ryhti-järjestelmän avoimesta OGC API Features -rajapinnasta."""
 from ..config import EXCLUDED_STATUS, RESIDENTIAL, RYHTI_BASE
 from .net import get
+import time
 
 CRS_3067 = "http://www.opengis.net/def/crs/EPSG/0/3067"
 
@@ -9,10 +10,31 @@ def _paged(collection, params, page=1000):
     url = f"{RYHTI_BASE}/{collection}/items"
     q = {"f": "application/json", "limit": str(page), "filter-lang": "cql-text", **params}
     while url:
-        j = get(url, q).json()
+        for attempt in range(3):  # katkennut vastaus (todettu 18.11.2026: "Unterminated string") → uusi yritys
+            try:
+                j = get(url, q).json()
+                break
+            except ValueError:
+                if attempt == 2:
+                    raise
+                time.sleep(30)
         yield from j.get("features", [])
         nxt = next((l["href"] for l in j.get("links", []) if l.get("rel") == "next"), None)
         url, q = nxt, None  # next-linkissä on parametrit valmiina
+
+
+def count(collection, flt):
+    """Ehdon täyttävien kohteiden määrä (numberMatched) yhdellä kevyellä pyynnöllä; None, jos palvelu ei kerro."""
+    j = get(f"{RYHTI_BASE}/{collection}/items", {"f": "application/json", "limit": "1", "filter-lang": "cql-text",
+                                                  "filter": flt}).json()
+    n = j.get("numberMatched")
+    return n if isinstance(n, int) else None
+
+
+def changed_filter(since, until=None):
+    """Muutoshaun ehto: muutettu aikaleiman since jälkeen (ja enintään until)."""
+    flt = f"modified_timestamp_utc > '{since}'"
+    return flt + (f" AND modified_timestamp_utc <= '{until}'" if until else "")
 
 
 def code(uri):
@@ -51,8 +73,8 @@ def addresses(municipality):
         yield f["properties"]
 
 
-def changed_addresses(since):
-    for f in _paged("open_address", {"filter": f"modified_timestamp_utc > '{since}'", "properties": ADDR_PROPS}, page=2000):
+def changed_addresses(since, until=None):
+    for f in _paged("open_address", {"filter": changed_filter(since, until), "properties": ADDR_PROPS}, page=2000):
         yield f["properties"]
 
 
