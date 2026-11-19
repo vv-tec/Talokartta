@@ -14,6 +14,21 @@ from ..yhteiset.net import get
 
 def delta():
     """Testaa muutoshakua: toimiiko aikaleimasuodatus ja millaisia määriä palautuu."""
+    import datetime as _dt
+    import time as _t
+    today = _dt.date.today()
+    for i in range(12, -1, -1):  # muutosmäärät päivittäin (numberMatched) ja vastausaika
+        a, b = today - _dt.timedelta(days=i), today - _dt.timedelta(days=i - 1)
+        for col in ("open_building", "open_address"):
+            flt = f"modified_timestamp_utc > '{a}T00:00:00Z' AND modified_timestamp_utc < '{b}T00:00:00Z'"
+            t0 = _t.time()
+            try:
+                j = get(f"{RYHTI_BASE}/{col}/items", {"f": "application/json", "limit": "1000", "filter-lang": "cql-text",
+                                                       "filter": flt}, tries=1, timeout=300).json()
+                print(f"PAIVA {a} {col}: numberMatched={j.get('numberMatched')} sivulla={len(j.get('features', []))} "
+                      f"{_t.time() - t0:.0f} s", flush=True)
+            except Exception as e:  # noqa: BLE001
+                print(f"PAIVA {a} {col}: VIRHE {_t.time() - t0:.0f} s {str(e)[:200]}", flush=True)
     tests = [
         ("open_building", "modified_timestamp_utc > '2026-11-01T00:00:00Z'"),
         ("open_building", "modified_timestamp_utc AFTER 2026-11-01T00:00:00Z"),
