@@ -427,6 +427,9 @@ def ryhti_store_tests(parcels):
             assert [x["address_fin"] for x in st.addresses()] == ["Tie 1 A"]
             # Ryhtin massapäivitys (11.11.2026): muutoshaku päivittäin, massapäivä ohitetaan
             from .config import RYHTI_MASS_CHANGE
+            import inspect  # oikeat hakufunktiot (ei testikorvikkeet) hyväksyvät aikavälin lopun
+            for k in ("changed_buildings", "changed_addresses"):
+                assert "until" in inspect.signature(orig[k]).parameters, k
             assert ryhti.changed_filter("A", "B") == "modified_timestamp_utc > 'A' AND modified_timestamp_utc <= 'B'"
             counts.update({("open_building", ryhti.changed_filter("2026-11-10T08:50:55Z")): 3_800_000,
                            ("open_building", ryhti.changed_filter("2026-11-11T00:00:00Z", "2026-11-12T00:00:00Z")):

@@ -60,9 +60,9 @@ def buildings(municipality):
     return _buildings(f"municipality_number='{municipality}'")
 
 
-def changed_buildings(since):
-    """Koko maan rakennukset, joita on muutettu aikaleiman since (ISO, UTC) jälkeen."""
-    return _buildings(f"modified_timestamp_utc > '{since}'")
+def changed_buildings(since, until=None):
+    """Koko maan rakennukset, joita on muutettu aikaleiman since (ISO, UTC) jälkeen (ja enintään until)."""
+    return _buildings(changed_filter(since, until))
 
 
 ADDR_PROPS = "address_key,building_key,address_fin,postal_code,postal_office_fin,municipality_number,modified_timestamp_utc"
