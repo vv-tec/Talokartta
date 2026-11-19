@@ -439,3 +439,11 @@ Haku GitHubissa (`kirjastot.yml`), koska Clauden kone ei tavoita npm:ää. pmtil
 - Korjaus 19.11.2026: `ryhti.count` (numberMatched, limit 1); jos muutoksia > `config.RYHTI_MASS_CHANGE` (500 000),
   `RyhtiStore.windows` jakaa haun UTC-päiviin ja ohittaa massapäivät (`::warning`, stats `mass`). Ohitetun päivän todelliset
   muutokset tulevat kuntien 30 pv täysissä hauissa. `_paged` yrittää katkenneen JSON-vastauksen uudelleen (3 kertaa).
+
+## Moodinappi 19.11.2026
+
+- Omistaja: "Metsätilat"-napin klikkaus ei vaihtanut näkymää. Ei toistunut (GitHubin testiselain eikä omistajan koneen
+  sisäänrakennettu selain, iso näyttö ja puhelinkoko, lähi- ja kaukonäkymä) → todennäköisesti selaimen vanha välimuisti tai
+  klikkaus ennen sivun latautumista. Löytyi sivuvika: värityksen valinnan käsittelijä oli kytketty myös moodinappeihin
+  (`.seg button`) → moodin vaihto nollasi talojen värityksen. Korjattu (`.seg:not(.mode) button`).
+- Tarkistukseen (`metsa_tarkistus.mjs`) lisätty napin klikkaus talonäkymästä metsätiloihin (ennen vain osoitteella `?moodi=metsa`).
