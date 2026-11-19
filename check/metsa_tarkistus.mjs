@@ -146,10 +146,54 @@ async function runTalo(browser, ok) {
     const lines = await page.evaluate(() => (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-line$/.test(l.id))
       .filter((l) => map.getLayoutProperty(l.id, "visibility") !== "none").length);
     ok("Talokartta: tilojen rajat näkyvät myös talonäkymässä", lines > 0, `${lines} rajatasoa`);
+    // Moodinapin klikkaus talonäkymästä metsätiloihin (19.11.2026: omistajan havainto, napin klikkaus ei vaihtanut näkymää)
+    const modeState = () => page.evaluate(() => ({
+      active: window.Metsa?.active,
+      houses: B_LAYERS.filter((l) => map.getLayoutProperty(l, "visibility") !== "none").length,
+      fills: (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id))
+        .filter((l) => map.getLayoutProperty(l.id, "visibility") !== "none").length,
+      fpanel: !document.querySelector("#fpanel").hidden,
+      pressed: document.querySelector('#modeSwitch button[data-m="metsa"]').getAttribute("aria-pressed"),
+      color: state.colorMode,
+    }));
+    await page.click('#modeSwitch button[data-m="metsa"]');
+    await idle(page);
+    const ms = await modeState();
+    ok("Talokartta: Metsätilat-nappi vaihtaa näkymän", ms.active && ms.houses === 0 && ms.fills > 0 && ms.fpanel
+      && ms.pressed === "true" && ms.color === "type", JSON.stringify(ms));
   } catch (e) {
     ok("Talokartta: metsätilanäkymä toimii", false, String(e.message || e).slice(0, 200));
   }
   ok("Talokartta: ei JavaScript-virheitä", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await page.close();
+  await runTaloFromHouses(browser, ok);
+}
+
+// Avaus talonäkymässä (?moodi=talot) ja siirtyminen metsätiloihin napista – kuten käyttäjä tekee.
+async function runTaloFromHouses(browser, ok) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e.message || e).slice(0, 300)));
+  try {
+    await page.goto(TALO + "?moodi=talot&t=" + Date.now() + "#kartta=12/60.75/23.85", { waitUntil: "load", timeout: TIMEOUT });
+    await page.waitForFunction(() => window.Metsa?.meta && (map.getStyle()?.layers || []).some((l) => /^metsa-.*-fill$/.test(l.id)), null, { timeout: TIMEOUT });
+    await idle(page);
+    await page.click('#modeSwitch button[data-m="metsa"]');
+    await idle(page);
+    const ms = await page.evaluate(() => ({
+      active: window.Metsa?.active,
+      houses: B_LAYERS.filter((l) => map.getLayoutProperty(l, "visibility") !== "none").length,
+      fills: (map.getStyle()?.layers || []).filter((l) => /^metsa-.*-fill$/.test(l.id))
+        .filter((l) => map.getLayoutProperty(l.id, "visibility") !== "none").length,
+      fpanel: !document.querySelector("#fpanel").hidden,
+      url: location.search,
+    }));
+    ok("Talokartta: talonäkymästä Metsätilat-napilla metsätiloihin", ms.active && ms.houses === 0 && ms.fills > 0 && ms.fpanel
+      && /moodi=metsa/.test(ms.url), JSON.stringify(ms));
+  } catch (e) {
+    ok("Talokartta: talonäkymästä Metsätilat-napilla metsätiloihin", false, String(e.message || e).slice(0, 200));
+  }
+  ok("Talokartta (talonäkymästä): ei JavaScript-virheitä", errors.length === 0, errors.slice(0, 3).join(" | "));
   await page.close();
 }
 
